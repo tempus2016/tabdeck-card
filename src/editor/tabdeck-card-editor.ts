@@ -259,6 +259,15 @@ export class TabdeckCardEditor extends LitElement {
           </label>
           <label class="checkbox"
             ><input
+              class="global-animated"
+              type="checkbox"
+              .checked=${cfg.animated}
+              @change=${(e: any) => this._patch({ animated: e.target.checked })}
+            />
+            Animate indicator
+          </label>
+          <label class="checkbox"
+            ><input
               class="global-swipe"
               type="checkbox"
               .checked=${cfg.swipe}
