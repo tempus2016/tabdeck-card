@@ -66,6 +66,26 @@ describe("tabdeck-tabbar", () => {
     expect(el.shadowRoot.querySelector(".indicator").style.opacity).toBe("0");
   });
 
+  it("positions the indicator by selected index, not the reflected [selected] attribute", async () => {
+    const el = await mount();
+    const tabs = el.shadowRoot.querySelectorAll("tabdeck-tab");
+    tabs.forEach((t: HTMLElement, i: number) => {
+      Object.defineProperty(t, "offsetLeft", { value: i * 100, configurable: true });
+      Object.defineProperty(t, "offsetTop", { value: 0, configurable: true });
+      Object.defineProperty(t, "offsetWidth", { value: 100, configurable: true });
+      Object.defineProperty(t, "offsetHeight", { value: 48, configurable: true });
+    });
+    el.selected = 2;
+    await el.updateComplete;
+    // Simulate the child-reflection race: a child tab reflects `selected` to its
+    // attribute in its own async update, which runs after the parent's updated().
+    // So at position-time the stale attribute can sit on the wrong tab.
+    tabs.forEach((t: HTMLElement) => t.removeAttribute("selected"));
+    tabs[0].setAttribute("selected", "");
+    el["_position"]();
+    expect(el.shadowRoot.querySelector(".indicator").style.left).toBe("200px");
+  });
+
   it("adds the animate class after first paint when animated (default)", async () => {
     const el = await mount();
     await nextFrame();

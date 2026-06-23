@@ -74,7 +74,12 @@ export class TabdeckTabbar extends LitElement {
     const root = this.renderRoot as ParentNode | undefined;
     const indicator = root?.querySelector(".indicator") as HTMLElement | null;
     if (!indicator) return;
-    const tab = root?.querySelector("tabdeck-tab[selected]") as HTMLElement | null;
+    // Address the selected tab by index — `this.selected` is the source of
+    // truth. Don't query `[selected]`: each child reflects that attribute in its
+    // own async update, which runs after this parent's updated(), so at this
+    // point the attribute can still sit on the previously-selected tab.
+    const tabs = root?.querySelectorAll("tabdeck-tab");
+    const tab = tabs?.[this.selected] as HTMLElement | undefined;
     const rect = tab
       ? computeIndicatorRect(
           {
