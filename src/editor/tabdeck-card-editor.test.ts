@@ -174,7 +174,7 @@ describe("tabdeck-card-editor", () => {
     expect(cb.checked).toBe(true);
     cb.checked = false;
     cb.dispatchEvent(new Event("change"));
-    expect(handler.mock.calls.at(-1)[0].detail.config.animated).toBe(false);
+    expect(handler.mock.calls.at(-1)![0].detail.config.animated).toBe(false);
   });
 
   it("toggles the global lazy option", async () => {
