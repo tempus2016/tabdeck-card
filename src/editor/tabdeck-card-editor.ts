@@ -295,7 +295,7 @@ export class TabdeckCardEditor extends LitElement {
                     class="tab-badge"
                     type="text"
                     .value=${tab.badge ?? ""}
-                    placeholder="Badge entity (e.g. sensor.unread)"
+                    placeholder="Badge: sensor.unread or {{ template }}"
                     @input=${(e: any) =>
                       this._patchTab(index, { badge: e.target.value || undefined })}
                   />

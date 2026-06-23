@@ -97,3 +97,96 @@ describe("tabdeck-card", () => {
     expect(entry.preview).toBe(true);
   });
 });
+
+// A hass with a controllable render_template subscription, so tests can push
+// rendered values synchronously.
+function hassWithTemplates() {
+  const subs: any[] = [];
+  const hass = {
+    states: {},
+    connection: {
+      subscribeMessage: (cb: any, msg: any) => {
+        subs.push({ cb, template: msg.template });
+        return Promise.resolve(() => {});
+      },
+    },
+  };
+  const push = (match: string, message: any) => {
+    for (const s of subs) if (s.template.includes(match)) s.cb(message);
+  };
+  return { hass, subs, push };
+}
+
+async function mountWith(raw: any, hass: any) {
+  await import("./tabdeck-card");
+  const el = document.createElement("tabdeck-card") as any;
+  el.setConfig(raw);
+  document.body.appendChild(el);
+  el.hass = hass;
+  await el.updateComplete;
+  await new Promise((r) => setTimeout(r, 0));
+  await el.updateComplete;
+  return el;
+}
+
+describe("tabdeck-card templates", () => {
+  it("renders a badge from a template once it resolves", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      { tabs: [{ name: "A", badge: "{{ states('sensor.x') }}", card: { type: "markdown" } }] },
+      hass,
+    );
+    const bar = () => el.shadowRoot.querySelector("tabdeck-tabbar");
+    expect(bar().items[0].badge).toBeUndefined();
+    push("sensor.x", { result: "7" });
+    await el.updateComplete;
+    expect(bar().items[0].badge).toBe("7");
+  });
+
+  it("hides a tab with a template condition until it renders true", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      {
+        tabs: [
+          { name: "A", card: { type: "markdown" } },
+          {
+            name: "B",
+            card: { type: "light" },
+            visibility: [{ condition: "template", value_template: "{{ is_state('x.y','on') }}" }],
+          },
+        ],
+      },
+      hass,
+    );
+    const bar = () => el.shadowRoot.querySelector("tabdeck-tabbar");
+    expect(bar().items).toHaveLength(1);
+    expect(bar().items[0].name).toBe("A");
+    push("x.y", { result: "on" });
+    await el.updateComplete;
+    expect(bar().items).toHaveLength(2);
+  });
+
+  it("treats a template error as fail-closed for visibility", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      {
+        tabs: [
+          { name: "A", card: { type: "markdown" } },
+          {
+            name: "B",
+            card: { type: "light" },
+            visibility: [{ condition: "template", value_template: "{{ broken " }],
+          },
+        ],
+      },
+      hass,
+    );
+    const bar = () => el.shadowRoot.querySelector("tabdeck-tabbar");
+    push("broken", { result: "on" });
+    await el.updateComplete;
+    expect(bar().items).toHaveLength(2);
+    push("broken", { error: "TemplateError: bad" });
+    await el.updateComplete;
+    expect(bar().items).toHaveLength(1);
+  });
+});
