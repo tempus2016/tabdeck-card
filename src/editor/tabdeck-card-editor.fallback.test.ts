@@ -25,7 +25,7 @@ describe("tabdeck-card-editor JSON fallback", () => {
     ta.value = '{"type":"light","entity":"light.kitchen"}';
     ta.dispatchEvent(new Event("change"));
     expect(handler).toHaveBeenCalled();
-    expect(handler.mock.calls.at(-1)[0].detail.config.tabs[0].card).toEqual({
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].card).toEqual({
       type: "light",
       entity: "light.kitchen",
     });

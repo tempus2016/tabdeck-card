@@ -94,12 +94,12 @@ describe("tabdeck-card-editor", () => {
     const accent = el.shadowRoot.querySelector(".tab-accent");
     accent.value = "#ff0000";
     accent.dispatchEvent(new Event("input"));
-    expect(handler.mock.calls.at(-1)[0].detail.config.tabs[0].accent).toBe("#ff0000");
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].accent).toBe("#ff0000");
 
     const badge = el.shadowRoot.querySelector(".tab-badge");
     badge.value = "sensor.unread";
     badge.dispatchEvent(new Event("input"));
-    expect(handler.mock.calls.at(-1)[0].detail.config.tabs[0].badge).toBe("sensor.unread");
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].badge).toBe("sensor.unread");
   });
 
   it("shows an 'Edit card' button per tab and no raw JSON textarea in list view", async () => {
@@ -139,7 +139,7 @@ describe("tabdeck-card-editor", () => {
       }),
     );
     expect(handler).toHaveBeenCalledTimes(1);
-    const cfg = handler.mock.calls.at(-1)[0].detail.config;
+    const cfg = handler.mock.calls.at(-1)![0].detail.config;
     // full tabdeck config is emitted, not the bare card config
     expect(cfg.tabs).toHaveLength(1);
     expect(cfg.tabs[0].card).toEqual({ type: "light", entity: "light.kitchen" });
@@ -163,7 +163,7 @@ describe("tabdeck-card-editor", () => {
     const sel = el.shadowRoot.querySelector(".global-default-tab");
     sel.value = "B";
     sel.dispatchEvent(new Event("change"));
-    expect(handler.mock.calls.at(-1)[0].detail.config.default_tab).toBe("B");
+    expect(handler.mock.calls.at(-1)![0].detail.config.default_tab).toBe("B");
   });
 
   it("toggles the global animated option", async () => {
@@ -184,6 +184,6 @@ describe("tabdeck-card-editor", () => {
     const cb = el.shadowRoot.querySelector(".global-lazy");
     cb.checked = true;
     cb.dispatchEvent(new Event("change"));
-    expect(handler.mock.calls.at(-1)[0].detail.config.lazy).toBe(true);
+    expect(handler.mock.calls.at(-1)![0].detail.config.lazy).toBe(true);
   });
 });
