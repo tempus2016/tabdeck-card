@@ -633,6 +633,7 @@ function normalizeConfig(raw) {
     remember: pick(raw == null ? void 0 : raw.remember, REMEMBER, "none"),
     lazy: Boolean(raw == null ? void 0 : raw.lazy),
     animated: (raw == null ? void 0 : raw.animated) === void 0 ? true : Boolean(raw.animated),
+    swipe: Boolean(raw == null ? void 0 : raw.swipe),
     styles: (raw == null ? void 0 : raw.styles) ?? {},
     tabs: tabs.map(normalizeTab)
   };
@@ -845,6 +846,18 @@ class TemplateRenderer extends EventTarget {
     for (const e2 of this._entries.values()) e2.unsub();
     this._entries.clear();
   }
+}
+function detectSwipe(start, end, opts = {}) {
+  const minDistance = opts.minDistance ?? 50;
+  const maxDuration = opts.maxDuration ?? 800;
+  const ratio = opts.ratio ?? 1.5;
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const dt = end.t - start.t;
+  if (dt > maxDuration) return null;
+  if (Math.abs(dx) < minDistance) return null;
+  if (Math.abs(dx) < Math.abs(dy) * ratio) return null;
+  return dx < 0 ? "next" : "prev";
 }
 const THICKNESS = 3;
 function computeIndicatorRect(tab, position, style) {
@@ -1245,6 +1258,29 @@ let TabdeckCard = class extends i {
       var _a2;
       return (_a2 = this._templates) == null ? void 0 : _a2.boolean(tpl);
     };
+    this._onTouchStart = (e2) => {
+      var _a2;
+      if (!((_a2 = this._config) == null ? void 0 : _a2.swipe) || e2.touches.length !== 1) {
+        this._touchStart = void 0;
+        return;
+      }
+      const t2 = e2.touches[0];
+      this._touchStart = { x: t2.clientX, y: t2.clientY, t: e2.timeStamp };
+    };
+    this._onTouchEnd = (e2) => {
+      var _a2;
+      const start = this._touchStart;
+      this._touchStart = void 0;
+      if (!start || !((_a2 = this._config) == null ? void 0 : _a2.swipe)) return;
+      const t2 = e2.changedTouches[0];
+      if (!t2) return;
+      const dir = detectSwipe(start, { x: t2.clientX, y: t2.clientY, t: e2.timeStamp });
+      if (!dir) return;
+      const last = this._visibleTabs().length - 1;
+      const target = dir === "next" ? this._selected + 1 : this._selected - 1;
+      const clamped = Math.max(0, Math.min(last, target));
+      if (clamped !== this._selected) this._selectIndex(clamped);
+    };
   }
   static getStubConfig() {
     return {
@@ -1387,7 +1423,10 @@ let TabdeckCard = class extends i {
     return this._config ? this._config.tabs.indexOf(target) : 0;
   }
   _onSelect(e2) {
-    this._selected = e2.detail.index;
+    this._selectIndex(e2.detail.index);
+  }
+  _selectIndex(index) {
+    this._selected = index;
     const visible = this._visibleTabs();
     const tab = visible[this._selected];
     if (this._config) {
@@ -1434,7 +1473,13 @@ let TabdeckCard = class extends i {
       ></tabdeck-tabbar>
     `;
     const panels = b`
-      <div class="content" id="tabdeck-panel" role="tabpanel">
+      <div
+        class="content"
+        id="tabdeck-panel"
+        role="tabpanel"
+        @touchstart=${this._onTouchStart}
+        @touchend=${this._onTouchEnd}
+      >
         ${visible.map((tab, i2) => {
       var _a2;
       const original = cfg.tabs.indexOf(tab);
@@ -1748,6 +1793,15 @@ let TabdeckCardEditor = class extends i {
               @change=${(e2) => this._patch({ animated: e2.target.checked })}
             />
             Animate indicator
+          </label>
+          <label class="checkbox"
+            ><input
+              class="global-swipe"
+              type="checkbox"
+              .checked=${cfg.swipe}
+              @change=${(e2) => this._patch({ swipe: e2.target.checked })}
+            />
+            Swipe to change tabs (mobile)
           </label>
         </div>
 

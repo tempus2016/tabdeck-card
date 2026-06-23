@@ -22,6 +22,7 @@ export interface TabdeckCardConfig {
   remember: RememberMode;
   lazy: boolean;
   animated: boolean;
+  swipe: boolean;
   styles: Record<string, string>;
   tabs: TabdeckTabConfig[];
 }
@@ -61,6 +62,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     remember: pick(raw?.remember, REMEMBER, "none"),
     lazy: Boolean(raw?.lazy),
     animated: raw?.animated === undefined ? true : Boolean(raw.animated),
+    swipe: Boolean(raw?.swipe),
     styles: raw?.styles ?? {},
     tabs: tabs.map(normalizeTab),
   };

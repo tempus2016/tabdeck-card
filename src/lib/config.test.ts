@@ -9,6 +9,7 @@ describe("normalizeConfig", () => {
     expect(c.scrollable).toBe("auto");
     expect(c.remember).toBe("none");
     expect(c.lazy).toBe(false);
+    expect(c.swipe).toBe(false);
     expect(c.default_tab).toBe(0);
     expect(c.tabs).toHaveLength(1);
   });
