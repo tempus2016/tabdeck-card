@@ -1252,9 +1252,15 @@ var __decorateClass = (decorators, target, key, kind) => {
   if (kind && result) __defProp(target, key, result);
   return result;
 };
+function pickCardEditorTag(has) {
+  if (has("hui-card-element-editor")) return "hui-card-element-editor";
+  if (has("ha-yaml-editor")) return "ha-yaml-editor";
+  return "textarea-json";
+}
 let TabdeckCardEditor = class extends i {
   constructor() {
     super(...arguments);
+    this._editingTab = null;
     this._cardError = null;
   }
   setConfig(config) {
@@ -1308,8 +1314,85 @@ let TabdeckCardEditor = class extends i {
     [tabs[index], tabs[target]] = [tabs[target], tabs[index]];
     this._emit({ ...this._config, tabs });
   }
+  _openCard(index) {
+    this._cardError = null;
+    this._editingTab = index;
+  }
+  _closeCard() {
+    this._editingTab = null;
+  }
+  get _lovelace() {
+    return this.lovelace ?? { config: { views: [] }, editMode: true };
+  }
+  _onNativeCardChanged(index, e2) {
+    var _a2;
+    e2.stopPropagation();
+    const config = (_a2 = e2.detail) == null ? void 0 : _a2.config;
+    if (!config) return;
+    this._patchTab(index, { card: config });
+  }
+  _onYamlCardChanged(index, e2) {
+    e2.stopPropagation();
+    const detail = e2.detail;
+    if ((detail == null ? void 0 : detail.isValid) === false) return;
+    if ((detail == null ? void 0 : detail.value) === void 0) return;
+    this._patchTab(index, { card: detail.value });
+  }
   render() {
     if (!this._config) return b``;
+    if (this._editingTab !== null) return this._renderCardView(this._editingTab);
+    return this._renderListView();
+  }
+  _renderCardView(index) {
+    const tab = this._config.tabs[index];
+    if (!tab) {
+      this._editingTab = null;
+      return this._renderListView();
+    }
+    const tag = pickCardEditorTag((t2) => !!customElements.get(t2));
+    return b`
+      <div class="card-editor-view">
+        <div class="card-editor-header">
+          <button class="back-to-list" @click=${this._closeCard}>← Back</button>
+          <span class="card-editor-title">${tab.name || `Tab ${index + 1}`}</span>
+        </div>
+        ${this._renderCardEditor(index, tab, tag)}
+      </div>
+    `;
+  }
+  _renderCardEditor(index, tab, tag) {
+    if (tag === "hui-card-element-editor") {
+      return b`
+        <hui-card-element-editor
+          .hass=${this.hass}
+          .lovelace=${this._lovelace}
+          .value=${tab.card ?? {}}
+          @config-changed=${(e2) => this._onNativeCardChanged(index, e2)}
+        ></hui-card-element-editor>
+      `;
+    }
+    if (tag === "ha-yaml-editor") {
+      return b`
+        <ha-yaml-editor
+          .defaultValue=${tab.card ?? {}}
+          @value-changed=${(e2) => this._onYamlCardChanged(index, e2)}
+        ></ha-yaml-editor>
+      `;
+    }
+    return b`
+      <label class="card-label"
+        >Card (JSON)
+        <textarea
+          class="tab-card-json"
+          rows="10"
+          .value=${JSON.stringify(tab.card ?? {}, null, 2)}
+          @change=${(e2) => this._editCardJson(index, e2.target.value)}
+        ></textarea>
+      </label>
+      ${this._cardError === index ? b`<div class="tab-card-error">Invalid JSON — not saved.</div>` : A}
+    `;
+  }
+  _renderListView() {
     const cfg = this._config;
     return b`
       <div class="editor">
@@ -1389,7 +1472,9 @@ let TabdeckCardEditor = class extends i {
 
         <div class="tabs">
           ${cfg.tabs.map(
-      (tab, index) => b`
+      (tab, index) => {
+        var _a2;
+        return b`
               <div class="tab">
                 <div class="tab-row">
                   <input
@@ -1426,18 +1511,14 @@ let TabdeckCardEditor = class extends i {
                     @input=${(e2) => this._patchTab(index, { badge: e2.target.value || void 0 })}
                   />
                 </div>
-                <label class="card-label"
-                  >Card (JSON)
-                  <textarea
-                    class="tab-card-json"
-                    rows="6"
-                    .value=${JSON.stringify(tab.card ?? {}, null, 2)}
-                    @change=${(e2) => this._editCardJson(index, e2.target.value)}
-                  ></textarea>
-                </label>
-                ${this._cardError === index ? b`<div class="tab-card-error">Invalid JSON — not saved.</div>` : ""}
+                <button class="edit-card" @click=${() => this._openCard(index)}>
+                  <span class="edit-card-label">Edit card</span>
+                  <span class="edit-card-type">${((_a2 = tab.card) == null ? void 0 : _a2.type) ?? "—"}</span>
+                  <span class="edit-card-arrow">→</span>
+                </button>
               </div>
-            `
+            `;
+      }
     )}
           <button class="add-tab" @click=${this._addTab}>+ Add tab</button>
         </div>
@@ -1486,6 +1567,44 @@ TabdeckCardEditor.styles = i$3`
     .tab-badge {
       flex: 1;
     }
+    .edit-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      background: var(--secondary-background-color, #f5f5f5);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 6px;
+      font-size: 13px;
+      text-align: left;
+    }
+    .edit-card-type {
+      color: var(--secondary-text-color);
+      font-family: var(--code-font-family, monospace);
+      font-size: 12px;
+    }
+    .edit-card-arrow {
+      margin-left: auto;
+      color: var(--secondary-text-color);
+    }
+    .card-editor-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .card-editor-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .card-editor-title {
+      font-weight: 500;
+    }
+    .back-to-list {
+      cursor: pointer;
+    }
     .card-label {
       font-size: 12px;
       gap: 4px;
@@ -1509,6 +1628,9 @@ __decorateClass([
 ], TabdeckCardEditor.prototype, "_config", 2);
 __decorateClass([
   r$1()
+], TabdeckCardEditor.prototype, "_editingTab", 2);
+__decorateClass([
+  r$1()
 ], TabdeckCardEditor.prototype, "_cardError", 2);
 TabdeckCardEditor = __decorateClass([
   t$1("tabdeck-card-editor")
@@ -1517,7 +1639,8 @@ const tabdeckCardEditor = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.d
   __proto__: null,
   get TabdeckCardEditor() {
     return TabdeckCardEditor;
-  }
+  },
+  pickCardEditorTag
 }, Symbol.toStringTag, { value: "Module" }));
 export {
   TabdeckCard
