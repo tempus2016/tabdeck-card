@@ -29,7 +29,16 @@ function checkScreen(c: any): boolean {
   return matchMedia(c.media_query).matches;
 }
 
-function checkOne(c: any, hass: HomeAssistant): boolean {
+// Resolves a `template` condition's value_template to a rendered boolean, or
+// undefined while the template is still pending (treated as not met).
+export type TemplateResolver = (valueTemplate: string) => boolean | undefined;
+
+function checkTemplate(c: any, resolver?: TemplateResolver): boolean {
+  if (!resolver || !c.value_template) return false;
+  return resolver(c.value_template) === true;
+}
+
+function checkOne(c: any, hass: HomeAssistant, resolver?: TemplateResolver): boolean {
   switch (c?.condition) {
     case "state":
       return checkState(c, hass);
@@ -37,6 +46,8 @@ function checkOne(c: any, hass: HomeAssistant): boolean {
       return checkNumeric(c, hass);
     case "screen":
       return checkScreen(c);
+    case "template":
+      return checkTemplate(c, resolver);
     default:
       return false;
   }
@@ -45,8 +56,9 @@ function checkOne(c: any, hass: HomeAssistant): boolean {
 export function isTabVisible(
   visibility: any[] | undefined,
   hass: HomeAssistant | undefined,
+  templateResolver?: TemplateResolver,
 ): boolean {
   if (!visibility || visibility.length === 0) return true;
   if (!hass) return true;
-  return visibility.every((c) => checkOne(c, hass));
+  return visibility.every((c) => checkOne(c, hass, templateResolver));
 }

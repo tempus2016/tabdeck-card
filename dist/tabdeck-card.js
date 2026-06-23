@@ -669,7 +669,11 @@ function checkScreen(c2) {
   if (!c2.media_query || typeof matchMedia !== "function") return false;
   return matchMedia(c2.media_query).matches;
 }
-function checkOne(c2, hass) {
+function checkTemplate(c2, resolver) {
+  if (!resolver || !c2.value_template) return false;
+  return resolver(c2.value_template) === true;
+}
+function checkOne(c2, hass, resolver) {
   switch (c2 == null ? void 0 : c2.condition) {
     case "state":
       return checkState(c2, hass);
@@ -677,14 +681,16 @@ function checkOne(c2, hass) {
       return checkNumeric(c2, hass);
     case "screen":
       return checkScreen(c2);
+    case "template":
+      return checkTemplate(c2, resolver);
     default:
       return false;
   }
 }
-function isTabVisible(visibility, hass) {
+function isTabVisible(visibility, hass, templateResolver) {
   if (!visibility || visibility.length === 0) return true;
   if (!hass) return true;
-  return visibility.every((c2) => checkOne(c2, hass));
+  return visibility.every((c2) => checkOne(c2, hass, templateResolver));
 }
 function storageKey(cardKey) {
   return "tabdeck-card:" + cardKey;
@@ -772,6 +778,71 @@ class CardManager extends EventTarget {
     if (this._hass) fresh.hass = this._hass;
     this._elements[index] = fresh;
     this.dispatchEvent(new CustomEvent("ll-rebuild-done", { detail: { index } }));
+  }
+}
+function isTemplate(s2) {
+  return !!s2 && (s2.includes("{{") || s2.includes("{%"));
+}
+function asBool(value) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    return ["1", "true", "yes", "on", "enable"].includes(value.trim().toLowerCase());
+  }
+  return false;
+}
+class TemplateRenderer extends EventTarget {
+  constructor(subscribe) {
+    super();
+    this._entries = /* @__PURE__ */ new Map();
+    this._subscribe = subscribe;
+  }
+  // Reconcile live subscriptions with the desired set of template strings.
+  track(templates) {
+    const desired = new Set(templates.filter((t2) => !!t2));
+    for (const [tpl, entry] of this._entries) {
+      if (!desired.has(tpl)) {
+        entry.unsub();
+        this._entries.delete(tpl);
+      }
+    }
+    for (const tpl of desired) {
+      if (this._entries.has(tpl)) continue;
+      const entry = { unsub: () => {
+      }, hasResult: false, error: false };
+      this._entries.set(tpl, entry);
+      entry.unsub = this._subscribe(
+        tpl,
+        (result) => {
+          entry.result = result;
+          entry.hasResult = true;
+          entry.error = false;
+          this.dispatchEvent(new CustomEvent("change", { detail: { template: tpl } }));
+        },
+        () => {
+          entry.error = true;
+          entry.hasResult = false;
+          entry.result = void 0;
+          this.dispatchEvent(new CustomEvent("change", { detail: { template: tpl } }));
+        }
+      );
+    }
+  }
+  // Latest rendered value, or undefined while pending or errored.
+  result(tpl) {
+    const e2 = this._entries.get(tpl);
+    if (!e2 || e2.error || !e2.hasResult) return void 0;
+    return e2.result;
+  }
+  // Fail-closed boolean: false until a truthy value has rendered.
+  boolean(tpl) {
+    const e2 = this._entries.get(tpl);
+    if (!e2 || e2.error || !e2.hasResult) return false;
+    return asBool(e2.result);
+  }
+  destroy() {
+    for (const e2 of this._entries.values()) e2.unsub();
+    this._entries.clear();
   }
 }
 var __defProp$3 = Object.defineProperty;
@@ -1051,6 +1122,10 @@ let TabdeckCard = class extends i {
     this._selected = 0;
     this._built = false;
     this._cardKey = "";
+    this._templateResolver = (tpl) => {
+      var _a2;
+      return (_a2 = this._templates) == null ? void 0 : _a2.boolean(tpl);
+    };
   }
   static getStubConfig() {
     return {
@@ -1065,11 +1140,20 @@ let TabdeckCard = class extends i {
     return document.createElement("tabdeck-card-editor");
   }
   setConfig(raw) {
+    var _a2;
     this._config = normalizeConfig(raw);
     this._cardKey = this._computeCardKey(this._config);
     this._built = false;
     this._selected = resolveDefaultIndex(this._config);
+    (_a2 = this._templates) == null ? void 0 : _a2.destroy();
+    this._templates = void 0;
     void this._build();
+  }
+  disconnectedCallback() {
+    var _a2;
+    super.disconnectedCallback();
+    (_a2 = this._templates) == null ? void 0 : _a2.destroy();
+    this._templates = void 0;
   }
   _computeCardKey(cfg) {
     const path = typeof location !== "undefined" ? location.pathname : "";
@@ -1083,6 +1167,7 @@ let TabdeckCard = class extends i {
     this._manager.addEventListener("ll-rebuild-done", () => this.requestUpdate());
     await this._manager.build(this._config.tabs.map((t2) => t2.card));
     if (this._hass) this._manager.setHass(this._hass);
+    this._syncTemplates();
     this._selected = loadInitialIndex({
       mode: this._config.remember,
       cardKey: this._cardKey,
@@ -1098,6 +1183,7 @@ let TabdeckCard = class extends i {
     var _a2;
     this._hass = hass;
     (_a2 = this._manager) == null ? void 0 : _a2.setHass(hass);
+    this._syncTemplates();
     this.requestUpdate();
   }
   get hass() {
@@ -1105,7 +1191,67 @@ let TabdeckCard = class extends i {
   }
   _visibleTabs() {
     if (!this._config) return [];
-    return this._config.tabs.filter((t2) => isTabVisible(t2.visibility, this._hass));
+    return this._config.tabs.filter(
+      (t2) => isTabVisible(t2.visibility, this._hass, this._templateResolver)
+    );
+  }
+  _collectTemplates() {
+    if (!this._config) return [];
+    const out = [];
+    for (const t2 of this._config.tabs) {
+      if (isTemplate(t2.badge)) out.push(t2.badge);
+      for (const c2 of t2.visibility ?? []) {
+        if ((c2 == null ? void 0 : c2.condition) === "template" && c2.value_template) out.push(c2.value_template);
+      }
+    }
+    return out;
+  }
+  _makeSubscribe() {
+    var _a2, _b;
+    if (!((_b = (_a2 = this._hass) == null ? void 0 : _a2.connection) == null ? void 0 : _b.subscribeMessage)) return void 0;
+    return (template, onResult, onError) => {
+      var _a3;
+      const conn = (_a3 = this._hass) == null ? void 0 : _a3.connection;
+      if (!(conn == null ? void 0 : conn.subscribeMessage)) {
+        onError();
+        return () => {
+        };
+      }
+      let unsubbed = false;
+      let realUnsub;
+      Promise.resolve(
+        conn.subscribeMessage(
+          (msg) => {
+            if (msg && msg.error !== void 0) onError();
+            else onResult(msg == null ? void 0 : msg.result);
+          },
+          { type: "render_template", template, report_errors: true }
+        )
+      ).then((u2) => {
+        realUnsub = u2;
+        if (unsubbed) u2 == null ? void 0 : u2();
+      }).catch(() => onError());
+      return () => {
+        unsubbed = true;
+        realUnsub == null ? void 0 : realUnsub();
+      };
+    };
+  }
+  _syncTemplates() {
+    var _a2;
+    const templates = this._collectTemplates();
+    if (templates.length === 0) {
+      (_a2 = this._templates) == null ? void 0 : _a2.destroy();
+      this._templates = void 0;
+      return;
+    }
+    if (!this._templates) {
+      const subscribe = this._makeSubscribe();
+      if (!subscribe) return;
+      this._templates = new TemplateRenderer(subscribe);
+      this._templates.addEventListener("change", () => this.requestUpdate());
+    }
+    this._templates.track(templates);
   }
   getCardSize() {
     var _a2;
@@ -1187,7 +1333,13 @@ let TabdeckCard = class extends i {
     `;
   }
   _resolveBadge(badge) {
-    if (!badge || !this._hass) return void 0;
+    var _a2;
+    if (!badge) return void 0;
+    if (isTemplate(badge)) {
+      const r2 = (_a2 = this._templates) == null ? void 0 : _a2.result(badge);
+      return r2 === void 0 || r2 === null ? void 0 : String(r2);
+    }
+    if (!this._hass) return void 0;
     const stateObj = this._hass.states[badge];
     if (stateObj) return stateObj.state;
     return badge;
@@ -1252,9 +1404,15 @@ var __decorateClass = (decorators, target, key, kind) => {
   if (kind && result) __defProp(target, key, result);
   return result;
 };
+function pickCardEditorTag(has) {
+  if (has("hui-card-element-editor")) return "hui-card-element-editor";
+  if (has("ha-yaml-editor")) return "ha-yaml-editor";
+  return "textarea-json";
+}
 let TabdeckCardEditor = class extends i {
   constructor() {
     super(...arguments);
+    this._editingTab = null;
     this._cardError = null;
   }
   setConfig(config) {
@@ -1308,8 +1466,85 @@ let TabdeckCardEditor = class extends i {
     [tabs[index], tabs[target]] = [tabs[target], tabs[index]];
     this._emit({ ...this._config, tabs });
   }
+  _openCard(index) {
+    this._cardError = null;
+    this._editingTab = index;
+  }
+  _closeCard() {
+    this._editingTab = null;
+  }
+  get _lovelace() {
+    return this.lovelace ?? { config: { views: [] }, editMode: true };
+  }
+  _onNativeCardChanged(index, e2) {
+    var _a2;
+    e2.stopPropagation();
+    const config = (_a2 = e2.detail) == null ? void 0 : _a2.config;
+    if (!config) return;
+    this._patchTab(index, { card: config });
+  }
+  _onYamlCardChanged(index, e2) {
+    e2.stopPropagation();
+    const detail = e2.detail;
+    if ((detail == null ? void 0 : detail.isValid) === false) return;
+    if ((detail == null ? void 0 : detail.value) === void 0) return;
+    this._patchTab(index, { card: detail.value });
+  }
   render() {
     if (!this._config) return b``;
+    if (this._editingTab !== null) return this._renderCardView(this._editingTab);
+    return this._renderListView();
+  }
+  _renderCardView(index) {
+    const tab = this._config.tabs[index];
+    if (!tab) {
+      this._editingTab = null;
+      return this._renderListView();
+    }
+    const tag = pickCardEditorTag((t2) => !!customElements.get(t2));
+    return b`
+      <div class="card-editor-view">
+        <div class="card-editor-header">
+          <button class="back-to-list" @click=${this._closeCard}>← Back</button>
+          <span class="card-editor-title">${tab.name || `Tab ${index + 1}`}</span>
+        </div>
+        ${this._renderCardEditor(index, tab, tag)}
+      </div>
+    `;
+  }
+  _renderCardEditor(index, tab, tag) {
+    if (tag === "hui-card-element-editor") {
+      return b`
+        <hui-card-element-editor
+          .hass=${this.hass}
+          .lovelace=${this._lovelace}
+          .value=${tab.card ?? {}}
+          @config-changed=${(e2) => this._onNativeCardChanged(index, e2)}
+        ></hui-card-element-editor>
+      `;
+    }
+    if (tag === "ha-yaml-editor") {
+      return b`
+        <ha-yaml-editor
+          .defaultValue=${tab.card ?? {}}
+          @value-changed=${(e2) => this._onYamlCardChanged(index, e2)}
+        ></ha-yaml-editor>
+      `;
+    }
+    return b`
+      <label class="card-label"
+        >Card (JSON)
+        <textarea
+          class="tab-card-json"
+          rows="10"
+          .value=${JSON.stringify(tab.card ?? {}, null, 2)}
+          @change=${(e2) => this._editCardJson(index, e2.target.value)}
+        ></textarea>
+      </label>
+      ${this._cardError === index ? b`<div class="tab-card-error">Invalid JSON — not saved.</div>` : A}
+    `;
+  }
+  _renderListView() {
     const cfg = this._config;
     return b`
       <div class="editor">
@@ -1389,7 +1624,9 @@ let TabdeckCardEditor = class extends i {
 
         <div class="tabs">
           ${cfg.tabs.map(
-      (tab, index) => b`
+      (tab, index) => {
+        var _a2;
+        return b`
               <div class="tab">
                 <div class="tab-row">
                   <input
@@ -1422,22 +1659,18 @@ let TabdeckCardEditor = class extends i {
                     class="tab-badge"
                     type="text"
                     .value=${tab.badge ?? ""}
-                    placeholder="Badge entity (e.g. sensor.unread)"
+                    placeholder="Badge: sensor.unread or {{ template }}"
                     @input=${(e2) => this._patchTab(index, { badge: e2.target.value || void 0 })}
                   />
                 </div>
-                <label class="card-label"
-                  >Card (JSON)
-                  <textarea
-                    class="tab-card-json"
-                    rows="6"
-                    .value=${JSON.stringify(tab.card ?? {}, null, 2)}
-                    @change=${(e2) => this._editCardJson(index, e2.target.value)}
-                  ></textarea>
-                </label>
-                ${this._cardError === index ? b`<div class="tab-card-error">Invalid JSON — not saved.</div>` : ""}
+                <button class="edit-card" @click=${() => this._openCard(index)}>
+                  <span class="edit-card-label">Edit card</span>
+                  <span class="edit-card-type">${((_a2 = tab.card) == null ? void 0 : _a2.type) ?? "—"}</span>
+                  <span class="edit-card-arrow">→</span>
+                </button>
               </div>
-            `
+            `;
+      }
     )}
           <button class="add-tab" @click=${this._addTab}>+ Add tab</button>
         </div>
@@ -1486,6 +1719,44 @@ TabdeckCardEditor.styles = i$3`
     .tab-badge {
       flex: 1;
     }
+    .edit-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      background: var(--secondary-background-color, #f5f5f5);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 6px;
+      font-size: 13px;
+      text-align: left;
+    }
+    .edit-card-type {
+      color: var(--secondary-text-color);
+      font-family: var(--code-font-family, monospace);
+      font-size: 12px;
+    }
+    .edit-card-arrow {
+      margin-left: auto;
+      color: var(--secondary-text-color);
+    }
+    .card-editor-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .card-editor-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .card-editor-title {
+      font-weight: 500;
+    }
+    .back-to-list {
+      cursor: pointer;
+    }
     .card-label {
       font-size: 12px;
       gap: 4px;
@@ -1509,6 +1780,9 @@ __decorateClass([
 ], TabdeckCardEditor.prototype, "_config", 2);
 __decorateClass([
   r$1()
+], TabdeckCardEditor.prototype, "_editingTab", 2);
+__decorateClass([
+  r$1()
 ], TabdeckCardEditor.prototype, "_cardError", 2);
 TabdeckCardEditor = __decorateClass([
   t$1("tabdeck-card-editor")
@@ -1517,7 +1791,8 @@ const tabdeckCardEditor = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.d
   __proto__: null,
   get TabdeckCardEditor() {
     return TabdeckCardEditor;
-  }
+  },
+  pickCardEditorTag
 }, Symbol.toStringTag, { value: "Module" }));
 export {
   TabdeckCard
