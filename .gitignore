@@ -3,6 +3,3 @@ dist/*
 !dist/tabdeck-card.js
 *.log
 .DS_Store
-
-# Internal planning docs — never publish
-docs/superpowers/
