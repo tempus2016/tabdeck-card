@@ -9,6 +9,7 @@ import {
 import { isTabVisible } from "./lib/conditions";
 import { loadInitialIndex, persistIndex } from "./lib/persistence";
 import { CardManager, getCreateCardElement } from "./lib/card-lifecycle";
+import { isTemplate, TemplateRenderer, type SubscribeFn } from "./lib/templates";
 import "./components/tabdeck-tabbar";
 
 @customElement("tabdeck-card")
@@ -19,6 +20,7 @@ export class TabdeckCard extends LitElement {
   private _hass?: HomeAssistant;
   private _manager?: CardManager;
   private _cardKey = "";
+  private _templates?: TemplateRenderer;
 
   static getStubConfig() {
     return {
@@ -39,7 +41,16 @@ export class TabdeckCard extends LitElement {
     this._cardKey = this._computeCardKey(this._config);
     this._built = false;
     this._selected = resolveDefaultIndex(this._config);
+    // Drop any subscriptions from a previous config; they re-sync on next hass.
+    this._templates?.destroy();
+    this._templates = undefined;
     void this._build();
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._templates?.destroy();
+    this._templates = undefined;
   }
 
   private _computeCardKey(cfg: TabdeckCardConfig): string {
@@ -55,6 +66,7 @@ export class TabdeckCard extends LitElement {
     this._manager.addEventListener("ll-rebuild-done", () => this.requestUpdate());
     await this._manager.build(this._config.tabs.map((t) => t.card));
     if (this._hass) this._manager.setHass(this._hass);
+    this._syncTemplates();
     this._selected = loadInitialIndex({
       mode: this._config.remember,
       cardKey: this._cardKey,
@@ -70,6 +82,7 @@ export class TabdeckCard extends LitElement {
   set hass(hass: HomeAssistant) {
     this._hass = hass;
     this._manager?.setHass(hass);
+    this._syncTemplates();
     this.requestUpdate();
   }
 
@@ -77,9 +90,75 @@ export class TabdeckCard extends LitElement {
     return this._hass;
   }
 
+  // Resolves a `template` visibility condition's value_template to a rendered
+  // boolean (undefined while pending → fail-closed in isTabVisible).
+  private _templateResolver = (tpl: string): boolean | undefined =>
+    this._templates?.boolean(tpl);
+
   private _visibleTabs() {
     if (!this._config) return [];
-    return this._config.tabs.filter((t) => isTabVisible(t.visibility, this._hass));
+    return this._config.tabs.filter((t) =>
+      isTabVisible(t.visibility, this._hass, this._templateResolver),
+    );
+  }
+
+  private _collectTemplates(): string[] {
+    if (!this._config) return [];
+    const out: string[] = [];
+    for (const t of this._config.tabs) {
+      if (isTemplate(t.badge)) out.push(t.badge!);
+      for (const c of t.visibility ?? []) {
+        if (c?.condition === "template" && c.value_template) out.push(c.value_template);
+      }
+    }
+    return out;
+  }
+
+  private _makeSubscribe(): SubscribeFn | undefined {
+    if (!this._hass?.connection?.subscribeMessage) return undefined;
+    return (template, onResult, onError) => {
+      const conn = this._hass?.connection;
+      if (!conn?.subscribeMessage) {
+        onError();
+        return () => {};
+      }
+      let unsubbed = false;
+      let realUnsub: (() => void) | undefined;
+      Promise.resolve(
+        conn.subscribeMessage(
+          (msg: any) => {
+            if (msg && msg.error !== undefined) onError();
+            else onResult(msg?.result);
+          },
+          { type: "render_template", template, report_errors: true },
+        ),
+      )
+        .then((u: any) => {
+          realUnsub = u;
+          if (unsubbed) u?.();
+        })
+        .catch(() => onError());
+      return () => {
+        unsubbed = true;
+        realUnsub?.();
+      };
+    };
+  }
+
+  private _syncTemplates(): void {
+    const templates = this._collectTemplates();
+    if (templates.length === 0) {
+      this._templates?.destroy();
+      this._templates = undefined;
+      return;
+    }
+    if (!this._templates) {
+      const subscribe = this._makeSubscribe();
+      if (!subscribe) return; // no connection yet; retried on next hass
+      this._templates = new TemplateRenderer(subscribe);
+      this._templates.addEventListener("change", () => this.requestUpdate());
+    }
+    this._templates.track(templates);
   }
 
   getCardSize(): number {
@@ -163,7 +242,12 @@ export class TabdeckCard extends LitElement {
   }
 
   private _resolveBadge(badge?: string): string | undefined {
-    if (!badge || !this._hass) return undefined;
+    if (!badge) return undefined;
+    if (isTemplate(badge)) {
+      const r = this._templates?.result(badge);
+      return r === undefined || r === null ? undefined : String(r);
+    }
+    if (!this._hass) return undefined;
     const stateObj = this._hass.states[badge];
     if (stateObj) return stateObj.state;
     return badge;

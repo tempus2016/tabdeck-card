@@ -88,4 +88,34 @@ describe("isTabVisible", () => {
     ).toBe(false);
     vi.unstubAllGlobals();
   });
+
+  describe("template conditions", () => {
+    const tpl = { condition: "template", value_template: "{{ true }}" };
+
+    it("consults the resolver for a template condition", () => {
+      const hass = hassWith({});
+      expect(isTabVisible([tpl], hass, () => true)).toBe(true);
+      expect(isTabVisible([tpl], hass, () => false)).toBe(false);
+    });
+
+    it("fails closed when the resolver returns undefined (pending)", () => {
+      const hass = hassWith({});
+      expect(isTabVisible([tpl], hass, () => undefined)).toBe(false);
+    });
+
+    it("fails closed when a template condition has no resolver", () => {
+      const hass = hassWith({});
+      expect(isTabVisible([tpl], hass)).toBe(false);
+    });
+
+    it("combines template and state conditions (ALL must pass)", () => {
+      const hass = hassWith({ "input_boolean.a": { state: "on" } });
+      const conds = [
+        { condition: "state", entity: "input_boolean.a", state: "on" },
+        tpl,
+      ];
+      expect(isTabVisible(conds, hass, () => true)).toBe(true);
+      expect(isTabVisible(conds, hass, () => false)).toBe(false);
+    });
+  });
 });

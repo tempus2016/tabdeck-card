@@ -100,14 +100,13 @@ tabs:
 | `name`       | string | —       | Tab label; also the id used by `default_tab` and `#tab=`. |
 | `icon`       | string | —       | Optional `mdi:` icon. |
 | `accent`     | string | —       | Optional per-tab accent color (any CSS color). |
-| `badge`      | string | —       | Entity id whose state is shown as a badge. |
+| `badge`      | string | —       | Entity id whose state is shown as a badge, or a Jinja template (e.g. `{{ states('sensor.unread') }}`). |
 | `visibility` | list   | —       | Conditions (see below); the tab is hidden when unmet. |
 | `card`       | object | —       | Any Lovelace card config (required). |
 
 ### Visibility conditions
 
-Supported condition types in v1: `state`, `numeric_state`, and `screen`.
-(Template conditions are planned for a later release.)
+Supported condition types: `state`, `numeric_state`, `screen`, and `template`.
 
 ```yaml
 visibility:
@@ -118,7 +117,16 @@ visibility:
     entity: sensor.temperature
     above: 18
     below: 26
+  - condition: template
+    value_template: "{{ is_state('alarm_control_panel.home', 'armed_away') }}"
 ```
+
+### Templates
+
+Both `badge` and `template` visibility conditions accept Jinja templates,
+rendered server-side by Home Assistant and updated live. A tab with a
+template visibility condition stays hidden until the template first renders
+truthy (and is hidden again if the template errors).
 
 ## Theming
 
