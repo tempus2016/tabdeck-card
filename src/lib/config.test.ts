@@ -13,6 +13,12 @@ describe("normalizeConfig", () => {
     expect(c.tabs).toHaveLength(1);
   });
 
+  it("defaults animated to true and respects explicit false", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).animated).toBe(true);
+    expect(normalizeConfig({ animated: false, tabs: [{ card: {} }] }).animated).toBe(false);
+    expect(normalizeConfig({ animated: true, tabs: [{ card: {} }] }).animated).toBe(true);
+  });
+
   it("throws when there are no tabs", () => {
     expect(() => normalizeConfig({ tabs: [] })).toThrow(/at least one tab/i);
     expect(() => normalizeConfig({})).toThrow(/at least one tab/i);
