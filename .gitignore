@@ -1,4 +1,5 @@
 node_modules/
-dist/
+dist/*
+!dist/tabdeck-card.js
 *.log
 .DS_Store
