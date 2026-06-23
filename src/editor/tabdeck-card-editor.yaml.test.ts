@@ -55,7 +55,7 @@ describe("tabdeck-card-editor ha-yaml-editor fallback", () => {
       }),
     );
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls.at(-1)[0].detail.config.tabs[0].card).toEqual({
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].card).toEqual({
       type: "light",
       entity: "light.kitchen",
     });
