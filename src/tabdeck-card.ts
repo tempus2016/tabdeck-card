@@ -197,3 +197,12 @@ declare global {
     customCards?: any[];
   }
 }
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "tabdeck-card",
+  name: "Tabdeck Card",
+  description: "Organize multiple cards into a modern tabbed interface.",
+  preview: true,
+  documentationURL: "https://github.com/tempus2016/tabdeck-card",
+});

@@ -89,4 +89,11 @@ describe("tabdeck-card", () => {
     const stub = mod.TabdeckCard.getStubConfig();
     expect(stub.tabs.length).toBeGreaterThanOrEqual(1);
   });
+
+  it("registers itself in window.customCards", async () => {
+    await import("./tabdeck-card");
+    const entry = (window as any).customCards.find((c: any) => c.type === "tabdeck-card");
+    expect(entry).toBeTruthy();
+    expect(entry.preview).toBe(true);
+  });
 });
