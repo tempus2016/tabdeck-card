@@ -50,12 +50,12 @@ describe("tabdeck-card-editor", () => {
     const accent = el.shadowRoot.querySelector(".tab-accent");
     accent.value = "#ff0000";
     accent.dispatchEvent(new Event("input"));
-    expect(handler.mock.calls.at(-1)[0].detail.config.tabs[0].accent).toBe("#ff0000");
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].accent).toBe("#ff0000");
 
     const badge = el.shadowRoot.querySelector(".tab-badge");
     badge.value = "sensor.unread";
     badge.dispatchEvent(new Event("input"));
-    expect(handler.mock.calls.at(-1)[0].detail.config.tabs[0].badge).toBe("sensor.unread");
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].badge).toBe("sensor.unread");
   });
 
   it("edits a tab's card via the JSON editor when valid", async () => {
@@ -66,7 +66,7 @@ describe("tabdeck-card-editor", () => {
     ta.value = '{"type":"light","entity":"light.kitchen"}';
     ta.dispatchEvent(new Event("change"));
     expect(handler).toHaveBeenCalled();
-    expect(handler.mock.calls.at(-1)[0].detail.config.tabs[0].card).toEqual({
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].card).toEqual({
       type: "light",
       entity: "light.kitchen",
     });
@@ -91,7 +91,7 @@ describe("tabdeck-card-editor", () => {
     const sel = el.shadowRoot.querySelector(".global-default-tab");
     sel.value = "B";
     sel.dispatchEvent(new Event("change"));
-    expect(handler.mock.calls.at(-1)[0].detail.config.default_tab).toBe("B");
+    expect(handler.mock.calls.at(-1)![0].detail.config.default_tab).toBe("B");
   });
 
   it("toggles the global lazy option", async () => {
@@ -101,6 +101,6 @@ describe("tabdeck-card-editor", () => {
     const cb = el.shadowRoot.querySelector(".global-lazy");
     cb.checked = true;
     cb.dispatchEvent(new Event("change"));
-    expect(handler.mock.calls.at(-1)[0].detail.config.lazy).toBe(true);
+    expect(handler.mock.calls.at(-1)![0].detail.config.lazy).toBe(true);
   });
 });
