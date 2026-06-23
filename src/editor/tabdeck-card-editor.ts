@@ -257,6 +257,15 @@ export class TabdeckCardEditor extends LitElement {
             />
             Lazy-mount inactive tabs
           </label>
+          <label class="checkbox"
+            ><input
+              class="global-animated"
+              type="checkbox"
+              .checked=${cfg.animated}
+              @change=${(e: any) => this._patch({ animated: e.target.checked })}
+            />
+            Animate indicator
+          </label>
         </div>
 
         <div class="tabs">
