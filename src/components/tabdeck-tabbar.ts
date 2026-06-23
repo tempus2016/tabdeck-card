@@ -1,6 +1,7 @@
 import { LitElement, html, css } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import type { TabPosition, TabStyle } from "../lib/config";
+import { computeIndicatorRect } from "../lib/indicator";
 import "./tabdeck-tab";
 
 interface TabItem {
@@ -17,15 +18,26 @@ export class TabdeckTabbar extends LitElement {
   @property() position: TabPosition = "top";
   @property() tabStyle: TabStyle = "underline";
   @property() scrollable: "auto" | boolean = "auto";
+  @property({ type: Boolean }) animated = true;
+
+  // Becomes true one frame after the first paint, so the indicator's initial
+  // placement never slides in from the corner; only later moves animate.
+  @state() private _ready = false;
+
+  private _resizeObserver?: ResizeObserver;
 
   connectedCallback(): void {
     super.connectedCallback();
     this.setAttribute("role", "tablist");
     this.addEventListener("keydown", this._onKeydown);
+    if (typeof ResizeObserver !== "undefined") {
+      this._resizeObserver = new ResizeObserver(() => this._position());
+    }
   }
 
   disconnectedCallback(): void {
     this.removeEventListener("keydown", this._onKeydown);
+    this._resizeObserver?.disconnect();
     super.disconnectedCallback();
   }
 
@@ -55,9 +67,56 @@ export class TabdeckTabbar extends LitElement {
     }
   };
 
+  // Measure the selected tab and write the indicator's box inline. Guards for
+  // jsdom / pre-layout (offset* == 0) by hiding the indicator instead of moving
+  // it to (0,0).
+  private _position(): void {
+    const root = this.renderRoot as ParentNode | undefined;
+    const indicator = root?.querySelector(".indicator") as HTMLElement | null;
+    if (!indicator) return;
+    const tab = root?.querySelector("tabdeck-tab[selected]") as HTMLElement | null;
+    const rect = tab
+      ? computeIndicatorRect(
+          {
+            offsetLeft: tab.offsetLeft,
+            offsetTop: tab.offsetTop,
+            offsetWidth: tab.offsetWidth,
+            offsetHeight: tab.offsetHeight,
+          },
+          this.position,
+          this.tabStyle,
+        )
+      : null;
+    if (!rect) {
+      indicator.style.opacity = "0";
+      return;
+    }
+    indicator.style.left = `${rect.left}px`;
+    indicator.style.top = `${rect.top}px`;
+    indicator.style.width = `${rect.width}px`;
+    indicator.style.height = `${rect.height}px`;
+    indicator.style.opacity = "1";
+  }
+
+  protected firstUpdated(): void {
+    const bar = (this.renderRoot as ParentNode).querySelector(".bar");
+    if (bar && this._resizeObserver) this._resizeObserver.observe(bar);
+  }
+
+  protected updated(): void {
+    this._position();
+    if (!this._ready) {
+      requestAnimationFrame(() => {
+        this._ready = true;
+      });
+    }
+  }
+
   render() {
+    const animateClass = this._ready && this.animated ? " animate" : "";
     return html`
       <div class="bar ${this.position} style-${this.tabStyle}" part="bar">
+        <div class="indicator${animateClass}" part="indicator"></div>
         ${this.items.map(
           (item, index) => html`
             <tabdeck-tab
@@ -109,9 +168,6 @@ export class TabdeckTabbar extends LitElement {
     .bar.right {
       border-left: 1px solid var(--divider-color);
     }
-    .bar.style-underline tabdeck-tab[selected] {
-      box-shadow: inset 0 -3px 0 0 var(--tabdeck-accent, var(--primary-color));
-    }
     .bar.style-pill {
       gap: 6px;
       border: none;
@@ -120,27 +176,51 @@ export class TabdeckTabbar extends LitElement {
     .bar.style-pill tabdeck-tab {
       border-radius: 999px;
     }
-    .bar.style-pill tabdeck-tab[selected] {
-      background: color-mix(
-        in srgb,
-        var(--tabdeck-accent, var(--primary-color)) 18%,
-        transparent
-      );
-    }
     .bar.style-segmented {
       gap: 0;
       border: 1px solid var(--divider-color);
       border-radius: 10px;
       padding: 4px;
     }
-    .bar.style-segmented tabdeck-tab[selected] {
+
+    /* The single moving indicator. Sits behind tab content. */
+    .indicator {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .indicator.animate {
+      transition: left 200ms ease, top 200ms ease, width 200ms ease,
+        height 200ms ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .indicator.animate {
+        transition: none;
+      }
+    }
+    tabdeck-tab {
+      position: relative;
+      z-index: 1;
+    }
+    .bar.style-underline .indicator {
+      background: var(--tabdeck-accent, var(--primary-color));
+    }
+    .bar.style-pill .indicator {
+      background: color-mix(
+        in srgb,
+        var(--tabdeck-accent, var(--primary-color)) 18%,
+        transparent
+      );
+      border-radius: 999px;
+    }
+    .bar.style-segmented .indicator {
       background: var(--card-background-color);
       border-radius: 7px;
-    }
-    @media (prefers-reduced-motion: no-preference) {
-      tabdeck-tab {
-        transition: background 150ms ease, box-shadow 150ms ease;
-      }
     }
   `;
 }

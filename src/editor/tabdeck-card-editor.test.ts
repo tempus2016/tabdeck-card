@@ -166,6 +166,17 @@ describe("tabdeck-card-editor", () => {
     expect(handler.mock.calls.at(-1)[0].detail.config.default_tab).toBe("B");
   });
 
+  it("toggles the global animated option", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    const cb = el.shadowRoot.querySelector(".global-animated");
+    expect(cb.checked).toBe(true);
+    cb.checked = false;
+    cb.dispatchEvent(new Event("change"));
+    expect(handler.mock.calls.at(-1)[0].detail.config.animated).toBe(false);
+  });
+
   it("toggles the global lazy option", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }] });
     const handler = vi.fn();
