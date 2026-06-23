@@ -38,6 +38,29 @@ async function mount(config: any) {
   return el;
 }
 
+// ha-form is not registered in jsdom, so we drive it the way HA does: by firing
+// a value-changed carrying the full (merged) data object.
+function formChange(form: any, value: any) {
+  form.dispatchEvent(
+    new CustomEvent("value-changed", { detail: { value }, bubbles: true, composed: true }),
+  );
+}
+
+// The globals ha-form's current data for a default single-tab config; spread and
+// override one field to simulate editing just that field.
+function globalsData() {
+  return {
+    position: "top",
+    style: "underline",
+    remember: "none",
+    default_tab: "A",
+    scrollable: "auto",
+    lazy: false,
+    animated: true,
+    swipe: false,
+  };
+}
+
 describe("pickCardEditorTag", () => {
   it("prefers hui-card-element-editor when available", () => {
     expect(pickCardEditorTag((t) => t === "hui-card-element-editor")).toBe(
@@ -86,19 +109,16 @@ describe("tabdeck-card-editor", () => {
     expect(handler.mock.calls[0][0].detail.config.tabs[0].name).toBe("B");
   });
 
-  it("edits a tab's accent and badge", async () => {
+  it("edits a tab's accent and badge via its ha-form", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }] });
     const handler = vi.fn();
     el.addEventListener("config-changed", handler);
 
-    const accent = el.shadowRoot.querySelector(".tab-accent");
-    accent.value = "#ff0000";
-    accent.dispatchEvent(new Event("input"));
+    const form = el.shadowRoot.querySelector(".tab-form");
+    formChange(form, { name: "A", icon: "", accent: "#ff0000", badge: "" });
     expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].accent).toBe("#ff0000");
 
-    const badge = el.shadowRoot.querySelector(".tab-badge");
-    badge.value = "sensor.unread";
-    badge.dispatchEvent(new Event("input"));
+    formChange(form, { name: "A", icon: "", accent: "#ff0000", badge: "sensor.unread" });
     expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].badge).toBe("sensor.unread");
   });
 
@@ -145,6 +165,52 @@ describe("tabdeck-card-editor", () => {
     expect(cfg.tabs[0].card).toEqual({ type: "light", entity: "light.kitchen" });
   });
 
+  it("adds a tab with no card type so the picker can choose one", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    el.shadowRoot.querySelector(".add-tab").click();
+    const cfg = handler.mock.calls.at(-1)![0].detail.config;
+    expect(cfg.tabs[1].card.type).toBeUndefined();
+  });
+
+  it("shows a card-type chooser for a typeless card and sets the chosen type", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    el.shadowRoot.querySelector(".edit-card").click();
+    await el.updateComplete;
+    const chooser = el.shadowRoot.querySelector(".card-type-form");
+    expect(chooser).toBeTruthy();
+    expect(el.shadowRoot.querySelector("hui-card-element-editor")).toBeNull();
+
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    chooser.dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: { value: { type: "light" } },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].card).toEqual({ type: "light" });
+  });
+
+  it("'Change card type' resets the card so the chooser reappears", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "markdown", content: "hi" } }] });
+    el.shadowRoot.querySelector(".edit-card").click();
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("hui-card-element-editor")).toBeTruthy();
+    const btn = el.shadowRoot.querySelector(".change-card-type") as HTMLButtonElement;
+    expect(btn).toBeTruthy();
+
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    btn.click();
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].card).toEqual({});
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".card-type-form")).toBeTruthy();
+    expect(el.shadowRoot.querySelector("hui-card-element-editor")).toBeNull();
+  });
+
   it("returns to the tab list when Back is pressed", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
     el.shadowRoot.querySelector(".edit-card").click();
@@ -156,34 +222,41 @@ describe("tabdeck-card-editor", () => {
     expect(el.shadowRoot.querySelector("hui-card-element-editor")).toBeNull();
   });
 
-  it("changes the global default_tab", async () => {
+  it("changes the global default_tab via the globals ha-form", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }, { name: "B", card: {} }] });
     const handler = vi.fn();
     el.addEventListener("config-changed", handler);
-    const sel = el.shadowRoot.querySelector(".global-default-tab");
-    sel.value = "B";
-    sel.dispatchEvent(new Event("change"));
+    const form = el.shadowRoot.querySelector(".globals-form");
+    formChange(form, { ...globalsData(), default_tab: "B" });
     expect(handler.mock.calls.at(-1)![0].detail.config.default_tab).toBe("B");
   });
 
-  it("toggles the global animated option", async () => {
+  it("toggles the global animated option via the globals ha-form", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }] });
     const handler = vi.fn();
     el.addEventListener("config-changed", handler);
-    const cb = el.shadowRoot.querySelector(".global-animated");
-    expect(cb.checked).toBe(true);
-    cb.checked = false;
-    cb.dispatchEvent(new Event("change"));
+    const form = el.shadowRoot.querySelector(".globals-form");
+    formChange(form, { ...globalsData(), animated: false });
     expect(handler.mock.calls.at(-1)![0].detail.config.animated).toBe(false);
   });
 
-  it("toggles the global lazy option", async () => {
+  it("toggles the global lazy option via the globals ha-form", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }] });
     const handler = vi.fn();
     el.addEventListener("config-changed", handler);
-    const cb = el.shadowRoot.querySelector(".global-lazy");
-    cb.checked = true;
-    cb.dispatchEvent(new Event("change"));
+    const form = el.shadowRoot.querySelector(".globals-form");
+    formChange(form, { ...globalsData(), lazy: true });
     expect(handler.mock.calls.at(-1)![0].detail.config.lazy).toBe(true);
+  });
+
+  it("maps the scrollable string back to a boolean/auto", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    const form = el.shadowRoot.querySelector(".globals-form");
+    formChange(form, { ...globalsData(), scrollable: "false" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.scrollable).toBe(false);
+    formChange(form, { ...globalsData(), scrollable: "auto" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.scrollable).toBe("auto");
   });
 });
