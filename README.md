@@ -91,6 +91,7 @@ tabs:
 | `scrollable`  | `auto` \| boolean | `auto`       | Scroll the tab bar when tabs overflow. |
 | `remember`    | string            | `none`       | `none` \| `browser` \| `url`. |
 | `lazy`        | boolean           | `false`      | Create inactive tab cards on first visit instead of up front. |
+| `swipe`       | boolean           | `false`      | Change tabs by swiping left/right on the card body (touch devices). Off by default so it never hijacks gestures of interactive cards (maps, sliders). |
 | `styles`      | object            | `{}`         | CSS-variable overrides (see Theming). |
 
 ### Tab options

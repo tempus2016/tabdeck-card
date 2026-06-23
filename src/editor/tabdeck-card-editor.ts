@@ -257,6 +257,15 @@ export class TabdeckCardEditor extends LitElement {
             />
             Lazy-mount inactive tabs
           </label>
+          <label class="checkbox"
+            ><input
+              class="global-swipe"
+              type="checkbox"
+              .checked=${cfg.swipe}
+              @change=${(e: any) => this._patch({ swipe: e.target.checked })}
+            />
+            Swipe to change tabs (mobile)
+          </label>
         </div>
 
         <div class="tabs">
