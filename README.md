@@ -91,6 +91,7 @@ tabs:
 | `scrollable`  | `auto` \| boolean | `auto`       | Scroll the tab bar when tabs overflow. |
 | `remember`    | string            | `none`       | `none` \| `browser` \| `url`. |
 | `lazy`        | boolean           | `false`      | Create inactive tab cards on first visit instead of up front. |
+| `animated`    | boolean           | `true`       | Slide the active-tab indicator between tabs. Snaps instantly when `false` or under reduced-motion. |
 | `styles`      | object            | `{}`         | CSS-variable overrides (see Theming). |
 
 ### Tab options

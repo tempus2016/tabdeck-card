@@ -632,6 +632,7 @@ function normalizeConfig(raw) {
     scrollable: (raw == null ? void 0 : raw.scrollable) === void 0 ? "auto" : raw.scrollable,
     remember: pick(raw == null ? void 0 : raw.remember, REMEMBER, "none"),
     lazy: Boolean(raw == null ? void 0 : raw.lazy),
+    animated: (raw == null ? void 0 : raw.animated) === void 0 ? true : Boolean(raw.animated),
     styles: (raw == null ? void 0 : raw.styles) ?? {},
     tabs: tabs.map(normalizeTab)
   };
@@ -845,6 +846,48 @@ class TemplateRenderer extends EventTarget {
     this._entries.clear();
   }
 }
+const THICKNESS = 3;
+function computeIndicatorRect(tab, position, style) {
+  if (!tab || tab.offsetWidth <= 0) return null;
+  if (style === "pill" || style === "segmented") {
+    return {
+      left: tab.offsetLeft,
+      top: tab.offsetTop,
+      width: tab.offsetWidth,
+      height: tab.offsetHeight
+    };
+  }
+  switch (position) {
+    case "top":
+      return {
+        left: tab.offsetLeft,
+        top: tab.offsetTop + tab.offsetHeight - THICKNESS,
+        width: tab.offsetWidth,
+        height: THICKNESS
+      };
+    case "bottom":
+      return {
+        left: tab.offsetLeft,
+        top: tab.offsetTop,
+        width: tab.offsetWidth,
+        height: THICKNESS
+      };
+    case "left":
+      return {
+        left: tab.offsetLeft + tab.offsetWidth - THICKNESS,
+        top: tab.offsetTop,
+        width: THICKNESS,
+        height: tab.offsetHeight
+      };
+    case "right":
+      return {
+        left: tab.offsetLeft,
+        top: tab.offsetTop,
+        width: THICKNESS,
+        height: tab.offsetHeight
+      };
+  }
+}
 var __defProp$3 = Object.defineProperty;
 var __getOwnPropDesc$3 = Object.getOwnPropertyDescriptor;
 var __decorateClass$3 = (decorators, target, key, kind) => {
@@ -966,6 +1009,8 @@ let TabdeckTabbar = class extends i {
     this.position = "top";
     this.tabStyle = "underline";
     this.scrollable = "auto";
+    this.animated = true;
+    this._ready = false;
     this._onKeydown = (e2) => {
       const last = this.items.length - 1;
       const vertical = this.position === "left" || this.position === "right";
@@ -986,9 +1031,14 @@ let TabdeckTabbar = class extends i {
     super.connectedCallback();
     this.setAttribute("role", "tablist");
     this.addEventListener("keydown", this._onKeydown);
+    if (typeof ResizeObserver !== "undefined") {
+      this._resizeObserver = new ResizeObserver(() => this._position());
+    }
   }
   disconnectedCallback() {
+    var _a2;
     this.removeEventListener("keydown", this._onKeydown);
+    (_a2 = this._resizeObserver) == null ? void 0 : _a2.disconnect();
     super.disconnectedCallback();
   }
   _select(index) {
@@ -1000,9 +1050,51 @@ let TabdeckTabbar = class extends i {
       })
     );
   }
+  // Measure the selected tab and write the indicator's box inline. Guards for
+  // jsdom / pre-layout (offset* == 0) by hiding the indicator instead of moving
+  // it to (0,0).
+  _position() {
+    const root = this.renderRoot;
+    const indicator = root == null ? void 0 : root.querySelector(".indicator");
+    if (!indicator) return;
+    const tab = root == null ? void 0 : root.querySelector("tabdeck-tab[selected]");
+    const rect = tab ? computeIndicatorRect(
+      {
+        offsetLeft: tab.offsetLeft,
+        offsetTop: tab.offsetTop,
+        offsetWidth: tab.offsetWidth,
+        offsetHeight: tab.offsetHeight
+      },
+      this.position,
+      this.tabStyle
+    ) : null;
+    if (!rect) {
+      indicator.style.opacity = "0";
+      return;
+    }
+    indicator.style.left = `${rect.left}px`;
+    indicator.style.top = `${rect.top}px`;
+    indicator.style.width = `${rect.width}px`;
+    indicator.style.height = `${rect.height}px`;
+    indicator.style.opacity = "1";
+  }
+  firstUpdated() {
+    const bar = this.renderRoot.querySelector(".bar");
+    if (bar && this._resizeObserver) this._resizeObserver.observe(bar);
+  }
+  updated() {
+    this._position();
+    if (!this._ready) {
+      requestAnimationFrame(() => {
+        this._ready = true;
+      });
+    }
+  }
   render() {
+    const animateClass = this._ready && this.animated ? " animate" : "";
     return b`
       <div class="bar ${this.position} style-${this.tabStyle}" part="bar">
+        <div class="indicator${animateClass}" part="indicator"></div>
         ${this.items.map(
       (item, index) => b`
             <tabdeck-tab
@@ -1054,9 +1146,6 @@ TabdeckTabbar.styles = i$3`
     .bar.right {
       border-left: 1px solid var(--divider-color);
     }
-    .bar.style-underline tabdeck-tab[selected] {
-      box-shadow: inset 0 -3px 0 0 var(--tabdeck-accent, var(--primary-color));
-    }
     .bar.style-pill {
       gap: 6px;
       border: none;
@@ -1065,27 +1154,51 @@ TabdeckTabbar.styles = i$3`
     .bar.style-pill tabdeck-tab {
       border-radius: 999px;
     }
-    .bar.style-pill tabdeck-tab[selected] {
-      background: color-mix(
-        in srgb,
-        var(--tabdeck-accent, var(--primary-color)) 18%,
-        transparent
-      );
-    }
     .bar.style-segmented {
       gap: 0;
       border: 1px solid var(--divider-color);
       border-radius: 10px;
       padding: 4px;
     }
-    .bar.style-segmented tabdeck-tab[selected] {
+
+    /* The single moving indicator. Sits behind tab content. */
+    .indicator {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .indicator.animate {
+      transition: left 200ms ease, top 200ms ease, width 200ms ease,
+        height 200ms ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .indicator.animate {
+        transition: none;
+      }
+    }
+    tabdeck-tab {
+      position: relative;
+      z-index: 1;
+    }
+    .bar.style-underline .indicator {
+      background: var(--tabdeck-accent, var(--primary-color));
+    }
+    .bar.style-pill .indicator {
+      background: color-mix(
+        in srgb,
+        var(--tabdeck-accent, var(--primary-color)) 18%,
+        transparent
+      );
+      border-radius: 999px;
+    }
+    .bar.style-segmented .indicator {
       background: var(--card-background-color);
       border-radius: 7px;
-    }
-    @media (prefers-reduced-motion: no-preference) {
-      tabdeck-tab {
-        transition: background 150ms ease, box-shadow 150ms ease;
-      }
     }
   `;
 __decorateClass$2([
@@ -1103,6 +1216,12 @@ __decorateClass$2([
 __decorateClass$2([
   n2()
 ], TabdeckTabbar.prototype, "scrollable", 2);
+__decorateClass$2([
+  n2({ type: Boolean })
+], TabdeckTabbar.prototype, "animated", 2);
+__decorateClass$2([
+  r$1()
+], TabdeckTabbar.prototype, "_ready", 2);
 TabdeckTabbar = __decorateClass$2([
   t$1("tabdeck-tabbar")
 ], TabdeckTabbar);
@@ -1310,6 +1429,7 @@ let TabdeckCard = class extends i {
         .position=${cfg.position}
         .tabStyle=${cfg.style}
         .scrollable=${cfg.scrollable}
+        .animated=${cfg.animated}
         @tabdeck-select=${this._onSelect}
       ></tabdeck-tabbar>
     `;
@@ -1619,6 +1739,15 @@ let TabdeckCardEditor = class extends i {
               @change=${(e2) => this._patch({ lazy: e2.target.checked })}
             />
             Lazy-mount inactive tabs
+          </label>
+          <label class="checkbox"
+            ><input
+              class="global-animated"
+              type="checkbox"
+              .checked=${cfg.animated}
+              @change=${(e2) => this._patch({ animated: e2.target.checked })}
+            />
+            Animate indicator
           </label>
         </div>
 
