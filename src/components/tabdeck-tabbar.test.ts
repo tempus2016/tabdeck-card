@@ -51,4 +51,20 @@ describe("tabdeck-tabbar", () => {
     el.dispatchEvent(new KeyboardEvent("keydown", { key: "Home" }));
     expect(events[events.length - 1]).toBe(0);
   });
+
+  it("renders a single sliding indicator element inside the bar", async () => {
+    const el = await mount();
+    const indicators = el.shadowRoot.querySelectorAll(".bar .indicator");
+    expect(indicators).toHaveLength(1);
+  });
+
+  it("repositions the indicator when the selection changes", async () => {
+    const el = await mount();
+    const ind = el.shadowRoot.querySelector(".indicator");
+    // jsdom has no layout, so the indicator stays hidden — but updating the
+    // selection must re-run positioning without throwing and keep the style set.
+    el.selected = 2;
+    await el.updateComplete;
+    expect(ind.getAttribute("style")).toBeTruthy();
+  });
 });

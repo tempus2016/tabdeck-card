@@ -1,6 +1,7 @@
-import { LitElement, html, css } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { LitElement, html, css, PropertyValues } from "lit";
+import { customElement, property, query } from "lit/decorators.js";
 import type { TabPosition, TabStyle } from "../lib/config";
+import { indicatorStyle } from "../lib/indicator";
 import "./tabdeck-tab";
 
 interface TabItem {
@@ -18,15 +19,50 @@ export class TabdeckTabbar extends LitElement {
   @property() tabStyle: TabStyle = "underline";
   @property() scrollable: "auto" | boolean = "auto";
 
+  @query(".bar") private _bar?: HTMLElement;
+  @query(".indicator") private _indicatorEl?: HTMLElement;
+  private _resizeObserver?: ResizeObserver;
+
   connectedCallback(): void {
     super.connectedCallback();
     this.setAttribute("role", "tablist");
     this.addEventListener("keydown", this._onKeydown);
+    if (typeof ResizeObserver !== "undefined") {
+      this._resizeObserver = new ResizeObserver(() => this._positionIndicator());
+    }
   }
 
   disconnectedCallback(): void {
     this.removeEventListener("keydown", this._onKeydown);
+    this._resizeObserver?.disconnect();
     super.disconnectedCallback();
+  }
+
+  protected firstUpdated(): void {
+    if (this._bar && this._resizeObserver) this._resizeObserver.observe(this._bar);
+  }
+
+  protected updated(_changed: PropertyValues): void {
+    this._positionIndicator();
+  }
+
+  // Slide/resize the active-tab indicator to cover the selected tab. Uses live
+  // offset metrics so it works for any position/style; appearance is CSS.
+  private _positionIndicator(): void {
+    const ind = this._indicatorEl;
+    const bar = this._bar;
+    if (!ind || !bar) return;
+    const tabs = bar.querySelectorAll("tabdeck-tab");
+    const el = tabs[this.selected] as HTMLElement | undefined;
+    const accent = this.items[this.selected]?.accent;
+    if (!el) {
+      ind.style.cssText = indicatorStyle(null);
+      return;
+    }
+    ind.style.cssText = indicatorStyle(
+      { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight },
+      accent,
+    );
   }
 
   private _select(index: number): void {
@@ -58,6 +94,7 @@ export class TabdeckTabbar extends LitElement {
   render() {
     return html`
       <div class="bar ${this.position} style-${this.tabStyle}" part="bar">
+        <span class="indicator" part="indicator" style="opacity:0;"></span>
         ${this.items.map(
           (item, index) => html`
             <tabdeck-tab
@@ -109,8 +146,36 @@ export class TabdeckTabbar extends LitElement {
     .bar.right {
       border-left: 1px solid var(--divider-color);
     }
-    .bar.style-underline tabdeck-tab[selected] {
-      box-shadow: inset 0 -3px 0 0 var(--tabdeck-accent, var(--primary-color));
+    /* The single sliding active-tab indicator. A full tab-sized box positioned
+       by JS; each style paints it differently. Sits beneath the tab content. */
+    .indicator {
+      position: absolute;
+      left: 0;
+      top: 0;
+      box-sizing: border-box;
+      pointer-events: none;
+      z-index: 0;
+    }
+    tabdeck-tab {
+      position: relative;
+      z-index: 1;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .indicator {
+        transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
+          width 250ms cubic-bezier(0.4, 0, 0.2, 1),
+          height 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+    .bar.top.style-underline .indicator,
+    .bar.bottom.style-underline .indicator {
+      border-bottom: 3px solid var(--tabdeck-accent, var(--primary-color));
+    }
+    .bar.left.style-underline .indicator {
+      border-right: 3px solid var(--tabdeck-accent, var(--primary-color));
+    }
+    .bar.right.style-underline .indicator {
+      border-left: 3px solid var(--tabdeck-accent, var(--primary-color));
     }
     .bar.style-pill {
       gap: 6px;
@@ -120,12 +185,13 @@ export class TabdeckTabbar extends LitElement {
     .bar.style-pill tabdeck-tab {
       border-radius: 999px;
     }
-    .bar.style-pill tabdeck-tab[selected] {
+    .bar.style-pill .indicator {
       background: color-mix(
         in srgb,
         var(--tabdeck-accent, var(--primary-color)) 18%,
         transparent
       );
+      border-radius: 999px;
     }
     .bar.style-segmented {
       gap: 0;
@@ -133,14 +199,9 @@ export class TabdeckTabbar extends LitElement {
       border-radius: 10px;
       padding: 4px;
     }
-    .bar.style-segmented tabdeck-tab[selected] {
+    .bar.style-segmented .indicator {
       background: var(--card-background-color);
       border-radius: 7px;
-    }
-    @media (prefers-reduced-motion: no-preference) {
-      tabdeck-tab {
-        transition: background 150ms ease, box-shadow 150ms ease;
-      }
     }
   `;
 }

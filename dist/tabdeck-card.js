@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 var _a;
-const t$3 = globalThis, e$2 = t$3.ShadowRoot && (void 0 === t$3.ShadyCSS || t$3.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, s$2 = Symbol(), o$4 = /* @__PURE__ */ new WeakMap();
+const t$3 = globalThis, e$4 = t$3.ShadowRoot && (void 0 === t$3.ShadyCSS || t$3.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, s$2 = Symbol(), o$4 = /* @__PURE__ */ new WeakMap();
 let n$3 = class n {
   constructor(t2, e2, o2) {
     if (this._$cssResult$ = true, o2 !== s$2) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
@@ -13,7 +13,7 @@ let n$3 = class n {
   get styleSheet() {
     let t2 = this.o;
     const s2 = this.t;
-    if (e$2 && void 0 === t2) {
+    if (e$4 && void 0 === t2) {
       const e2 = void 0 !== s2 && 1 === s2.length;
       e2 && (t2 = o$4.get(s2)), void 0 === t2 && ((this.o = t2 = new CSSStyleSheet()).replaceSync(this.cssText), e2 && o$4.set(s2, t2));
     }
@@ -31,12 +31,12 @@ const r$5 = (t2) => new n$3("string" == typeof t2 ? t2 : t2 + "", void 0, s$2), 
   })(s2) + t2[o3 + 1], t2[0]);
   return new n$3(o2, t2, s$2);
 }, S$1 = (s2, o2) => {
-  if (e$2) s2.adoptedStyleSheets = o2.map((t2) => t2 instanceof CSSStyleSheet ? t2 : t2.styleSheet);
+  if (e$4) s2.adoptedStyleSheets = o2.map((t2) => t2 instanceof CSSStyleSheet ? t2 : t2.styleSheet);
   else for (const e2 of o2) {
     const o3 = document.createElement("style"), n3 = t$3.litNonce;
     void 0 !== n3 && o3.setAttribute("nonce", n3), o3.textContent = e2.cssText, s2.appendChild(o3);
   }
-}, c$2 = e$2 ? (t2) => t2 : (t2) => t2 instanceof CSSStyleSheet ? ((t3) => {
+}, c$2 = e$4 ? (t2) => t2 : (t2) => t2 instanceof CSSStyleSheet ? ((t3) => {
   let e2 = "";
   for (const s2 of t3.cssRules) e2 += s2.cssText;
   return r$5(e2);
@@ -46,7 +46,7 @@ const r$5 = (t2) => new n$3("string" == typeof t2 ? t2 : t2 + "", void 0, s$2), 
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: i$2, defineProperty: e$1, getOwnPropertyDescriptor: h$1, getOwnPropertyNames: r$4, getOwnPropertySymbols: o$3, getPrototypeOf: n$2 } = Object, a$1 = globalThis, c$1 = a$1.trustedTypes, l$1 = c$1 ? c$1.emptyScript : "", p$1 = a$1.reactiveElementPolyfillSupport, d$1 = (t2, s2) => t2, u$1 = { toAttribute(t2, s2) {
+const { is: i$2, defineProperty: e$3, getOwnPropertyDescriptor: h$1, getOwnPropertyNames: r$4, getOwnPropertySymbols: o$3, getPrototypeOf: n$2 } = Object, a$1 = globalThis, c$1 = a$1.trustedTypes, l$1 = c$1 ? c$1.emptyScript : "", p$1 = a$1.reactiveElementPolyfillSupport, d$1 = (t2, s2) => t2, u$1 = { toAttribute(t2, s2) {
   switch (s2) {
     case Boolean:
       t2 = t2 ? l$1 : null;
@@ -86,7 +86,7 @@ let y$1 = class y extends HTMLElement {
   static createProperty(t2, s2 = b$1) {
     if (s2.state && (s2.attribute = false), this._$Ei(), this.prototype.hasOwnProperty(t2) && ((s2 = Object.create(s2)).wrapped = true), this.elementProperties.set(t2, s2), !s2.noAccessor) {
       const i2 = Symbol(), h2 = this.getPropertyDescriptor(t2, i2, s2);
-      void 0 !== h2 && e$1(this.prototype, t2, h2);
+      void 0 !== h2 && e$3(this.prototype, t2, h2);
     }
   }
   static getPropertyDescriptor(t2, s2, i2) {
@@ -285,11 +285,11 @@ y$1.elementStyles = [], y$1.shadowRootOptions = { mode: "open" }, y$1[d$1("eleme
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t$2 = globalThis, i$1 = (t2) => t2, s$1 = t$2.trustedTypes, e = s$1 ? s$1.createPolicy("lit-html", { createHTML: (t2) => t2 }) : void 0, h = "$lit$", o$2 = `lit$${Math.random().toFixed(9).slice(2)}$`, n$1 = "?" + o$2, r$3 = `<${n$1}>`, l = document, c = () => l.createComment(""), a = (t2) => null === t2 || "object" != typeof t2 && "function" != typeof t2, u = Array.isArray, d = (t2) => u(t2) || "function" == typeof (t2 == null ? void 0 : t2[Symbol.iterator]), f = "[ 	\n\f\r]", v = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, _ = /-->/g, m = />/g, p = RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ 	
+const t$2 = globalThis, i$1 = (t2) => t2, s$1 = t$2.trustedTypes, e$2 = s$1 ? s$1.createPolicy("lit-html", { createHTML: (t2) => t2 }) : void 0, h = "$lit$", o$2 = `lit$${Math.random().toFixed(9).slice(2)}$`, n$1 = "?" + o$2, r$3 = `<${n$1}>`, l = document, c = () => l.createComment(""), a = (t2) => null === t2 || "object" != typeof t2 && "function" != typeof t2, u = Array.isArray, d = (t2) => u(t2) || "function" == typeof (t2 == null ? void 0 : t2[Symbol.iterator]), f = "[ 	\n\f\r]", v = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, _ = /-->/g, m = />/g, p = RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), g = /'/g, $ = /"/g, y2 = /^(?:script|style|textarea|title)$/i, x = (t2) => (i2, ...s2) => ({ _$litType$: t2, strings: i2, values: s2 }), b = x(1), E = Symbol.for("lit-noChange"), A = Symbol.for("lit-nothing"), C = /* @__PURE__ */ new WeakMap(), P = l.createTreeWalker(l, 129);
 function V(t2, i2) {
   if (!u(t2) || !t2.hasOwnProperty("raw")) throw Error("invalid template strings array");
-  return void 0 !== e ? e.createHTML(i2) : i2;
+  return void 0 !== e$2 ? e$2.createHTML(i2) : i2;
 }
 const N = (t2, i2) => {
   const s2 = t2.length - 1, e2 = [];
@@ -600,6 +600,28 @@ function n2(t2) {
 function r$1(r2) {
   return n2({ ...r2, state: true, attribute: false });
 }
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const e$1 = (e2, t2, c2) => (c2.configurable = true, c2.enumerable = true, Reflect.decorate && "object" != typeof t2 && Object.defineProperty(e2, t2, c2), c2);
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+function e(e2, r2) {
+  return (n3, s2, i2) => {
+    const o2 = (t2) => {
+      var _a2;
+      return ((_a2 = t2.renderRoot) == null ? void 0 : _a2.querySelector(e2)) ?? null;
+    };
+    return e$1(n3, s2, { get() {
+      return o2(this);
+    } });
+  };
+}
 const POSITIONS = ["top", "bottom", "left", "right"];
 const STYLES = ["underline", "pill", "segmented"];
 const REMEMBER = ["none", "browser", "url"];
@@ -858,6 +880,12 @@ function detectSwipe(start, end, opts = {}) {
   if (Math.abs(dx) < Math.abs(dy) * ratio) return null;
   return dx < 0 ? "next" : "prev";
 }
+function indicatorStyle(box, accent) {
+  if (!box || box.width === 0 && box.height === 0) return "opacity:0;";
+  let css = `transform: translate(${box.left}px, ${box.top}px);width:${box.width}px;height:${box.height}px;opacity:1;`;
+  if (accent) css += `--tabdeck-accent:${accent};`;
+  return css;
+}
 var __defProp$3 = Object.defineProperty;
 var __getOwnPropDesc$3 = Object.getOwnPropertyDescriptor;
 var __decorateClass$3 = (decorators, target, key, kind) => {
@@ -999,10 +1027,40 @@ let TabdeckTabbar = class extends i {
     super.connectedCallback();
     this.setAttribute("role", "tablist");
     this.addEventListener("keydown", this._onKeydown);
+    if (typeof ResizeObserver !== "undefined") {
+      this._resizeObserver = new ResizeObserver(() => this._positionIndicator());
+    }
   }
   disconnectedCallback() {
+    var _a2;
     this.removeEventListener("keydown", this._onKeydown);
+    (_a2 = this._resizeObserver) == null ? void 0 : _a2.disconnect();
     super.disconnectedCallback();
+  }
+  firstUpdated() {
+    if (this._bar && this._resizeObserver) this._resizeObserver.observe(this._bar);
+  }
+  updated(_changed) {
+    this._positionIndicator();
+  }
+  // Slide/resize the active-tab indicator to cover the selected tab. Uses live
+  // offset metrics so it works for any position/style; appearance is CSS.
+  _positionIndicator() {
+    var _a2;
+    const ind = this._indicatorEl;
+    const bar = this._bar;
+    if (!ind || !bar) return;
+    const tabs = bar.querySelectorAll("tabdeck-tab");
+    const el = tabs[this.selected];
+    const accent = (_a2 = this.items[this.selected]) == null ? void 0 : _a2.accent;
+    if (!el) {
+      ind.style.cssText = indicatorStyle(null);
+      return;
+    }
+    ind.style.cssText = indicatorStyle(
+      { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight },
+      accent
+    );
   }
   _select(index) {
     this.dispatchEvent(
@@ -1016,6 +1074,7 @@ let TabdeckTabbar = class extends i {
   render() {
     return b`
       <div class="bar ${this.position} style-${this.tabStyle}" part="bar">
+        <span class="indicator" part="indicator" style="opacity:0;"></span>
         ${this.items.map(
       (item, index) => b`
             <tabdeck-tab
@@ -1067,8 +1126,36 @@ TabdeckTabbar.styles = i$3`
     .bar.right {
       border-left: 1px solid var(--divider-color);
     }
-    .bar.style-underline tabdeck-tab[selected] {
-      box-shadow: inset 0 -3px 0 0 var(--tabdeck-accent, var(--primary-color));
+    /* The single sliding active-tab indicator. A full tab-sized box positioned
+       by JS; each style paints it differently. Sits beneath the tab content. */
+    .indicator {
+      position: absolute;
+      left: 0;
+      top: 0;
+      box-sizing: border-box;
+      pointer-events: none;
+      z-index: 0;
+    }
+    tabdeck-tab {
+      position: relative;
+      z-index: 1;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .indicator {
+        transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
+          width 250ms cubic-bezier(0.4, 0, 0.2, 1),
+          height 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+    .bar.top.style-underline .indicator,
+    .bar.bottom.style-underline .indicator {
+      border-bottom: 3px solid var(--tabdeck-accent, var(--primary-color));
+    }
+    .bar.left.style-underline .indicator {
+      border-right: 3px solid var(--tabdeck-accent, var(--primary-color));
+    }
+    .bar.right.style-underline .indicator {
+      border-left: 3px solid var(--tabdeck-accent, var(--primary-color));
     }
     .bar.style-pill {
       gap: 6px;
@@ -1078,12 +1165,13 @@ TabdeckTabbar.styles = i$3`
     .bar.style-pill tabdeck-tab {
       border-radius: 999px;
     }
-    .bar.style-pill tabdeck-tab[selected] {
+    .bar.style-pill .indicator {
       background: color-mix(
         in srgb,
         var(--tabdeck-accent, var(--primary-color)) 18%,
         transparent
       );
+      border-radius: 999px;
     }
     .bar.style-segmented {
       gap: 0;
@@ -1091,14 +1179,9 @@ TabdeckTabbar.styles = i$3`
       border-radius: 10px;
       padding: 4px;
     }
-    .bar.style-segmented tabdeck-tab[selected] {
+    .bar.style-segmented .indicator {
       background: var(--card-background-color);
       border-radius: 7px;
-    }
-    @media (prefers-reduced-motion: no-preference) {
-      tabdeck-tab {
-        transition: background 150ms ease, box-shadow 150ms ease;
-      }
     }
   `;
 __decorateClass$2([
@@ -1116,6 +1199,12 @@ __decorateClass$2([
 __decorateClass$2([
   n2()
 ], TabdeckTabbar.prototype, "scrollable", 2);
+__decorateClass$2([
+  e(".bar")
+], TabdeckTabbar.prototype, "_bar", 2);
+__decorateClass$2([
+  e(".indicator")
+], TabdeckTabbar.prototype, "_indicatorEl", 2);
 TabdeckTabbar = __decorateClass$2([
   t$1("tabdeck-tabbar")
 ], TabdeckTabbar);
