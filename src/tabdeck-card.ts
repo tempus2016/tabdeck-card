@@ -10,6 +10,7 @@ import { isTabVisible } from "./lib/conditions";
 import { loadInitialIndex, persistIndex } from "./lib/persistence";
 import { CardManager, getCreateCardElement } from "./lib/card-lifecycle";
 import { isTemplate, TemplateRenderer, type SubscribeFn } from "./lib/templates";
+import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import "./components/tabdeck-tabbar";
 
 @customElement("tabdeck-card")
@@ -178,7 +179,11 @@ export class TabdeckCard extends LitElement {
   }
 
   private _onSelect(e: CustomEvent<{ index: number }>): void {
-    this._selected = e.detail.index;
+    this._selectIndex(e.detail.index);
+  }
+
+  private _selectIndex(index: number): void {
+    this._selected = index;
     const visible = this._visibleTabs();
     const tab = visible[this._selected];
     if (this._config) {
@@ -196,6 +201,31 @@ export class TabdeckCard extends LitElement {
       this._manager?.notifyVisible(this._activeOriginalIndex()),
     );
   }
+
+  private _touchStart?: SwipePoint;
+
+  private _onTouchStart = (e: TouchEvent): void => {
+    if (!this._config?.swipe || e.touches.length !== 1) {
+      this._touchStart = undefined;
+      return;
+    }
+    const t = e.touches[0];
+    this._touchStart = { x: t.clientX, y: t.clientY, t: e.timeStamp };
+  };
+
+  private _onTouchEnd = (e: TouchEvent): void => {
+    const start = this._touchStart;
+    this._touchStart = undefined;
+    if (!start || !this._config?.swipe) return;
+    const t = e.changedTouches[0];
+    if (!t) return;
+    const dir = detectSwipe(start, { x: t.clientX, y: t.clientY, t: e.timeStamp });
+    if (!dir) return;
+    const last = this._visibleTabs().length - 1;
+    const target = dir === "next" ? this._selected + 1 : this._selected - 1;
+    const clamped = Math.max(0, Math.min(last, target));
+    if (clamped !== this._selected) this._selectIndex(clamped);
+  };
 
   protected updated(changed: PropertyValues): void {
     super.updated(changed);
@@ -223,7 +253,13 @@ export class TabdeckCard extends LitElement {
       ></tabdeck-tabbar>
     `;
     const panels = html`
-      <div class="content" id="tabdeck-panel" role="tabpanel">
+      <div
+        class="content"
+        id="tabdeck-panel"
+        role="tabpanel"
+        @touchstart=${this._onTouchStart}
+        @touchend=${this._onTouchEnd}
+      >
         ${visible.map((tab, i) => {
           const original = cfg.tabs.indexOf(tab);
           return html`

@@ -190,3 +190,79 @@ describe("tabdeck-card templates", () => {
     expect(bar().items).toHaveLength(1);
   });
 });
+
+// Fire a synthetic swipe on the content host. dx<0 swipes left (=> next tab).
+function swipe(el: any, dx: number, dy = 5, dt = 200) {
+  const content = el.shadowRoot.querySelector(".content");
+  const startX = 200;
+  const start = new Event("touchstart", { bubbles: true }) as any;
+  start.touches = [{ clientX: startX, clientY: 100 }];
+  Object.defineProperty(start, "timeStamp", { value: 1000 });
+  content.dispatchEvent(start);
+  const end = new Event("touchend", { bubbles: true }) as any;
+  end.changedTouches = [{ clientX: startX + dx, clientY: 100 + dy }];
+  Object.defineProperty(end, "timeStamp", { value: 1000 + dt });
+  content.dispatchEvent(end);
+}
+
+describe("tabdeck-card swipe", () => {
+  const three = () => ({
+    swipe: true,
+    tabs: [
+      { name: "A", card: { type: "markdown" } },
+      { name: "B", card: { type: "light" } },
+      { name: "C", card: { type: "markdown" } },
+    ],
+  });
+  const selected = (el: any) =>
+    el.shadowRoot.querySelector("tabdeck-tabbar").selected;
+
+  it("advances to the next tab on a leftward swipe", async () => {
+    const el = await mount(three());
+    expect(selected(el)).toBe(0);
+    swipe(el, -120);
+    await el.updateComplete;
+    expect(selected(el)).toBe(1);
+  });
+
+  it("goes to the previous tab on a rightward swipe", async () => {
+    const el = await mount(three());
+    swipe(el, -120);
+    await el.updateComplete;
+    expect(selected(el)).toBe(1);
+    swipe(el, 120);
+    await el.updateComplete;
+    expect(selected(el)).toBe(0);
+  });
+
+  it("clamps at the first and last tabs (no wrap)", async () => {
+    const el = await mount(three());
+    swipe(el, 120); // already at first; rightward => prev
+    await el.updateComplete;
+    expect(selected(el)).toBe(0);
+    swipe(el, -120);
+    swipe(el, -120);
+    swipe(el, -120); // try to go past the last
+    await el.updateComplete;
+    expect(selected(el)).toBe(2);
+  });
+
+  it("does nothing when swipe is disabled (default)", async () => {
+    const el = await mount({
+      tabs: [
+        { name: "A", card: { type: "markdown" } },
+        { name: "B", card: { type: "light" } },
+      ],
+    });
+    swipe(el, -120);
+    await el.updateComplete;
+    expect(selected(el)).toBe(0);
+  });
+
+  it("ignores a mostly-vertical drag", async () => {
+    const el = await mount(three());
+    swipe(el, -120, 400);
+    await el.updateComplete;
+    expect(selected(el)).toBe(0);
+  });
+});

@@ -21,6 +21,7 @@ export interface TabdeckCardConfig {
   scrollable: "auto" | boolean;
   remember: RememberMode;
   lazy: boolean;
+  swipe: boolean;
   styles: Record<string, string>;
   tabs: TabdeckTabConfig[];
 }
@@ -59,6 +60,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     scrollable: raw?.scrollable === undefined ? "auto" : raw.scrollable,
     remember: pick(raw?.remember, REMEMBER, "none"),
     lazy: Boolean(raw?.lazy),
+    swipe: Boolean(raw?.swipe),
     styles: raw?.styles ?? {},
     tabs: tabs.map(normalizeTab),
   };
