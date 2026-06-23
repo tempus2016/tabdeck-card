@@ -8,6 +8,13 @@ Built from the ground up in Lit with **zero external UI-component dependencies**
 so it does not collide with Home Assistant's own components (a common source of
 breakage in older tabbed cards after HA frontend updates).
 
+![Tabdeck Card with underline and pill tab styles](images/underline-weather.png)
+
+A nested map card rendering correctly the moment its tab is selected — no
+"navigate away and back" workaround needed:
+
+![Keep-alive map rendering](images/map-keepalive.png)
+
 ## Features
 
 - **Visual GUI editor** — add, remove, reorder and name tabs without YAML.
