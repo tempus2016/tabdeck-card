@@ -1,0 +1,85 @@
+name: Feature Request
+description: Suggest a new feature or improvement for Tabdeck Card
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees:
+  - tempus2016
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! The more context you give, the easier it is to understand and implement.
+
+        Before submitting, please search [existing issues](https://github.com/tempus2016/tabdeck-card/issues) to check if this has already been requested.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: A short, clear summary of what you're requesting.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Good feature requests start with a real problem, not just a solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How do you imagine this working? UI details, config options, behaviour — whatever helps.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area does this relate to?
+      multiple: true
+      options:
+        - Tab styling / appearance
+        - Tab positioning
+        - Conditional tabs / visibility
+        - Badges
+        - Persistence / deep-linking
+        - GUI editor
+        - New configuration option
+        - Theming / CSS variables
+        - Accessibility
+        - Migration from tabbed-card
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any workarounds you've tried, or other ways this could be solved?
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: How important is this to you?
+      options:
+        - Nice to have — would improve the experience
+        - Important — a gap that affects my daily use
+        - Critical — a blocker for me using the card properly
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before Submitting
+      options:
+        - label: I have searched [existing issues](https://github.com/tempus2016/tabdeck-card/issues) and this has not already been requested
+          required: true
+        - label: I have checked the [README](https://github.com/tempus2016/tabdeck-card#readme) and this feature doesn't already exist
+          required: true

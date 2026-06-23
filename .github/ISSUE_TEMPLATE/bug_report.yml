@@ -1,0 +1,163 @@
+name: Bug Report
+description: Report a bug or unexpected behaviour in Tabdeck Card
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees:
+  - tempus2016
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as possible — it helps fix issues faster.
+
+        Before submitting, please check the [README](https://github.com/tempus2016/tabdeck-card#readme) and [existing issues](https://github.com/tempus2016/tabdeck-card/issues) to see if your issue is already covered.
+
+  - type: input
+    id: tabdeck_version
+    attributes:
+      label: Tabdeck Card Version
+      description: The release you have installed (HACS → Frontend → Tabdeck Card, or the resource URL `?` version).
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant Version
+      description: Found in Settings → System → About
+      placeholder: e.g. 2026.6.1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Installation Method
+      options:
+        - HACS
+        - Manual (copied tabdeck-card.js + added resource)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: lovelace_mode
+    attributes:
+      label: Lovelace Mode
+      options:
+        - Storage (default — managed via UI)
+        - YAML (configuration.yaml)
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug. What did you see?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Add a tabdeck-card with the YAML below
+        2. Switch to the second tab
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: Is this reproducible?
+      options:
+        - Always — happens every time
+        - Sometimes — happens intermittently
+        - Once — only happened one time
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected_area
+    attributes:
+      label: Affected Area
+      description: Which part of the card is affected? Select all that apply.
+      multiple: true
+      options:
+        - Tab bar rendering / styling
+        - Tab switching
+        - A specific nested card not rendering (map, picture, graph, etc.)
+        - Conditional tabs (visibility)
+        - Badges
+        - Persistence / deep-link (remember)
+        - Positioning (top/bottom/left/right)
+        - GUI editor
+        - Installation / HACS / resource loading
+        - Migration from tabbed-card
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: nested_card
+    attributes:
+      label: Which nested card type is affected? (if relevant)
+      description: If a card inside a tab misbehaves, name its `type` (e.g. `map`, `picture-glance`, `history-graph`). These cards often have their own quirks when hidden.
+      placeholder: e.g. type custom card or built-in map card
+
+  - type: textarea
+    id: console_errors
+    attributes:
+      label: Browser Console Errors
+      description: |
+        Open browser DevTools (F12) → Console, reproduce the issue, and paste any red errors here.
+      render: text
+      placeholder: |
+        Uncaught TypeError: Cannot read properties of undefined ...
+        at tabdeck-card.js:...
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Card YAML Configuration
+      description: Paste the full YAML of the affected tabdeck-card (you can redact entity names).
+      render: yaml
+      placeholder: |
+        type: custom:tabdeck-card
+        tabs:
+          - name: One
+            card:
+              type: markdown
+              content: hello
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: |
+        Anything else relevant — screenshots, recordings, your theme, recent changes.
+        You can drag and drop images directly into this box.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before Submitting
+      options:
+        - label: I have searched [existing issues](https://github.com/tempus2016/tabdeck-card/issues) and this is not a duplicate
+          required: true
+        - label: I am running the latest version of Tabdeck Card
+          required: false
+        - label: I confirmed the nested card works on its own (outside tabdeck-card)
+          required: false
