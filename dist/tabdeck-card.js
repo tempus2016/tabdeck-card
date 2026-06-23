@@ -1253,6 +1253,10 @@ var __decorateClass = (decorators, target, key, kind) => {
   return result;
 };
 let TabdeckCardEditor = class extends i {
+  constructor() {
+    super(...arguments);
+    this._cardError = null;
+  }
   setConfig(config) {
     this._config = normalizeConfig(config);
   }
@@ -1284,6 +1288,17 @@ let TabdeckCardEditor = class extends i {
     if (!this._config) return;
     const tabs = this._config.tabs.filter((_2, i2) => i2 !== index);
     this._emit({ ...this._config, tabs });
+  }
+  _editCardJson(index, raw) {
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      this._cardError = index;
+      return;
+    }
+    this._cardError = null;
+    this._patchTab(index, { card: parsed });
   }
   _move(index, delta) {
     if (!this._config) return;
@@ -1332,29 +1347,95 @@ let TabdeckCardEditor = class extends i {
     )}
             </select>
           </label>
+          <label
+            >Default tab
+            <select
+              class="global-default-tab"
+              @change=${(e2) => this._patch({ default_tab: e2.target.value })}
+            >
+              ${cfg.tabs.map((t2, i2) => {
+      const value = t2.name ?? String(i2);
+      return b`<option
+                  value=${value}
+                  ?selected=${String(cfg.default_tab) === value || cfg.default_tab === i2}
+                >
+                  ${t2.name || `Tab ${i2 + 1}`}
+                </option>`;
+    })}
+            </select>
+          </label>
+          <label
+            >Scrollable
+            <select
+              @change=${(e2) => this._patch({
+      scrollable: e2.target.value === "auto" ? "auto" : e2.target.value === "true"
+    })}
+            >
+              ${["auto", "true", "false"].map(
+      (s2) => b`<option value=${s2} ?selected=${String(cfg.scrollable) === s2}>${s2}</option>`
+    )}
+            </select>
+          </label>
+          <label class="checkbox"
+            ><input
+              class="global-lazy"
+              type="checkbox"
+              .checked=${cfg.lazy}
+              @change=${(e2) => this._patch({ lazy: e2.target.checked })}
+            />
+            Lazy-mount inactive tabs
+          </label>
         </div>
 
         <div class="tabs">
           ${cfg.tabs.map(
       (tab, index) => b`
-              <div class="tab-row">
-                <input
-                  class="tab-name"
-                  type="text"
-                  .value=${tab.name ?? ""}
-                  placeholder="Tab name"
-                  @input=${(e2) => this._patchTab(index, { name: e2.target.value })}
-                />
-                <input
-                  class="tab-icon"
-                  type="text"
-                  .value=${tab.icon ?? ""}
-                  placeholder="mdi:icon"
-                  @input=${(e2) => this._patchTab(index, { icon: e2.target.value })}
-                />
-                <button class="move-up" @click=${() => this._move(index, -1)}>↑</button>
-                <button class="move-down" @click=${() => this._move(index, 1)}>↓</button>
-                <button class="delete-tab" @click=${() => this._deleteTab(index)}>✕</button>
+              <div class="tab">
+                <div class="tab-row">
+                  <input
+                    class="tab-name"
+                    type="text"
+                    .value=${tab.name ?? ""}
+                    placeholder="Tab name"
+                    @input=${(e2) => this._patchTab(index, { name: e2.target.value })}
+                  />
+                  <input
+                    class="tab-icon"
+                    type="text"
+                    .value=${tab.icon ?? ""}
+                    placeholder="mdi:icon"
+                    @input=${(e2) => this._patchTab(index, { icon: e2.target.value })}
+                  />
+                  <button class="move-up" @click=${() => this._move(index, -1)}>↑</button>
+                  <button class="move-down" @click=${() => this._move(index, 1)}>↓</button>
+                  <button class="delete-tab" @click=${() => this._deleteTab(index)}>✕</button>
+                </div>
+                <div class="tab-row">
+                  <input
+                    class="tab-accent"
+                    type="text"
+                    .value=${tab.accent ?? ""}
+                    placeholder="Accent colour (e.g. #ff9800)"
+                    @input=${(e2) => this._patchTab(index, { accent: e2.target.value || void 0 })}
+                  />
+                  <input
+                    class="tab-badge"
+                    type="text"
+                    .value=${tab.badge ?? ""}
+                    placeholder="Badge entity (e.g. sensor.unread)"
+                    @input=${(e2) => this._patchTab(index, { badge: e2.target.value || void 0 })}
+                  />
+                </div>
+                <label class="card-label"
+                  >Card (JSON)
+                  <textarea
+                    class="tab-card-json"
+                    rows="6"
+                    .value=${JSON.stringify(tab.card ?? {}, null, 2)}
+                    @change=${(e2) => this._editCardJson(index, e2.target.value)}
+                  ></textarea>
+                </label>
+                ${this._cardError === index ? b`<div class="tab-card-error">Invalid JSON — not saved.</div>` : ""}
               </div>
             `
     )}
@@ -1381,13 +1462,43 @@ TabdeckCardEditor.styles = i$3`
       font-size: 12px;
       gap: 4px;
     }
+    label.checkbox {
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+    }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 8px;
+    }
     .tab-row {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .tab-name {
+    .tab-name,
+    .tab-accent,
+    .tab-badge {
       flex: 1;
+    }
+    .card-label {
+      font-size: 12px;
+      gap: 4px;
+    }
+    .tab-card-json {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: var(--code-font-family, monospace);
+      font-size: 12px;
+    }
+    .tab-card-error {
+      color: var(--error-color, #b00020);
+      font-size: 12px;
     }
     button {
       cursor: pointer;
@@ -1396,6 +1507,9 @@ TabdeckCardEditor.styles = i$3`
 __decorateClass([
   r$1()
 ], TabdeckCardEditor.prototype, "_config", 2);
+__decorateClass([
+  r$1()
+], TabdeckCardEditor.prototype, "_cardError", 2);
 TabdeckCardEditor = __decorateClass([
   t$1("tabdeck-card-editor")
 ], TabdeckCardEditor);

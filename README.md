@@ -134,9 +134,10 @@ variables (set globally in your theme, or per-card under `styles`):
 ## Editor
 
 The visual editor lets you manage tabs (add / delete / reorder), set each tab's
-name and icon, and choose position, style, and persistence. In this version the
-tab's nested **card** is edited as YAML/JSON; native integration with Home
-Assistant's built-in card editor is planned.
+name, icon, accent colour and badge, and edit the tab's nested **card** as JSON.
+Global controls cover position, style, persistence (`remember`), default tab,
+scrollable, and lazy mounting. Native integration with Home Assistant's built-in
+card editor (and a YAML mode for the nested card) is planned for a later release.
 
 ## Migrating from `tabbed-card`
 
