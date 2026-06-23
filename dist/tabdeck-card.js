@@ -1,942 +1,10 @@
-/**
- * @license
- * Copyright 2019 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-var _a;
-const t$3 = globalThis, e$2 = t$3.ShadowRoot && (void 0 === t$3.ShadyCSS || t$3.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, s$2 = Symbol(), o$4 = /* @__PURE__ */ new WeakMap();
-let n$3 = class n {
-  constructor(t2, e2, o2) {
-    if (this._$cssResult$ = true, o2 !== s$2) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
-    this.cssText = t2, this.t = e2;
-  }
-  get styleSheet() {
-    let t2 = this.o;
-    const s2 = this.t;
-    if (e$2 && void 0 === t2) {
-      const e2 = void 0 !== s2 && 1 === s2.length;
-      e2 && (t2 = o$4.get(s2)), void 0 === t2 && ((this.o = t2 = new CSSStyleSheet()).replaceSync(this.cssText), e2 && o$4.set(s2, t2));
-    }
-    return t2;
-  }
-  toString() {
-    return this.cssText;
-  }
-};
-const r$5 = (t2) => new n$3("string" == typeof t2 ? t2 : t2 + "", void 0, s$2), i$3 = (t2, ...e2) => {
-  const o2 = 1 === t2.length ? t2[0] : e2.reduce((e3, s2, o3) => e3 + ((t3) => {
-    if (true === t3._$cssResult$) return t3.cssText;
-    if ("number" == typeof t3) return t3;
-    throw Error("Value passed to 'css' function must be a 'css' function result: " + t3 + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
-  })(s2) + t2[o3 + 1], t2[0]);
-  return new n$3(o2, t2, s$2);
-}, S$1 = (s2, o2) => {
-  if (e$2) s2.adoptedStyleSheets = o2.map((t2) => t2 instanceof CSSStyleSheet ? t2 : t2.styleSheet);
-  else for (const e2 of o2) {
-    const o3 = document.createElement("style"), n3 = t$3.litNonce;
-    void 0 !== n3 && o3.setAttribute("nonce", n3), o3.textContent = e2.cssText, s2.appendChild(o3);
-  }
-}, c$2 = e$2 ? (t2) => t2 : (t2) => t2 instanceof CSSStyleSheet ? ((t3) => {
-  let e2 = "";
-  for (const s2 of t3.cssRules) e2 += s2.cssText;
-  return r$5(e2);
-})(t2) : t2;
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-const { is: i$2, defineProperty: e$1, getOwnPropertyDescriptor: h$1, getOwnPropertyNames: r$4, getOwnPropertySymbols: o$3, getPrototypeOf: n$2 } = Object, a$1 = globalThis, c$1 = a$1.trustedTypes, l$1 = c$1 ? c$1.emptyScript : "", p$1 = a$1.reactiveElementPolyfillSupport, d$1 = (t2, s2) => t2, u$1 = { toAttribute(t2, s2) {
-  switch (s2) {
-    case Boolean:
-      t2 = t2 ? l$1 : null;
-      break;
-    case Object:
-    case Array:
-      t2 = null == t2 ? t2 : JSON.stringify(t2);
-  }
-  return t2;
-}, fromAttribute(t2, s2) {
-  let i2 = t2;
-  switch (s2) {
-    case Boolean:
-      i2 = null !== t2;
-      break;
-    case Number:
-      i2 = null === t2 ? null : Number(t2);
-      break;
-    case Object:
-    case Array:
-      try {
-        i2 = JSON.parse(t2);
-      } catch (t3) {
-        i2 = null;
-      }
-  }
-  return i2;
-} }, f$1 = (t2, s2) => !i$2(t2, s2), b$1 = { attribute: true, type: String, converter: u$1, reflect: false, useDefault: false, hasChanged: f$1 };
-Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), a$1.litPropertyMetadata ?? (a$1.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
-let y$1 = class y extends HTMLElement {
-  static addInitializer(t2) {
-    this._$Ei(), (this.l ?? (this.l = [])).push(t2);
-  }
-  static get observedAttributes() {
-    return this.finalize(), this._$Eh && [...this._$Eh.keys()];
-  }
-  static createProperty(t2, s2 = b$1) {
-    if (s2.state && (s2.attribute = false), this._$Ei(), this.prototype.hasOwnProperty(t2) && ((s2 = Object.create(s2)).wrapped = true), this.elementProperties.set(t2, s2), !s2.noAccessor) {
-      const i2 = Symbol(), h2 = this.getPropertyDescriptor(t2, i2, s2);
-      void 0 !== h2 && e$1(this.prototype, t2, h2);
-    }
-  }
-  static getPropertyDescriptor(t2, s2, i2) {
-    const { get: e2, set: r2 } = h$1(this.prototype, t2) ?? { get() {
-      return this[s2];
-    }, set(t3) {
-      this[s2] = t3;
-    } };
-    return { get: e2, set(s3) {
-      const h2 = e2 == null ? void 0 : e2.call(this);
-      r2 == null ? void 0 : r2.call(this, s3), this.requestUpdate(t2, h2, i2);
-    }, configurable: true, enumerable: true };
-  }
-  static getPropertyOptions(t2) {
-    return this.elementProperties.get(t2) ?? b$1;
-  }
-  static _$Ei() {
-    if (this.hasOwnProperty(d$1("elementProperties"))) return;
-    const t2 = n$2(this);
-    t2.finalize(), void 0 !== t2.l && (this.l = [...t2.l]), this.elementProperties = new Map(t2.elementProperties);
-  }
-  static finalize() {
-    if (this.hasOwnProperty(d$1("finalized"))) return;
-    if (this.finalized = true, this._$Ei(), this.hasOwnProperty(d$1("properties"))) {
-      const t3 = this.properties, s2 = [...r$4(t3), ...o$3(t3)];
-      for (const i2 of s2) this.createProperty(i2, t3[i2]);
-    }
-    const t2 = this[Symbol.metadata];
-    if (null !== t2) {
-      const s2 = litPropertyMetadata.get(t2);
-      if (void 0 !== s2) for (const [t3, i2] of s2) this.elementProperties.set(t3, i2);
-    }
-    this._$Eh = /* @__PURE__ */ new Map();
-    for (const [t3, s2] of this.elementProperties) {
-      const i2 = this._$Eu(t3, s2);
-      void 0 !== i2 && this._$Eh.set(i2, t3);
-    }
-    this.elementStyles = this.finalizeStyles(this.styles);
-  }
-  static finalizeStyles(s2) {
-    const i2 = [];
-    if (Array.isArray(s2)) {
-      const e2 = new Set(s2.flat(1 / 0).reverse());
-      for (const s3 of e2) i2.unshift(c$2(s3));
-    } else void 0 !== s2 && i2.push(c$2(s2));
-    return i2;
-  }
-  static _$Eu(t2, s2) {
-    const i2 = s2.attribute;
-    return false === i2 ? void 0 : "string" == typeof i2 ? i2 : "string" == typeof t2 ? t2.toLowerCase() : void 0;
-  }
-  constructor() {
-    super(), this._$Ep = void 0, this.isUpdatePending = false, this.hasUpdated = false, this._$Em = null, this._$Ev();
-  }
-  _$Ev() {
-    var _a2;
-    this._$ES = new Promise((t2) => this.enableUpdating = t2), this._$AL = /* @__PURE__ */ new Map(), this._$E_(), this.requestUpdate(), (_a2 = this.constructor.l) == null ? void 0 : _a2.forEach((t2) => t2(this));
-  }
-  addController(t2) {
-    var _a2;
-    (this._$EO ?? (this._$EO = /* @__PURE__ */ new Set())).add(t2), void 0 !== this.renderRoot && this.isConnected && ((_a2 = t2.hostConnected) == null ? void 0 : _a2.call(t2));
-  }
-  removeController(t2) {
-    var _a2;
-    (_a2 = this._$EO) == null ? void 0 : _a2.delete(t2);
-  }
-  _$E_() {
-    const t2 = /* @__PURE__ */ new Map(), s2 = this.constructor.elementProperties;
-    for (const i2 of s2.keys()) this.hasOwnProperty(i2) && (t2.set(i2, this[i2]), delete this[i2]);
-    t2.size > 0 && (this._$Ep = t2);
-  }
-  createRenderRoot() {
-    const t2 = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-    return S$1(t2, this.constructor.elementStyles), t2;
-  }
-  connectedCallback() {
-    var _a2;
-    this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this.enableUpdating(true), (_a2 = this._$EO) == null ? void 0 : _a2.forEach((t2) => {
-      var _a3;
-      return (_a3 = t2.hostConnected) == null ? void 0 : _a3.call(t2);
-    });
-  }
-  enableUpdating(t2) {
-  }
-  disconnectedCallback() {
-    var _a2;
-    (_a2 = this._$EO) == null ? void 0 : _a2.forEach((t2) => {
-      var _a3;
-      return (_a3 = t2.hostDisconnected) == null ? void 0 : _a3.call(t2);
-    });
-  }
-  attributeChangedCallback(t2, s2, i2) {
-    this._$AK(t2, i2);
-  }
-  _$ET(t2, s2) {
-    var _a2;
-    const i2 = this.constructor.elementProperties.get(t2), e2 = this.constructor._$Eu(t2, i2);
-    if (void 0 !== e2 && true === i2.reflect) {
-      const h2 = (void 0 !== ((_a2 = i2.converter) == null ? void 0 : _a2.toAttribute) ? i2.converter : u$1).toAttribute(s2, i2.type);
-      this._$Em = t2, null == h2 ? this.removeAttribute(e2) : this.setAttribute(e2, h2), this._$Em = null;
-    }
-  }
-  _$AK(t2, s2) {
-    var _a2, _b;
-    const i2 = this.constructor, e2 = i2._$Eh.get(t2);
-    if (void 0 !== e2 && this._$Em !== e2) {
-      const t3 = i2.getPropertyOptions(e2), h2 = "function" == typeof t3.converter ? { fromAttribute: t3.converter } : void 0 !== ((_a2 = t3.converter) == null ? void 0 : _a2.fromAttribute) ? t3.converter : u$1;
-      this._$Em = e2;
-      const r2 = h2.fromAttribute(s2, t3.type);
-      this[e2] = r2 ?? ((_b = this._$Ej) == null ? void 0 : _b.get(e2)) ?? r2, this._$Em = null;
-    }
-  }
-  requestUpdate(t2, s2, i2, e2 = false, h2) {
-    var _a2;
-    if (void 0 !== t2) {
-      const r2 = this.constructor;
-      if (false === e2 && (h2 = this[t2]), i2 ?? (i2 = r2.getPropertyOptions(t2)), !((i2.hasChanged ?? f$1)(h2, s2) || i2.useDefault && i2.reflect && h2 === ((_a2 = this._$Ej) == null ? void 0 : _a2.get(t2)) && !this.hasAttribute(r2._$Eu(t2, i2)))) return;
-      this.C(t2, s2, i2);
-    }
-    false === this.isUpdatePending && (this._$ES = this._$EP());
-  }
-  C(t2, s2, { useDefault: i2, reflect: e2, wrapped: h2 }, r2) {
-    i2 && !(this._$Ej ?? (this._$Ej = /* @__PURE__ */ new Map())).has(t2) && (this._$Ej.set(t2, r2 ?? s2 ?? this[t2]), true !== h2 || void 0 !== r2) || (this._$AL.has(t2) || (this.hasUpdated || i2 || (s2 = void 0), this._$AL.set(t2, s2)), true === e2 && this._$Em !== t2 && (this._$Eq ?? (this._$Eq = /* @__PURE__ */ new Set())).add(t2));
-  }
-  async _$EP() {
-    this.isUpdatePending = true;
-    try {
-      await this._$ES;
-    } catch (t3) {
-      Promise.reject(t3);
-    }
-    const t2 = this.scheduleUpdate();
-    return null != t2 && await t2, !this.isUpdatePending;
-  }
-  scheduleUpdate() {
-    return this.performUpdate();
-  }
-  performUpdate() {
-    var _a2;
-    if (!this.isUpdatePending) return;
-    if (!this.hasUpdated) {
-      if (this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this._$Ep) {
-        for (const [t4, s3] of this._$Ep) this[t4] = s3;
-        this._$Ep = void 0;
-      }
-      const t3 = this.constructor.elementProperties;
-      if (t3.size > 0) for (const [s3, i2] of t3) {
-        const { wrapped: t4 } = i2, e2 = this[s3];
-        true !== t4 || this._$AL.has(s3) || void 0 === e2 || this.C(s3, void 0, i2, e2);
-      }
-    }
-    let t2 = false;
-    const s2 = this._$AL;
-    try {
-      t2 = this.shouldUpdate(s2), t2 ? (this.willUpdate(s2), (_a2 = this._$EO) == null ? void 0 : _a2.forEach((t3) => {
-        var _a3;
-        return (_a3 = t3.hostUpdate) == null ? void 0 : _a3.call(t3);
-      }), this.update(s2)) : this._$EM();
-    } catch (s3) {
-      throw t2 = false, this._$EM(), s3;
-    }
-    t2 && this._$AE(s2);
-  }
-  willUpdate(t2) {
-  }
-  _$AE(t2) {
-    var _a2;
-    (_a2 = this._$EO) == null ? void 0 : _a2.forEach((t3) => {
-      var _a3;
-      return (_a3 = t3.hostUpdated) == null ? void 0 : _a3.call(t3);
-    }), this.hasUpdated || (this.hasUpdated = true, this.firstUpdated(t2)), this.updated(t2);
-  }
-  _$EM() {
-    this._$AL = /* @__PURE__ */ new Map(), this.isUpdatePending = false;
-  }
-  get updateComplete() {
-    return this.getUpdateComplete();
-  }
-  getUpdateComplete() {
-    return this._$ES;
-  }
-  shouldUpdate(t2) {
-    return true;
-  }
-  update(t2) {
-    this._$Eq && (this._$Eq = this._$Eq.forEach((t3) => this._$ET(t3, this[t3]))), this._$EM();
-  }
-  updated(t2) {
-  }
-  firstUpdated(t2) {
-  }
-};
-y$1.elementStyles = [], y$1.shadowRootOptions = { mode: "open" }, y$1[d$1("elementProperties")] = /* @__PURE__ */ new Map(), y$1[d$1("finalized")] = /* @__PURE__ */ new Map(), p$1 == null ? void 0 : p$1({ ReactiveElement: y$1 }), (a$1.reactiveElementVersions ?? (a$1.reactiveElementVersions = [])).push("2.1.2");
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-const t$2 = globalThis, i$1 = (t2) => t2, s$1 = t$2.trustedTypes, e = s$1 ? s$1.createPolicy("lit-html", { createHTML: (t2) => t2 }) : void 0, h = "$lit$", o$2 = `lit$${Math.random().toFixed(9).slice(2)}$`, n$1 = "?" + o$2, r$3 = `<${n$1}>`, l = document, c = () => l.createComment(""), a = (t2) => null === t2 || "object" != typeof t2 && "function" != typeof t2, u = Array.isArray, d = (t2) => u(t2) || "function" == typeof (t2 == null ? void 0 : t2[Symbol.iterator]), f = "[ 	\n\f\r]", v = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, _ = /-->/g, m = />/g, p = RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), g = /'/g, $ = /"/g, y2 = /^(?:script|style|textarea|title)$/i, x = (t2) => (i2, ...s2) => ({ _$litType$: t2, strings: i2, values: s2 }), b = x(1), E = Symbol.for("lit-noChange"), A = Symbol.for("lit-nothing"), C = /* @__PURE__ */ new WeakMap(), P = l.createTreeWalker(l, 129);
-function V(t2, i2) {
-  if (!u(t2) || !t2.hasOwnProperty("raw")) throw Error("invalid template strings array");
-  return void 0 !== e ? e.createHTML(i2) : i2;
-}
-const N = (t2, i2) => {
-  const s2 = t2.length - 1, e2 = [];
-  let n3, l2 = 2 === i2 ? "<svg>" : 3 === i2 ? "<math>" : "", c2 = v;
-  for (let i3 = 0; i3 < s2; i3++) {
-    const s3 = t2[i3];
-    let a2, u2, d2 = -1, f2 = 0;
-    for (; f2 < s3.length && (c2.lastIndex = f2, u2 = c2.exec(s3), null !== u2); ) f2 = c2.lastIndex, c2 === v ? "!--" === u2[1] ? c2 = _ : void 0 !== u2[1] ? c2 = m : void 0 !== u2[2] ? (y2.test(u2[2]) && (n3 = RegExp("</" + u2[2], "g")), c2 = p) : void 0 !== u2[3] && (c2 = p) : c2 === p ? ">" === u2[0] ? (c2 = n3 ?? v, d2 = -1) : void 0 === u2[1] ? d2 = -2 : (d2 = c2.lastIndex - u2[2].length, a2 = u2[1], c2 = void 0 === u2[3] ? p : '"' === u2[3] ? $ : g) : c2 === $ || c2 === g ? c2 = p : c2 === _ || c2 === m ? c2 = v : (c2 = p, n3 = void 0);
-    const x2 = c2 === p && t2[i3 + 1].startsWith("/>") ? " " : "";
-    l2 += c2 === v ? s3 + r$3 : d2 >= 0 ? (e2.push(a2), s3.slice(0, d2) + h + s3.slice(d2) + o$2 + x2) : s3 + o$2 + (-2 === d2 ? i3 : x2);
-  }
-  return [V(t2, l2 + (t2[s2] || "<?>") + (2 === i2 ? "</svg>" : 3 === i2 ? "</math>" : "")), e2];
-};
-class S {
-  constructor({ strings: t2, _$litType$: i2 }, e2) {
-    let r2;
-    this.parts = [];
-    let l2 = 0, a2 = 0;
-    const u2 = t2.length - 1, d2 = this.parts, [f2, v2] = N(t2, i2);
-    if (this.el = S.createElement(f2, e2), P.currentNode = this.el.content, 2 === i2 || 3 === i2) {
-      const t3 = this.el.content.firstChild;
-      t3.replaceWith(...t3.childNodes);
-    }
-    for (; null !== (r2 = P.nextNode()) && d2.length < u2; ) {
-      if (1 === r2.nodeType) {
-        if (r2.hasAttributes()) for (const t3 of r2.getAttributeNames()) if (t3.endsWith(h)) {
-          const i3 = v2[a2++], s2 = r2.getAttribute(t3).split(o$2), e3 = /([.?@])?(.*)/.exec(i3);
-          d2.push({ type: 1, index: l2, name: e3[2], strings: s2, ctor: "." === e3[1] ? I : "?" === e3[1] ? L : "@" === e3[1] ? z : H }), r2.removeAttribute(t3);
-        } else t3.startsWith(o$2) && (d2.push({ type: 6, index: l2 }), r2.removeAttribute(t3));
-        if (y2.test(r2.tagName)) {
-          const t3 = r2.textContent.split(o$2), i3 = t3.length - 1;
-          if (i3 > 0) {
-            r2.textContent = s$1 ? s$1.emptyScript : "";
-            for (let s2 = 0; s2 < i3; s2++) r2.append(t3[s2], c()), P.nextNode(), d2.push({ type: 2, index: ++l2 });
-            r2.append(t3[i3], c());
-          }
-        }
-      } else if (8 === r2.nodeType) if (r2.data === n$1) d2.push({ type: 2, index: l2 });
-      else {
-        let t3 = -1;
-        for (; -1 !== (t3 = r2.data.indexOf(o$2, t3 + 1)); ) d2.push({ type: 7, index: l2 }), t3 += o$2.length - 1;
-      }
-      l2++;
-    }
-  }
-  static createElement(t2, i2) {
-    const s2 = l.createElement("template");
-    return s2.innerHTML = t2, s2;
-  }
-}
-function M(t2, i2, s2 = t2, e2) {
-  var _a2, _b;
-  if (i2 === E) return i2;
-  let h2 = void 0 !== e2 ? (_a2 = s2._$Co) == null ? void 0 : _a2[e2] : s2._$Cl;
-  const o2 = a(i2) ? void 0 : i2._$litDirective$;
-  return (h2 == null ? void 0 : h2.constructor) !== o2 && ((_b = h2 == null ? void 0 : h2._$AO) == null ? void 0 : _b.call(h2, false), void 0 === o2 ? h2 = void 0 : (h2 = new o2(t2), h2._$AT(t2, s2, e2)), void 0 !== e2 ? (s2._$Co ?? (s2._$Co = []))[e2] = h2 : s2._$Cl = h2), void 0 !== h2 && (i2 = M(t2, h2._$AS(t2, i2.values), h2, e2)), i2;
-}
-class R {
-  constructor(t2, i2) {
-    this._$AV = [], this._$AN = void 0, this._$AD = t2, this._$AM = i2;
-  }
-  get parentNode() {
-    return this._$AM.parentNode;
-  }
-  get _$AU() {
-    return this._$AM._$AU;
-  }
-  u(t2) {
-    const { el: { content: i2 }, parts: s2 } = this._$AD, e2 = ((t2 == null ? void 0 : t2.creationScope) ?? l).importNode(i2, true);
-    P.currentNode = e2;
-    let h2 = P.nextNode(), o2 = 0, n3 = 0, r2 = s2[0];
-    for (; void 0 !== r2; ) {
-      if (o2 === r2.index) {
-        let i3;
-        2 === r2.type ? i3 = new k(h2, h2.nextSibling, this, t2) : 1 === r2.type ? i3 = new r2.ctor(h2, r2.name, r2.strings, this, t2) : 6 === r2.type && (i3 = new Z(h2, this, t2)), this._$AV.push(i3), r2 = s2[++n3];
-      }
-      o2 !== (r2 == null ? void 0 : r2.index) && (h2 = P.nextNode(), o2++);
-    }
-    return P.currentNode = l, e2;
-  }
-  p(t2) {
-    let i2 = 0;
-    for (const s2 of this._$AV) void 0 !== s2 && (void 0 !== s2.strings ? (s2._$AI(t2, s2, i2), i2 += s2.strings.length - 2) : s2._$AI(t2[i2])), i2++;
-  }
-}
-class k {
-  get _$AU() {
-    var _a2;
-    return ((_a2 = this._$AM) == null ? void 0 : _a2._$AU) ?? this._$Cv;
-  }
-  constructor(t2, i2, s2, e2) {
-    this.type = 2, this._$AH = A, this._$AN = void 0, this._$AA = t2, this._$AB = i2, this._$AM = s2, this.options = e2, this._$Cv = (e2 == null ? void 0 : e2.isConnected) ?? true;
-  }
-  get parentNode() {
-    let t2 = this._$AA.parentNode;
-    const i2 = this._$AM;
-    return void 0 !== i2 && 11 === (t2 == null ? void 0 : t2.nodeType) && (t2 = i2.parentNode), t2;
-  }
-  get startNode() {
-    return this._$AA;
-  }
-  get endNode() {
-    return this._$AB;
-  }
-  _$AI(t2, i2 = this) {
-    t2 = M(this, t2, i2), a(t2) ? t2 === A || null == t2 || "" === t2 ? (this._$AH !== A && this._$AR(), this._$AH = A) : t2 !== this._$AH && t2 !== E && this._(t2) : void 0 !== t2._$litType$ ? this.$(t2) : void 0 !== t2.nodeType ? this.T(t2) : d(t2) ? this.k(t2) : this._(t2);
-  }
-  O(t2) {
-    return this._$AA.parentNode.insertBefore(t2, this._$AB);
-  }
-  T(t2) {
-    this._$AH !== t2 && (this._$AR(), this._$AH = this.O(t2));
-  }
-  _(t2) {
-    this._$AH !== A && a(this._$AH) ? this._$AA.nextSibling.data = t2 : this.T(l.createTextNode(t2)), this._$AH = t2;
-  }
-  $(t2) {
-    var _a2;
-    const { values: i2, _$litType$: s2 } = t2, e2 = "number" == typeof s2 ? this._$AC(t2) : (void 0 === s2.el && (s2.el = S.createElement(V(s2.h, s2.h[0]), this.options)), s2);
-    if (((_a2 = this._$AH) == null ? void 0 : _a2._$AD) === e2) this._$AH.p(i2);
-    else {
-      const t3 = new R(e2, this), s3 = t3.u(this.options);
-      t3.p(i2), this.T(s3), this._$AH = t3;
-    }
-  }
-  _$AC(t2) {
-    let i2 = C.get(t2.strings);
-    return void 0 === i2 && C.set(t2.strings, i2 = new S(t2)), i2;
-  }
-  k(t2) {
-    u(this._$AH) || (this._$AH = [], this._$AR());
-    const i2 = this._$AH;
-    let s2, e2 = 0;
-    for (const h2 of t2) e2 === i2.length ? i2.push(s2 = new k(this.O(c()), this.O(c()), this, this.options)) : s2 = i2[e2], s2._$AI(h2), e2++;
-    e2 < i2.length && (this._$AR(s2 && s2._$AB.nextSibling, e2), i2.length = e2);
-  }
-  _$AR(t2 = this._$AA.nextSibling, s2) {
-    var _a2;
-    for ((_a2 = this._$AP) == null ? void 0 : _a2.call(this, false, true, s2); t2 !== this._$AB; ) {
-      const s3 = i$1(t2).nextSibling;
-      i$1(t2).remove(), t2 = s3;
-    }
-  }
-  setConnected(t2) {
-    var _a2;
-    void 0 === this._$AM && (this._$Cv = t2, (_a2 = this._$AP) == null ? void 0 : _a2.call(this, t2));
-  }
-}
-class H {
-  get tagName() {
-    return this.element.tagName;
-  }
-  get _$AU() {
-    return this._$AM._$AU;
-  }
-  constructor(t2, i2, s2, e2, h2) {
-    this.type = 1, this._$AH = A, this._$AN = void 0, this.element = t2, this.name = i2, this._$AM = e2, this.options = h2, s2.length > 2 || "" !== s2[0] || "" !== s2[1] ? (this._$AH = Array(s2.length - 1).fill(new String()), this.strings = s2) : this._$AH = A;
-  }
-  _$AI(t2, i2 = this, s2, e2) {
-    const h2 = this.strings;
-    let o2 = false;
-    if (void 0 === h2) t2 = M(this, t2, i2, 0), o2 = !a(t2) || t2 !== this._$AH && t2 !== E, o2 && (this._$AH = t2);
-    else {
-      const e3 = t2;
-      let n3, r2;
-      for (t2 = h2[0], n3 = 0; n3 < h2.length - 1; n3++) r2 = M(this, e3[s2 + n3], i2, n3), r2 === E && (r2 = this._$AH[n3]), o2 || (o2 = !a(r2) || r2 !== this._$AH[n3]), r2 === A ? t2 = A : t2 !== A && (t2 += (r2 ?? "") + h2[n3 + 1]), this._$AH[n3] = r2;
-    }
-    o2 && !e2 && this.j(t2);
-  }
-  j(t2) {
-    t2 === A ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t2 ?? "");
-  }
-}
-class I extends H {
-  constructor() {
-    super(...arguments), this.type = 3;
-  }
-  j(t2) {
-    this.element[this.name] = t2 === A ? void 0 : t2;
-  }
-}
-class L extends H {
-  constructor() {
-    super(...arguments), this.type = 4;
-  }
-  j(t2) {
-    this.element.toggleAttribute(this.name, !!t2 && t2 !== A);
-  }
-}
-class z extends H {
-  constructor(t2, i2, s2, e2, h2) {
-    super(t2, i2, s2, e2, h2), this.type = 5;
-  }
-  _$AI(t2, i2 = this) {
-    if ((t2 = M(this, t2, i2, 0) ?? A) === E) return;
-    const s2 = this._$AH, e2 = t2 === A && s2 !== A || t2.capture !== s2.capture || t2.once !== s2.once || t2.passive !== s2.passive, h2 = t2 !== A && (s2 === A || e2);
-    e2 && this.element.removeEventListener(this.name, this, s2), h2 && this.element.addEventListener(this.name, this, t2), this._$AH = t2;
-  }
-  handleEvent(t2) {
-    var _a2;
-    "function" == typeof this._$AH ? this._$AH.call(((_a2 = this.options) == null ? void 0 : _a2.host) ?? this.element, t2) : this._$AH.handleEvent(t2);
-  }
-}
-class Z {
-  constructor(t2, i2, s2) {
-    this.element = t2, this.type = 6, this._$AN = void 0, this._$AM = i2, this.options = s2;
-  }
-  get _$AU() {
-    return this._$AM._$AU;
-  }
-  _$AI(t2) {
-    M(this, t2);
-  }
-}
-const B = t$2.litHtmlPolyfillSupport;
-B == null ? void 0 : B(S, k), (t$2.litHtmlVersions ?? (t$2.litHtmlVersions = [])).push("3.3.3");
-const D = (t2, i2, s2) => {
-  const e2 = (s2 == null ? void 0 : s2.renderBefore) ?? i2;
-  let h2 = e2._$litPart$;
-  if (void 0 === h2) {
-    const t3 = (s2 == null ? void 0 : s2.renderBefore) ?? null;
-    e2._$litPart$ = h2 = new k(i2.insertBefore(c(), t3), t3, void 0, s2 ?? {});
-  }
-  return h2._$AI(t2), h2;
-};
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-const s = globalThis;
-class i extends y$1 {
-  constructor() {
-    super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
-  }
-  createRenderRoot() {
-    var _a2;
-    const t2 = super.createRenderRoot();
-    return (_a2 = this.renderOptions).renderBefore ?? (_a2.renderBefore = t2.firstChild), t2;
-  }
-  update(t2) {
-    const r2 = this.render();
-    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(t2), this._$Do = D(r2, this.renderRoot, this.renderOptions);
-  }
-  connectedCallback() {
-    var _a2;
-    super.connectedCallback(), (_a2 = this._$Do) == null ? void 0 : _a2.setConnected(true);
-  }
-  disconnectedCallback() {
-    var _a2;
-    super.disconnectedCallback(), (_a2 = this._$Do) == null ? void 0 : _a2.setConnected(false);
-  }
-  render() {
-    return E;
-  }
-}
-i._$litElement$ = true, i["finalized"] = true, (_a = s.litElementHydrateSupport) == null ? void 0 : _a.call(s, { LitElement: i });
-const o$1 = s.litElementPolyfillSupport;
-o$1 == null ? void 0 : o$1({ LitElement: i });
-(s.litElementVersions ?? (s.litElementVersions = [])).push("4.2.2");
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-const t$1 = (t2) => (e2, o2) => {
-  void 0 !== o2 ? o2.addInitializer(() => {
-    customElements.define(t2, e2);
-  }) : customElements.define(t2, e2);
-};
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-const o = { attribute: true, type: String, converter: u$1, reflect: false, hasChanged: f$1 }, r$2 = (t2 = o, e2, r2) => {
-  const { kind: n3, metadata: i2 } = r2;
-  let s2 = globalThis.litPropertyMetadata.get(i2);
-  if (void 0 === s2 && globalThis.litPropertyMetadata.set(i2, s2 = /* @__PURE__ */ new Map()), "setter" === n3 && ((t2 = Object.create(t2)).wrapped = true), s2.set(r2.name, t2), "accessor" === n3) {
-    const { name: o2 } = r2;
-    return { set(r3) {
-      const n4 = e2.get.call(this);
-      e2.set.call(this, r3), this.requestUpdate(o2, n4, t2, true, r3);
-    }, init(e3) {
-      return void 0 !== e3 && this.C(o2, void 0, t2, e3), e3;
-    } };
-  }
-  if ("setter" === n3) {
-    const { name: o2 } = r2;
-    return function(r3) {
-      const n4 = this[o2];
-      e2.call(this, r3), this.requestUpdate(o2, n4, t2, true, r3);
-    };
-  }
-  throw Error("Unsupported decorator location: " + n3);
-};
-function n2(t2) {
-  return (e2, o2) => "object" == typeof o2 ? r$2(t2, e2, o2) : ((t3, e3, o3) => {
-    const r2 = e3.hasOwnProperty(o3);
-    return e3.constructor.createProperty(o3, t3), r2 ? Object.getOwnPropertyDescriptor(e3, o3) : void 0;
-  })(t2, e2, o2);
-}
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-function r$1(r2) {
-  return n2({ ...r2, state: true, attribute: false });
-}
-const POSITIONS = ["top", "bottom", "left", "right"];
-const STYLES = ["underline", "pill", "segmented"];
-const REMEMBER = ["none", "browser", "url"];
-function pick(value, allowed, fallback) {
-  return allowed.includes(value) ? value : fallback;
-}
-function normalizeTab(raw) {
-  const attrs = (raw == null ? void 0 : raw.attributes) ?? {};
-  return {
-    name: (raw == null ? void 0 : raw.name) ?? attrs.label ?? void 0,
-    icon: (raw == null ? void 0 : raw.icon) ?? attrs.icon ?? void 0,
-    accent: (raw == null ? void 0 : raw.accent) ?? void 0,
-    badge: (raw == null ? void 0 : raw.badge) ?? void 0,
-    visibility: (raw == null ? void 0 : raw.visibility) ?? void 0,
-    card: (raw == null ? void 0 : raw.card) ?? {}
-  };
-}
-function normalizeConfig(raw) {
-  var _a2;
-  const tabs = Array.isArray(raw == null ? void 0 : raw.tabs) ? raw.tabs : [];
-  if (tabs.length === 0) {
-    throw new Error("tabdeck-card: you must define at least one tab.");
-  }
-  const defaultTab = (raw == null ? void 0 : raw.default_tab) ?? ((_a2 = raw == null ? void 0 : raw.options) == null ? void 0 : _a2.defaultTabIndex) ?? 0;
-  return {
-    type: (raw == null ? void 0 : raw.type) ?? "custom:tabdeck-card",
-    default_tab: defaultTab,
-    position: pick(raw == null ? void 0 : raw.position, POSITIONS, "top"),
-    style: pick(raw == null ? void 0 : raw.style, STYLES, "underline"),
-    scrollable: (raw == null ? void 0 : raw.scrollable) === void 0 ? "auto" : raw.scrollable,
-    remember: pick(raw == null ? void 0 : raw.remember, REMEMBER, "none"),
-    lazy: Boolean(raw == null ? void 0 : raw.lazy),
-    animated: (raw == null ? void 0 : raw.animated) === void 0 ? true : Boolean(raw.animated),
-    swipe: Boolean(raw == null ? void 0 : raw.swipe),
-    styles: (raw == null ? void 0 : raw.styles) ?? {},
-    tabs: tabs.map(normalizeTab)
-  };
-}
-function resolveDefaultIndex(cfg) {
-  const dt = cfg.default_tab;
-  if (typeof dt === "string") {
-    const i2 = cfg.tabs.findIndex((t2) => t2.name === dt);
-    return i2 >= 0 ? i2 : 0;
-  }
-  if (typeof dt === "number" && dt >= 0 && dt < cfg.tabs.length) return dt;
-  return 0;
-}
-function checkState(c2, hass) {
-  const stateObj = hass.states[c2.entity];
-  if (!stateObj) return false;
-  const current = stateObj.state;
-  if (Array.isArray(c2.state)) return c2.state.includes(current);
-  if (c2.state !== void 0) return current === c2.state;
-  if (c2.state_not !== void 0) {
-    return Array.isArray(c2.state_not) ? !c2.state_not.includes(current) : current !== c2.state_not;
-  }
-  return false;
-}
-function checkNumeric(c2, hass) {
-  const stateObj = hass.states[c2.entity];
-  if (!stateObj) return false;
-  const value = Number(stateObj.state);
-  if (Number.isNaN(value)) return false;
-  if (c2.above !== void 0 && !(value > Number(c2.above))) return false;
-  if (c2.below !== void 0 && !(value < Number(c2.below))) return false;
-  return c2.above !== void 0 || c2.below !== void 0;
-}
-function checkScreen(c2) {
-  if (!c2.media_query || typeof matchMedia !== "function") return false;
-  return matchMedia(c2.media_query).matches;
-}
-function checkTemplate(c2, resolver) {
-  if (!resolver || !c2.value_template) return false;
-  return resolver(c2.value_template) === true;
-}
-function checkOne(c2, hass, resolver) {
-  switch (c2 == null ? void 0 : c2.condition) {
-    case "state":
-      return checkState(c2, hass);
-    case "numeric_state":
-      return checkNumeric(c2, hass);
-    case "screen":
-      return checkScreen(c2);
-    case "template":
-      return checkTemplate(c2, resolver);
-    default:
-      return false;
-  }
-}
-function isTabVisible(visibility, hass, templateResolver) {
-  if (!visibility || visibility.length === 0) return true;
-  if (!hass) return true;
-  return visibility.every((c2) => checkOne(c2, hass, templateResolver));
-}
-function storageKey(cardKey) {
-  return "tabdeck-card:" + cardKey;
-}
-function clamp(i2, count, fallback) {
-  return i2 >= 0 && i2 < count ? i2 : fallback;
-}
-function parseHashIndex(hash, tabNames) {
-  const m2 = /(?:^|[#&])tab=([^&]+)/.exec(hash || "");
-  if (!m2) return null;
-  const value = decodeURIComponent(m2[1]);
-  const byName = tabNames.indexOf(value);
-  if (byName >= 0) return byName;
-  const n3 = Number(value);
-  if (Number.isInteger(n3) && n3 >= 0) return n3;
-  return null;
-}
-function loadInitialIndex(opts) {
-  const { mode, cardKey, defaultIndex, tabCount } = opts;
-  if (mode === "url") {
-    const idx = parseHashIndex(opts.hash ?? "", opts.tabNames ?? []);
-    if (idx !== null) return clamp(idx, tabCount, defaultIndex);
-  }
-  if (mode === "browser") {
-    const store = opts.storage ?? globalThis.localStorage;
-    const raw = store == null ? void 0 : store.getItem(storageKey(cardKey));
-    if (raw !== null && raw !== void 0) {
-      return clamp(Number(raw), tabCount, defaultIndex);
-    }
-  }
-  return clamp(defaultIndex, tabCount, 0);
-}
-function persistIndex(opts) {
-  if (opts.mode === "browser") {
-    const store = opts.storage ?? globalThis.localStorage;
-    store == null ? void 0 : store.setItem(storageKey(opts.cardKey), String(opts.index));
-    return {};
-  }
-  if (opts.mode === "url") {
-    const value = opts.tabName ? opts.tabName : String(opts.index);
-    return { hash: "#tab=" + value };
-  }
-  return {};
-}
-async function getCreateCardElement() {
-  const helpers = await window.loadCardHelpers();
-  return (config) => helpers.createCardElement(config);
-}
-class CardManager extends EventTarget {
-  constructor(create) {
-    super();
-    this._configs = [];
-    this._elements = [];
-    this._create = create;
-  }
-  async build(configs) {
-    this._configs = configs.slice();
-    this._elements = configs.map((cfg, index) => this._make(cfg, index));
-  }
-  _make(config, index) {
-    const el = this._create(config);
-    if (this._hass) el.hass = this._hass;
-    el.addEventListener("ll-rebuild", (e2) => {
-      e2.stopPropagation();
-      void this._rebuild(index);
-    });
-    return el;
-  }
-  get(index) {
-    return this._elements[index];
-  }
-  all() {
-    return this._elements;
-  }
-  setHass(hass) {
-    this._hass = hass;
-    for (const el of this._elements) if (el) el.hass = hass;
-  }
-  notifyVisible(index) {
-    const el = this._elements[index];
-    if (el) el.dispatchEvent(new Event("resize"));
-  }
-  async _rebuild(index) {
-    const fresh = this._make(this._configs[index], index);
-    if (this._hass) fresh.hass = this._hass;
-    this._elements[index] = fresh;
-    this.dispatchEvent(new CustomEvent("ll-rebuild-done", { detail: { index } }));
-  }
-}
-function isTemplate(s2) {
-  return !!s2 && (s2.includes("{{") || s2.includes("{%"));
-}
-function asBool(value) {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "number") return value !== 0;
-  if (typeof value === "string") {
-    return ["1", "true", "yes", "on", "enable"].includes(value.trim().toLowerCase());
-  }
-  return false;
-}
-class TemplateRenderer extends EventTarget {
-  constructor(subscribe) {
-    super();
-    this._entries = /* @__PURE__ */ new Map();
-    this._subscribe = subscribe;
-  }
-  // Reconcile live subscriptions with the desired set of template strings.
-  track(templates) {
-    const desired = new Set(templates.filter((t2) => !!t2));
-    for (const [tpl, entry] of this._entries) {
-      if (!desired.has(tpl)) {
-        entry.unsub();
-        this._entries.delete(tpl);
-      }
-    }
-    for (const tpl of desired) {
-      if (this._entries.has(tpl)) continue;
-      const entry = { unsub: () => {
-      }, hasResult: false, error: false };
-      this._entries.set(tpl, entry);
-      entry.unsub = this._subscribe(
-        tpl,
-        (result) => {
-          entry.result = result;
-          entry.hasResult = true;
-          entry.error = false;
-          this.dispatchEvent(new CustomEvent("change", { detail: { template: tpl } }));
-        },
-        () => {
-          entry.error = true;
-          entry.hasResult = false;
-          entry.result = void 0;
-          this.dispatchEvent(new CustomEvent("change", { detail: { template: tpl } }));
-        }
-      );
-    }
-  }
-  // Latest rendered value, or undefined while pending or errored.
-  result(tpl) {
-    const e2 = this._entries.get(tpl);
-    if (!e2 || e2.error || !e2.hasResult) return void 0;
-    return e2.result;
-  }
-  // Fail-closed boolean: false until a truthy value has rendered.
-  boolean(tpl) {
-    const e2 = this._entries.get(tpl);
-    if (!e2 || e2.error || !e2.hasResult) return false;
-    return asBool(e2.result);
-  }
-  destroy() {
-    for (const e2 of this._entries.values()) e2.unsub();
-    this._entries.clear();
-  }
-}
-function detectSwipe(start, end, opts = {}) {
-  const minDistance = opts.minDistance ?? 50;
-  const maxDuration = opts.maxDuration ?? 800;
-  const ratio = opts.ratio ?? 1.5;
-  const dx = end.x - start.x;
-  const dy = end.y - start.y;
-  const dt = end.t - start.t;
-  if (dt > maxDuration) return null;
-  if (Math.abs(dx) < minDistance) return null;
-  if (Math.abs(dx) < Math.abs(dy) * ratio) return null;
-  return dx < 0 ? "next" : "prev";
-}
-const THICKNESS = 3;
-function computeIndicatorRect(tab, position, style) {
-  if (!tab || tab.offsetWidth <= 0) return null;
-  if (style === "pill" || style === "segmented") {
-    return {
-      left: tab.offsetLeft,
-      top: tab.offsetTop,
-      width: tab.offsetWidth,
-      height: tab.offsetHeight
-    };
-  }
-  switch (position) {
-    case "top":
-      return {
-        left: tab.offsetLeft,
-        top: tab.offsetTop + tab.offsetHeight - THICKNESS,
-        width: tab.offsetWidth,
-        height: THICKNESS
-      };
-    case "bottom":
-      return {
-        left: tab.offsetLeft,
-        top: tab.offsetTop,
-        width: tab.offsetWidth,
-        height: THICKNESS
-      };
-    case "left":
-      return {
-        left: tab.offsetLeft + tab.offsetWidth - THICKNESS,
-        top: tab.offsetTop,
-        width: THICKNESS,
-        height: tab.offsetHeight
-      };
-    case "right":
-      return {
-        left: tab.offsetLeft,
-        top: tab.offsetTop,
-        width: THICKNESS,
-        height: tab.offsetHeight
-      };
-  }
-}
-var __defProp$3 = Object.defineProperty;
-var __getOwnPropDesc$3 = Object.getOwnPropertyDescriptor;
-var __decorateClass$3 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$3(target, key) : target;
-  for (var i2 = decorators.length - 1, decorator; i2 >= 0; i2--)
-    if (decorator = decorators[i2])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$3(target, key, result);
-  return result;
-};
-let TabdeckTab = class extends i {
-  constructor() {
-    super(...arguments);
-    this.selected = false;
-    this.disabled = false;
-  }
-  connectedCallback() {
-    super.connectedCallback();
-    this.setAttribute("role", "tab");
-  }
-  updated() {
-    this.setAttribute("aria-selected", this.selected ? "true" : "false");
-    this.tabIndex = this.selected ? 0 : -1;
-    if (this.accent) this.style.setProperty("--tabdeck-accent", this.accent);
-  }
-  render() {
-    return b`
+var t,e,s,i,r,o,a,n,c,l,d,h,p,u,b,f,_,m,g,v,y,$,x,w,A,E,S,k,C,T,P,O,U,N,M,R,z,H,L,I,j,B,D,q,V,K,W,J,Y,F,X,Z,G,Q,tt,et,st,it,rt,ot,at,nt,ct=Object.defineProperty,lt=(t,e,s)=>()=>{if(s)throw s[0];try{return t&&(e=t(t=0)),e}catch(k){throw s=[k],k}},dt=(t,e)=>{let s={};for(var i in t)ct(s,i,{get:t[i],enumerable:!0});return e||ct(s,Symbol.toStringTag,{value:"Module"}),s},ht=lt(()=>{t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s=Symbol(),i=/* @__PURE__ */new WeakMap,r=class{constructor(t,e,i){if(this._$cssResult$=!0,i!==s)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o;const s=this.t;if(e&&void 0===t){const e=void 0!==s&&1===s.length;e&&(t=i.get(s)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&i.set(s,t))}return t}toString(){return this.cssText}},o=t=>new r("string"==typeof t?t:t+"",void 0,s),a=(t,...e)=>new r(1===t.length?t[0]:e.reduce((e,s,i)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(s)+t[i+1],t[0]),t,s),n=(s,i)=>{if(e)s.adoptedStyleSheets=i.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(const e of i){const i=document.createElement("style"),r=t.litNonce;void 0!==r&&i.setAttribute("nonce",r),i.textContent=e.cssText,s.appendChild(i)}},c=e?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const s of t.cssRules)e+=s.cssText;return o(e)})(t):t}),pt=lt(()=>{ht(),({is:l,defineProperty:d,getOwnPropertyDescriptor:h,getOwnPropertyNames:p,getOwnPropertySymbols:u,getPrototypeOf:b}=Object),f=globalThis,_=f.trustedTypes,m=_?_.emptyScript:"",g=f.reactiveElementPolyfillSupport,v=(t,e)=>t,y={toAttribute(t,e){switch(e){case Boolean:t=t?m:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t)}return t},fromAttribute(t,e){let s=t;switch(e){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t)}catch(t){s=null}}return s}},$=(t,e)=>!l(t,e),x={attribute:!0,type:String,converter:y,reflect:!1,useDefault:!1,hasChanged:$},Symbol.metadata??=Symbol("metadata"),f.litPropertyMetadata??=/* @__PURE__ */new WeakMap,w=class extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,e=x){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(t,e),!e.noAccessor){const s=Symbol(),i=this.getPropertyDescriptor(t,s,e);void 0!==i&&d(this.prototype,t,i)}}static getPropertyDescriptor(t,e,s){const{get:i,set:r}=h(this.prototype,t)??{get(){return this[e]},set(t){this[e]=t}};return{get:i,set(e){const o=i?.call(this);r?.call(this,e),this.requestUpdate(t,o,s)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??x}static _$Ei(){if(this.hasOwnProperty(v("elementProperties")))return;const t=b(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty(v("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(v("properties"))){const t=this.properties,e=[...p(t),...u(t)];for(const s of e)this.createProperty(s,t[s])}const t=this[Symbol.metadata];if(null!==t){const e=litPropertyMetadata.get(t);if(void 0!==e)for(const[t,s]of e)this.elementProperties.set(t,s)}this._$Eh=/* @__PURE__ */new Map;for(const[e,s]of this.elementProperties){const t=this._$Eu(e,s);void 0!==t&&this._$Eh.set(t,e)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(t){const e=[];if(Array.isArray(t)){const s=new Set(t.flat(1/0).reverse());for(const t of s)e.unshift(c(t))}else void 0!==t&&e.push(c(t));return e}static _$Eu(t,e){const s=e.attribute;return!1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=/* @__PURE__ */new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this))}addController(t){(this._$EO??=/* @__PURE__ */new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){const t=/* @__PURE__ */new Map,e=this.constructor.elementProperties;for(const s of e.keys())this.hasOwnProperty(s)&&(t.set(s,this[s]),delete this[s]);t.size>0&&(this._$Ep=t)}createRenderRoot(){const t=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return n(t,this.constructor.elementStyles),t}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(t=>t.hostConnected?.())}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.())}attributeChangedCallback(t,e,s){this._$AK(t,s)}_$ET(t,e){const s=this.constructor.elementProperties.get(t),i=this.constructor._$Eu(t,s);if(void 0!==i&&!0===s.reflect){const r=(void 0!==s.converter?.toAttribute?s.converter:y).toAttribute(e,s.type);this._$Em=t,null==r?this.removeAttribute(i):this.setAttribute(i,r),this._$Em=null}}_$AK(t,e){const s=this.constructor,i=s._$Eh.get(t);if(void 0!==i&&this._$Em!==i){const t=s.getPropertyOptions(i),r="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:y;this._$Em=i;const o=r.fromAttribute(e,t.type);this[i]=o??this._$Ej?.get(i)??o,this._$Em=null}}requestUpdate(t,e,s,i=!1,r){if(void 0!==t){const o=this.constructor;if(!1===i&&(r=this[t]),s??=o.getPropertyOptions(t),!((s.hasChanged??$)(r,e)||s.useDefault&&s.reflect&&r===this._$Ej?.get(t)&&!this.hasAttribute(o._$Eu(t,s))))return;this.C(t,e,s)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(t,e,{useDefault:s,reflect:i,wrapped:r},o){s&&!(this._$Ej??=/* @__PURE__ */new Map).has(t)&&(this._$Ej.set(t,o??e??this[t]),!0!==r||void 0!==o)||(this._$AL.has(t)||(this.hasUpdated||s||(e=void 0),this._$AL.set(t,e)),!0===i&&this._$Em!==t&&(this._$Eq??=/* @__PURE__ */new Set).add(t))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,e]of this._$Ep)this[t]=e;this._$Ep=void 0}const t=this.constructor.elementProperties;if(t.size>0)for(const[e,s]of t){const{wrapped:t}=s,i=this[e];!0!==t||this._$AL.has(e)||void 0===i||this.C(e,void 0,s,i)}}let t=!1;const e=this._$AL;try{t=this.shouldUpdate(e),t?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(e){throw t=!1,this._$EM(),e}t&&this._$AE(e)}willUpdate(t){}_$AE(t){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EM(){this._$AL=/* @__PURE__ */new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM()}updated(t){}firstUpdated(t){}},w.elementStyles=[],w.shadowRootOptions={mode:"open"},w[v("elementProperties")]=/* @__PURE__ */new Map,w[v("finalized")]=/* @__PURE__ */new Map,g?.({ReactiveElement:w}),(f.reactiveElementVersions??=[]).push("2.1.2")});function ut(t,e){if(!R(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==k?k.createHTML(e):e}function bt(t,e,s=t,i){if(e===J)return e;let r=void 0!==i?s._$Co?.[i]:s._$Cl;const o=M(e)?void 0:e._$litDirective$;return r?.constructor!==o&&(r?._$AO?.(!1),void 0===o?r=void 0:(r=new o(t),r._$AT(t,s,i)),void 0!==i?(s._$Co??=[])[i]=r:s._$Cl=r),void 0!==r&&(e=bt(t,r._$AS(t,e.values),r,i)),e}var ft,_t,mt,gt,vt,yt,$t=lt(()=>{A=globalThis,E=t=>t,S=A.trustedTypes,k=S?S.createPolicy("lit-html",{createHTML:t=>t}):void 0,C="$lit$",T=`lit$${Math.random().toFixed(9).slice(2)}$`,O=`<${P="?"+T}>`,U=document,N=()=>U.createComment(""),M=t=>null===t||"object"!=typeof t&&"function"!=typeof t,R=Array.isArray,z=t=>R(t)||"function"==typeof t?.[Symbol.iterator],H="[ \t\n\f\r]",L=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,I=/-->/g,j=/>/g,B=RegExp(`>|${H}(?:([^\\s"'>=/]+)(${H}*=${H}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),D=/'/g,q=/"/g,V=/^(?:script|style|textarea|title)$/i,K=t=>(e,...s)=>({_$litType$:t,strings:e,values:s}),W=K(1),K(2),K(3),J=Symbol.for("lit-noChange"),Y=Symbol.for("lit-nothing"),F=/* @__PURE__ */new WeakMap,X=U.createTreeWalker(U,129),Z=(t,e)=>{const s=t.length-1,i=[];let r,o=2===e?"<svg>":3===e?"<math>":"",a=L;for(let n=0;n<s;n++){const e=t[n];let s,c,l=-1,d=0;for(;d<e.length&&(a.lastIndex=d,c=a.exec(e),null!==c);)d=a.lastIndex,a===L?"!--"===c[1]?a=I:void 0!==c[1]?a=j:void 0!==c[2]?(V.test(c[2])&&(r=RegExp("</"+c[2],"g")),a=B):void 0!==c[3]&&(a=B):a===B?">"===c[0]?(a=r??L,l=-1):void 0===c[1]?l=-2:(l=a.lastIndex-c[2].length,s=c[1],a=void 0===c[3]?B:'"'===c[3]?q:D):a===q||a===D?a=B:a===I||a===j?a=L:(a=B,r=void 0);const h=a===B&&t[n+1].startsWith("/>")?" ":"";o+=a===L?e+O:l>=0?(i.push(s),e.slice(0,l)+C+e.slice(l)+T+h):e+T+(-2===l?n:h)}return[ut(t,o+(t[s]||"<?>")+(2===e?"</svg>":3===e?"</math>":"")),i]},G=class t{constructor({strings:e,_$litType$:s},i){let r;this.parts=[];let o=0,a=0;const n=e.length-1,c=this.parts,[l,d]=Z(e,s);if(this.el=t.createElement(l,i),X.currentNode=this.el.content,2===s||3===s){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(r=X.nextNode())&&c.length<n;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(C)){const e=d[a++],s=r.getAttribute(t).split(T),i=/([.?@])?(.*)/.exec(e);c.push({type:1,index:o,name:i[2],strings:s,ctor:"."===i[1]?st:"?"===i[1]?it:"@"===i[1]?rt:et}),r.removeAttribute(t)}else t.startsWith(T)&&(c.push({type:6,index:o}),r.removeAttribute(t));if(V.test(r.tagName)){const t=r.textContent.split(T),e=t.length-1;if(e>0){r.textContent=S?S.emptyScript:"";for(let s=0;s<e;s++)r.append(t[s],N()),X.nextNode(),c.push({type:2,index:++o});r.append(t[e],N())}}}else if(8===r.nodeType)if(r.data===P)c.push({type:2,index:o});else{let t=-1;for(;-1!==(t=r.data.indexOf(T,t+1));)c.push({type:7,index:o}),t+=T.length-1}o++}}static createElement(t,e){const s=U.createElement("template");return s.innerHTML=t,s}},Q=class{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:e},parts:s}=this._$AD,i=(t?.creationScope??U).importNode(e,!0);X.currentNode=i;let r=X.nextNode(),o=0,a=0,n=s[0];for(;void 0!==n;){if(o===n.index){let e;2===n.type?e=new tt(r,r.nextSibling,this,t):1===n.type?e=new n.ctor(r,n.name,n.strings,this,t):6===n.type&&(e=new ot(r,this,t)),this._$AV.push(e),n=s[++a]}o!==n?.index&&(r=X.nextNode(),o++)}return X.currentNode=U,i}p(t){let e=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,e),e+=s.strings.length-2):s._$AI(t[e])),e++}},tt=class t{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,e,s,i){this.type=2,this._$AH=Y,this._$AN=void 0,this._$AA=t,this._$AB=e,this._$AM=s,this.options=i,this._$Cv=i?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const e=this._$AM;return void 0!==e&&11===t?.nodeType&&(t=e.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,e=this){t=bt(this,t,e),M(t)?t===Y||null==t||""===t?(this._$AH!==Y&&this._$AR(),this._$AH=Y):t!==this._$AH&&t!==J&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):z(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==Y&&M(this._$AH)?this._$AA.nextSibling.data=t:this.T(U.createTextNode(t)),this._$AH=t}$(t){const{values:e,_$litType$:s}=t,i="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=G.createElement(ut(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===i)this._$AH.p(e);else{const t=new Q(i,this),s=t.u(this.options);t.p(e),this.T(s),this._$AH=t}}_$AC(t){let e=F.get(t.strings);return void 0===e&&F.set(t.strings,e=new G(t)),e}k(e){R(this._$AH)||(this._$AH=[],this._$AR());const s=this._$AH;let i,r=0;for(const o of e)r===s.length?s.push(i=new t(this.O(N()),this.O(N()),this,this.options)):i=s[r],i._$AI(o),r++;r<s.length&&(this._$AR(i&&i._$AB.nextSibling,r),s.length=r)}_$AR(t=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);t!==this._$AB;){const e=E(t).nextSibling;E(t).remove(),t=e}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}},et=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,s,i,r){this.type=1,this._$AH=Y,this._$AN=void 0,this.element=t,this.name=e,this._$AM=i,this.options=r,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(/* @__PURE__ */new String),this.strings=s):this._$AH=Y}_$AI(t,e=this,s,i){const r=this.strings;let o=!1;if(void 0===r)t=bt(this,t,e,0),o=!M(t)||t!==this._$AH&&t!==J,o&&(this._$AH=t);else{const i=t;let a,n;for(t=r[0],a=0;a<r.length-1;a++)n=bt(this,i[s+a],e,a),n===J&&(n=this._$AH[a]),o||=!M(n)||n!==this._$AH[a],n===Y?t=Y:t!==Y&&(t+=(n??"")+r[a+1]),this._$AH[a]=n}o&&!i&&this.j(t)}j(t){t===Y?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}},st=class extends et{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===Y?void 0:t}},it=class extends et{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==Y)}},rt=class extends et{constructor(t,e,s,i,r){super(t,e,s,i,r),this.type=5}_$AI(t,e=this){if((t=bt(this,t,e,0)??Y)===J)return;const s=this._$AH,i=t===Y&&s!==Y||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,r=t!==Y&&(s===Y||i);i&&this.element.removeEventListener(this.name,this,s),r&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}},ot=class{constructor(t,e,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=s}get _$AU(){return this._$AM._$AU}_$AI(t){bt(this,t)}},at=A.litHtmlPolyfillSupport,at?.(G,tt),(A.litHtmlVersions??=[]).push("3.3.3"),nt=(t,e,s)=>{const i=s?.renderBefore??e;let r=i._$litPart$;if(void 0===r){const t=s?.renderBefore??null;i._$litPart$=r=new tt(e.insertBefore(N(),t),t,void 0,s??{})}return r._$AI(t),r}}),xt=lt(()=>{pt(),pt(),$t(),$t(),ft=globalThis,_t=class extends w{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=nt(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return J}},_t._$litElement$=!0,_t.finalized=!0,ft.litElementHydrateSupport?.({LitElement:_t}),mt=ft.litElementPolyfillSupport,mt?.({LitElement:_t}),(ft.litElementVersions??=[]).push("4.2.2")}),wt=lt(()=>{}),At=lt(()=>{pt(),$t(),xt(),wt()}),Et=lt(()=>{gt=t=>(e,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(t,e)}):customElements.define(t,e)}});function St(t){return(e,s)=>"object"==typeof s?yt(t,e,s):((t,e,s)=>{const i=e.hasOwnProperty(s);return e.constructor.createProperty(s,t),i?Object.getOwnPropertyDescriptor(e,s):void 0})(t,e,s)}var kt=lt(()=>{pt(),vt={attribute:!0,type:String,converter:y,reflect:!1,hasChanged:$},yt=(t=vt,e,s)=>{const{kind:i,metadata:r}=s;let o=globalThis.litPropertyMetadata.get(r);if(void 0===o&&globalThis.litPropertyMetadata.set(r,o=/* @__PURE__ */new Map),"setter"===i&&((t=Object.create(t)).wrapped=!0),o.set(s.name,t),"accessor"===i){const{name:i}=s;return{set(s){const r=e.get.call(this);e.set.call(this,s),this.requestUpdate(i,r,t,!0,s)},init(e){return void 0!==e&&this.C(i,void 0,t,e),e}}}if("setter"===i){const{name:i}=s;return function(s){const r=this[i];e.call(this,s),this.requestUpdate(i,r,t,!0,s)}}throw Error("Unsupported decorator location: "+i)}});function Ct(t){return St({...t,state:!0,attribute:!1})}var Tt,Pt,Ot,Ut=lt(()=>{kt()}),Nt=lt(()=>{}),Mt=lt(()=>{}),Rt=lt(()=>{}),zt=lt(()=>{}),Ht=lt(()=>{}),Lt=lt(()=>{}),It=lt(()=>{Et(),kt(),Ut(),Nt(),Mt(),Rt(),zt(),Ht(),Lt()});function jt(t,e,s){return e.includes(t)?t:s}function Bt(t){const e=t?.attributes??{};return{name:t?.name??e.label??void 0,icon:t?.icon??e.icon??void 0,accent:t?.accent??void 0,badge:t?.badge??void 0,visibility:t?.visibility??void 0,card:t?.card??{}}}function Dt(t){const e=Array.isArray(t?.tabs)?t.tabs:[];if(0===e.length)throw new Error("tabdeck-card: you must define at least one tab.");const s=t?.default_tab??t?.options?.defaultTabIndex??0;return{type:t?.type??"custom:tabdeck-card",default_tab:s,position:jt(t?.position,Tt,"top"),style:jt(t?.style,Pt,"underline"),scrollable:void 0===t?.scrollable?"auto":t.scrollable,remember:jt(t?.remember,Ot,"none"),lazy:Boolean(t?.lazy),animated:void 0===t?.animated||Boolean(t.animated),swipe:Boolean(t?.swipe),styles:t?.styles??{},tabs:e.map(Bt)}}function qt(t){const e=t.default_tab;if("string"==typeof e){const s=t.tabs.findIndex(t=>t.name===e);return s>=0?s:0}return"number"==typeof e&&e>=0&&e<t.tabs.length?e:0}var Vt=lt(()=>{Tt=["top","bottom","left","right"],Pt=["underline","pill","segmented"],Ot=["none","browser","url"]});function Kt(t,e,s){switch(t?.condition){case"state":return function(t,e){const s=e.states[t.entity];if(!s)return!1;const i=s.state;return Array.isArray(t.state)?t.state.includes(i):void 0!==t.state?i===t.state:void 0!==t.state_not&&(Array.isArray(t.state_not)?!t.state_not.includes(i):i!==t.state_not)}(t,e);case"numeric_state":return function(t,e){const s=e.states[t.entity];if(!s)return!1;const i=Number(s.state);return!Number.isNaN(i)&&(void 0===t.above||i>Number(t.above))&&(void 0===t.below||i<Number(t.below))&&(void 0!==t.above||void 0!==t.below)}(t,e);case"screen":return function(t){return!(!t.media_query||"function"!=typeof matchMedia)&&matchMedia(t.media_query).matches}(t);case"template":return function(t,e){return!(!e||!t.value_template)&&!0===e(t.value_template)}(t,s);default:return!1}}function Wt(t){return"tabdeck-card:"+t}function Jt(t,e,s){return t>=0&&t<e?t:s}function Yt(t){const{mode:e,cardKey:s,defaultIndex:i,tabCount:r}=t;if("url"===e){const e=function(t,e){const s=/(?:^|[#&])tab=([^&]+)/.exec(t||"");if(!s)return null;const i=decodeURIComponent(s[1]),r=e.indexOf(i);if(r>=0)return r;const o=Number(i);return Number.isInteger(o)&&o>=0?o:null}(t.hash??"",t.tabNames??[]);if(null!==e)return Jt(e,r,i)}if("browser"===e){const e=(t.storage??globalThis.localStorage)?.getItem(Wt(s));if(null!=e)return Jt(Number(e),r,i)}return Jt(i,r,0)}At(),It(),Vt();var Ft=class extends EventTarget{constructor(t){super(),this._configs=[],this._elements=[],this._create=t}async build(t){this._configs=t.slice(),this._elements=t.map((t,e)=>this._make(t,e))}_make(t,e){const s=this._create(t);return this._hass&&(s.hass=this._hass),s.addEventListener("ll-rebuild",t=>{t.stopPropagation(),this._rebuild(e)}),s}get(t){return this._elements[t]}all(){return this._elements}setHass(t){this._hass=t;for(const e of this._elements)e&&(e.hass=t)}notifyVisible(t){const e=this._elements[t];e&&e.dispatchEvent(new Event("resize"))}async _rebuild(t){const e=this._make(this._configs[t],t);this._hass&&(e.hass=this._hass),this._elements[t]=e,this.dispatchEvent(new CustomEvent("ll-rebuild-done",{detail:{index:t}}))}};function Xt(t){return!!t&&(t.includes("{{")||t.includes("{%"))}var Zt=class extends EventTarget{constructor(t){super(),this._entries=/* @__PURE__ */new Map,this._subscribe=t}track(t){const e=new Set(t.filter(t=>!!t));for(const[s,i]of this._entries)e.has(s)||(i.unsub(),this._entries.delete(s));for(const s of e){if(this._entries.has(s))continue;const t={unsub:()=>{},hasResult:!1,error:!1};this._entries.set(s,t),t.unsub=this._subscribe(s,e=>{t.result=e,t.hasResult=!0,t.error=!1,this.dispatchEvent(new CustomEvent("change",{detail:{template:s}}))},()=>{t.error=!0,t.hasResult=!1,t.result=void 0,this.dispatchEvent(new CustomEvent("change",{detail:{template:s}}))})}}result(t){const e=this._entries.get(t);if(e&&!e.error&&e.hasResult)return e.result}boolean(t){const e=this._entries.get(t);return!(!e||e.error||!e.hasResult)&&("boolean"==typeof(s=e.result)?s:"number"==typeof s?0!==s:"string"==typeof s&&["1","true","yes","on","enable"].includes(s.trim().toLowerCase()));var s}destroy(){for(const t of this._entries.values())t.unsub();this._entries.clear()}};function Gt(t,e,s,i){var r,o=arguments.length,a=o<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,s):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(t,e,s,i);else for(var n=t.length-1;n>=0;n--)(r=t[n])&&(a=(o<3?r(a):o>3?r(e,s,a):r(e,s))||a);return o>3&&a&&Object.defineProperty(e,s,a),a}var Qt=lt(()=>{});Qt();var te=class extends _t{constructor(...t){super(...t),this.selected=!1,this.disabled=!1}connectedCallback(){super.connectedCallback(),this.setAttribute("role","tab")}updated(){this.setAttribute("aria-selected",this.selected?"true":"false"),this.tabIndex=this.selected?0:-1,this.accent&&this.style.setProperty("--tabdeck-accent",this.accent)}render(){return W`
       <div class="inner">
-        ${this.icon ? b`<ha-icon icon=${this.icon}></ha-icon>` : A}
-        ${this.label ? b`<span class="label">${this.label}</span>` : A}
-        ${this.badge ? b`<span class="badge">${this.badge}</span>` : A}
+        ${this.icon?W`<ha-icon icon=${this.icon}></ha-icon>`:Y}
+        ${this.label?W`<span class="label">${this.label}</span>`:Y}
+        ${this.badge?W`<span class="badge">${this.badge}</span>`:Y}
       </div>
-    `;
-  }
-};
-TabdeckTab.styles = i$3`
+    `}static{this.styles=a`
     :host {
       display: inline-flex;
       align-items: center;
@@ -982,150 +50,22 @@ TabdeckTab.styles = i$3`
       line-height: 18px;
       text-align: center;
     }
-  `;
-__decorateClass$3([
-  n2()
-], TabdeckTab.prototype, "label", 2);
-__decorateClass$3([
-  n2()
-], TabdeckTab.prototype, "icon", 2);
-__decorateClass$3([
-  n2()
-], TabdeckTab.prototype, "badge", 2);
-__decorateClass$3([
-  n2()
-], TabdeckTab.prototype, "accent", 2);
-__decorateClass$3([
-  n2({ type: Boolean, reflect: true })
-], TabdeckTab.prototype, "selected", 2);
-__decorateClass$3([
-  n2({ type: Boolean, reflect: true })
-], TabdeckTab.prototype, "disabled", 2);
-TabdeckTab = __decorateClass$3([
-  t$1("tabdeck-tab")
-], TabdeckTab);
-var __defProp$2 = Object.defineProperty;
-var __getOwnPropDesc$2 = Object.getOwnPropertyDescriptor;
-var __decorateClass$2 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$2(target, key) : target;
-  for (var i2 = decorators.length - 1, decorator; i2 >= 0; i2--)
-    if (decorator = decorators[i2])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$2(target, key, result);
-  return result;
-};
-let TabdeckTabbar = class extends i {
-  constructor() {
-    super(...arguments);
-    this.items = [];
-    this.selected = 0;
-    this.position = "top";
-    this.tabStyle = "underline";
-    this.scrollable = "auto";
-    this.animated = true;
-    this._ready = false;
-    this._onKeydown = (e2) => {
-      const last = this.items.length - 1;
-      const vertical = this.position === "left" || this.position === "right";
-      const next = vertical ? "ArrowDown" : "ArrowRight";
-      const prev = vertical ? "ArrowUp" : "ArrowLeft";
-      let target = null;
-      if (e2.key === next) target = this.selected >= last ? 0 : this.selected + 1;
-      else if (e2.key === prev) target = this.selected <= 0 ? last : this.selected - 1;
-      else if (e2.key === "Home") target = 0;
-      else if (e2.key === "End") target = last;
-      if (target !== null) {
-        e2.preventDefault();
-        this._select(target);
-      }
-    };
-  }
-  connectedCallback() {
-    super.connectedCallback();
-    this.setAttribute("role", "tablist");
-    this.addEventListener("keydown", this._onKeydown);
-    if (typeof ResizeObserver !== "undefined") {
-      this._resizeObserver = new ResizeObserver(() => this._position());
-    }
-  }
-  disconnectedCallback() {
-    var _a2;
-    this.removeEventListener("keydown", this._onKeydown);
-    (_a2 = this._resizeObserver) == null ? void 0 : _a2.disconnect();
-    super.disconnectedCallback();
-  }
-  _select(index) {
-    this.dispatchEvent(
-      new CustomEvent("tabdeck-select", {
-        detail: { index },
-        bubbles: true,
-        composed: true
-      })
-    );
-  }
-  // Measure the selected tab and write the indicator's box inline. Guards for
-  // jsdom / pre-layout (offset* == 0) by hiding the indicator instead of moving
-  // it to (0,0).
-  _position() {
-    const root = this.renderRoot;
-    const indicator = root == null ? void 0 : root.querySelector(".indicator");
-    if (!indicator) return;
-    const tab = root == null ? void 0 : root.querySelector("tabdeck-tab[selected]");
-    const rect = tab ? computeIndicatorRect(
-      {
-        offsetLeft: tab.offsetLeft,
-        offsetTop: tab.offsetTop,
-        offsetWidth: tab.offsetWidth,
-        offsetHeight: tab.offsetHeight
-      },
-      this.position,
-      this.tabStyle
-    ) : null;
-    if (!rect) {
-      indicator.style.opacity = "0";
-      return;
-    }
-    indicator.style.left = `${rect.left}px`;
-    indicator.style.top = `${rect.top}px`;
-    indicator.style.width = `${rect.width}px`;
-    indicator.style.height = `${rect.height}px`;
-    indicator.style.opacity = "1";
-  }
-  firstUpdated() {
-    const bar = this.renderRoot.querySelector(".bar");
-    if (bar && this._resizeObserver) this._resizeObserver.observe(bar);
-  }
-  updated() {
-    this._position();
-    if (!this._ready) {
-      requestAnimationFrame(() => {
-        this._ready = true;
-      });
-    }
-  }
-  render() {
-    const animateClass = this._ready && this.animated ? " animate" : "";
-    return b`
+  `}};Gt([St()],te.prototype,"label",void 0),Gt([St()],te.prototype,"icon",void 0),Gt([St()],te.prototype,"badge",void 0),Gt([St()],te.prototype,"accent",void 0),Gt([St({type:Boolean,reflect:!0})],te.prototype,"selected",void 0),Gt([St({type:Boolean,reflect:!0})],te.prototype,"disabled",void 0),te=Gt([gt("tabdeck-tab")],te),At(),It(),Qt();var ee,se,ie,re=class extends _t{constructor(...t){super(...t),this.items=[],this.selected=0,this.position="top",this.tabStyle="underline",this.scrollable="auto",this.animated=!0,this._ready=!1,this._onKeydown=t=>{const e=this.items.length-1,s="left"===this.position||"right"===this.position,i=s?"ArrowDown":"ArrowRight",r=s?"ArrowUp":"ArrowLeft";let o=null;t.key===i?o=this.selected>=e?0:this.selected+1:t.key===r?o=this.selected<=0?e:this.selected-1:"Home"===t.key?o=0:"End"===t.key&&(o=e),null!==o&&(t.preventDefault(),this._select(o))}}connectedCallback(){super.connectedCallback(),this.setAttribute("role","tablist"),this.addEventListener("keydown",this._onKeydown),"undefined"!=typeof ResizeObserver&&(this._resizeObserver=new ResizeObserver(()=>this._position()))}disconnectedCallback(){this.removeEventListener("keydown",this._onKeydown),this._resizeObserver?.disconnect(),super.disconnectedCallback()}_select(t){this.dispatchEvent(new CustomEvent("tabdeck-select",{detail:{index:t},bubbles:!0,composed:!0}))}_position(){const t=this.renderRoot,e=t?.querySelector(".indicator");if(!e)return;const s=t?.querySelector("tabdeck-tab[selected]"),i=s?function(t,e,s){if(!t||t.offsetWidth<=0)return null;if("pill"===s||"segmented"===s)return{left:t.offsetLeft,top:t.offsetTop,width:t.offsetWidth,height:t.offsetHeight};switch(e){case"top":return{left:t.offsetLeft,top:t.offsetTop+t.offsetHeight-3,width:t.offsetWidth,height:3};case"bottom":return{left:t.offsetLeft,top:t.offsetTop,width:t.offsetWidth,height:3};case"left":return{left:t.offsetLeft+t.offsetWidth-3,top:t.offsetTop,width:3,height:t.offsetHeight};case"right":return{left:t.offsetLeft,top:t.offsetTop,width:3,height:t.offsetHeight}}}({offsetLeft:s.offsetLeft,offsetTop:s.offsetTop,offsetWidth:s.offsetWidth,offsetHeight:s.offsetHeight},this.position,this.tabStyle):null;i?(e.style.left=`${i.left}px`,e.style.top=`${i.top}px`,e.style.width=`${i.width}px`,e.style.height=`${i.height}px`,e.style.opacity="1"):e.style.opacity="0"}firstUpdated(){const t=this.renderRoot.querySelector(".bar");t&&this._resizeObserver&&this._resizeObserver.observe(t)}updated(){this._position(),this._ready||requestAnimationFrame(()=>{this._ready=!0})}render(){const t=this._ready&&this.animated?" animate":"";return W`
       <div class="bar ${this.position} style-${this.tabStyle}" part="bar">
-        <div class="indicator${animateClass}" part="indicator"></div>
-        ${this.items.map(
-      (item, index) => b`
+        <div class="indicator${t}" part="indicator"></div>
+        ${this.items.map((t,e)=>W`
             <tabdeck-tab
-              .label=${item.name}
-              .icon=${item.icon}
-              .badge=${item.badge}
-              .accent=${item.accent}
-              .selected=${index === this.selected}
+              .label=${t.name}
+              .icon=${t.icon}
+              .badge=${t.badge}
+              .accent=${t.accent}
+              .selected=${e===this.selected}
               aria-controls="tabdeck-panel"
-              @click=${() => this._select(index)}
+              @click=${()=>this._select(e)}
             ></tabdeck-tab>
-          `
-    )}
+          `)}
       </div>
-    `;
-  }
-};
-TabdeckTabbar.styles = i$3`
+    `}static{this.styles=a`
     :host {
       display: block;
     }
@@ -1213,575 +153,95 @@ TabdeckTabbar.styles = i$3`
       background: var(--card-background-color);
       border-radius: 7px;
     }
-  `;
-__decorateClass$2([
-  n2({ attribute: false })
-], TabdeckTabbar.prototype, "items", 2);
-__decorateClass$2([
-  n2({ type: Number })
-], TabdeckTabbar.prototype, "selected", 2);
-__decorateClass$2([
-  n2()
-], TabdeckTabbar.prototype, "position", 2);
-__decorateClass$2([
-  n2()
-], TabdeckTabbar.prototype, "tabStyle", 2);
-__decorateClass$2([
-  n2()
-], TabdeckTabbar.prototype, "scrollable", 2);
-__decorateClass$2([
-  n2({ type: Boolean })
-], TabdeckTabbar.prototype, "animated", 2);
-__decorateClass$2([
-  r$1()
-], TabdeckTabbar.prototype, "_ready", 2);
-TabdeckTabbar = __decorateClass$2([
-  t$1("tabdeck-tabbar")
-], TabdeckTabbar);
-var __defProp$1 = Object.defineProperty;
-var __getOwnPropDesc$1 = Object.getOwnPropertyDescriptor;
-var __decorateClass$1 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$1(target, key) : target;
-  for (var i2 = decorators.length - 1, decorator; i2 >= 0; i2--)
-    if (decorator = decorators[i2])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$1(target, key, result);
-  return result;
-};
-let TabdeckCard = class extends i {
-  constructor() {
-    super(...arguments);
-    this._selected = 0;
-    this._built = false;
-    this._cardKey = "";
-    this._templateResolver = (tpl) => {
-      var _a2;
-      return (_a2 = this._templates) == null ? void 0 : _a2.boolean(tpl);
-    };
-    this._onTouchStart = (e2) => {
-      var _a2;
-      if (!((_a2 = this._config) == null ? void 0 : _a2.swipe) || e2.touches.length !== 1) {
-        this._touchStart = void 0;
-        return;
-      }
-      const t2 = e2.touches[0];
-      this._touchStart = { x: t2.clientX, y: t2.clientY, t: e2.timeStamp };
-    };
-    this._onTouchEnd = (e2) => {
-      var _a2;
-      const start = this._touchStart;
-      this._touchStart = void 0;
-      if (!start || !((_a2 = this._config) == null ? void 0 : _a2.swipe)) return;
-      const t2 = e2.changedTouches[0];
-      if (!t2) return;
-      const dir = detectSwipe(start, { x: t2.clientX, y: t2.clientY, t: e2.timeStamp });
-      if (!dir) return;
-      const last = this._visibleTabs().length - 1;
-      const target = dir === "next" ? this._selected + 1 : this._selected - 1;
-      const clamped = Math.max(0, Math.min(last, target));
-      if (clamped !== this._selected) this._selectIndex(clamped);
-    };
-  }
-  static getStubConfig() {
-    return {
-      tabs: [
-        { name: "Tab 1", icon: "mdi:numeric-1-box", card: { type: "markdown", content: "Tab 1" } },
-        { name: "Tab 2", icon: "mdi:numeric-2-box", card: { type: "markdown", content: "Tab 2" } }
-      ]
-    };
-  }
-  static async getConfigElement() {
-    await Promise.resolve().then(() => tabdeckCardEditor);
-    return document.createElement("tabdeck-card-editor");
-  }
-  setConfig(raw) {
-    var _a2;
-    this._config = normalizeConfig(raw);
-    this._cardKey = this._computeCardKey(this._config);
-    this._built = false;
-    this._selected = resolveDefaultIndex(this._config);
-    (_a2 = this._templates) == null ? void 0 : _a2.destroy();
-    this._templates = void 0;
-    void this._build();
-  }
-  disconnectedCallback() {
-    var _a2;
-    super.disconnectedCallback();
-    (_a2 = this._templates) == null ? void 0 : _a2.destroy();
-    this._templates = void 0;
-  }
-  _computeCardKey(cfg) {
-    const path = typeof location !== "undefined" ? location.pathname : "";
-    const names = cfg.tabs.map((t2) => t2.name ?? "").join("|");
-    return `${path}#${names}`;
-  }
-  async _build() {
-    if (!this._config) return;
-    const create = await getCreateCardElement();
-    this._manager = new CardManager(create);
-    this._manager.addEventListener("ll-rebuild-done", () => this.requestUpdate());
-    await this._manager.build(this._config.tabs.map((t2) => t2.card));
-    if (this._hass) this._manager.setHass(this._hass);
-    this._syncTemplates();
-    this._selected = loadInitialIndex({
-      mode: this._config.remember,
-      cardKey: this._cardKey,
-      defaultIndex: resolveDefaultIndex(this._config),
-      tabCount: this._visibleTabs().length,
-      hash: typeof location !== "undefined" ? location.hash : "",
-      tabNames: this._visibleTabs().map((t2) => t2.name ?? "")
-    });
-    this._built = true;
-    this.requestUpdate();
-  }
-  set hass(hass) {
-    var _a2;
-    this._hass = hass;
-    (_a2 = this._manager) == null ? void 0 : _a2.setHass(hass);
-    this._syncTemplates();
-    this.requestUpdate();
-  }
-  get hass() {
-    return this._hass;
-  }
-  _visibleTabs() {
-    if (!this._config) return [];
-    return this._config.tabs.filter(
-      (t2) => isTabVisible(t2.visibility, this._hass, this._templateResolver)
-    );
-  }
-  _collectTemplates() {
-    if (!this._config) return [];
-    const out = [];
-    for (const t2 of this._config.tabs) {
-      if (isTemplate(t2.badge)) out.push(t2.badge);
-      for (const c2 of t2.visibility ?? []) {
-        if ((c2 == null ? void 0 : c2.condition) === "template" && c2.value_template) out.push(c2.value_template);
-      }
-    }
-    return out;
-  }
-  _makeSubscribe() {
-    var _a2, _b;
-    if (!((_b = (_a2 = this._hass) == null ? void 0 : _a2.connection) == null ? void 0 : _b.subscribeMessage)) return void 0;
-    return (template, onResult, onError) => {
-      var _a3;
-      const conn = (_a3 = this._hass) == null ? void 0 : _a3.connection;
-      if (!(conn == null ? void 0 : conn.subscribeMessage)) {
-        onError();
-        return () => {
-        };
-      }
-      let unsubbed = false;
-      let realUnsub;
-      Promise.resolve(
-        conn.subscribeMessage(
-          (msg) => {
-            if (msg && msg.error !== void 0) onError();
-            else onResult(msg == null ? void 0 : msg.result);
-          },
-          { type: "render_template", template, report_errors: true }
-        )
-      ).then((u2) => {
-        realUnsub = u2;
-        if (unsubbed) u2 == null ? void 0 : u2();
-      }).catch(() => onError());
-      return () => {
-        unsubbed = true;
-        realUnsub == null ? void 0 : realUnsub();
-      };
-    };
-  }
-  _syncTemplates() {
-    var _a2;
-    const templates = this._collectTemplates();
-    if (templates.length === 0) {
-      (_a2 = this._templates) == null ? void 0 : _a2.destroy();
-      this._templates = void 0;
-      return;
-    }
-    if (!this._templates) {
-      const subscribe = this._makeSubscribe();
-      if (!subscribe) return;
-      this._templates = new TemplateRenderer(subscribe);
-      this._templates.addEventListener("change", () => this.requestUpdate());
-    }
-    this._templates.track(templates);
-  }
-  getCardSize() {
-    var _a2;
-    const card = (_a2 = this._manager) == null ? void 0 : _a2.get(this._activeOriginalIndex());
-    if (card && typeof card.getCardSize === "function") return card.getCardSize();
-    return 1;
-  }
-  getGridOptions() {
-    return { columns: "full", rows: "auto" };
-  }
-  _activeOriginalIndex() {
-    const visible = this._visibleTabs();
-    const target = visible[this._selected];
-    return this._config ? this._config.tabs.indexOf(target) : 0;
-  }
-  _onSelect(e2) {
-    this._selectIndex(e2.detail.index);
-  }
-  _selectIndex(index) {
-    this._selected = index;
-    const visible = this._visibleTabs();
-    const tab = visible[this._selected];
-    if (this._config) {
-      const r2 = persistIndex({
-        mode: this._config.remember,
-        cardKey: this._cardKey,
-        index: this._selected,
-        tabName: tab == null ? void 0 : tab.name
-      });
-      if (r2.hash && typeof location !== "undefined") {
-        history.replaceState(null, "", r2.hash);
-      }
-    }
-    this.updateComplete.then(
-      () => {
-        var _a2;
-        return (_a2 = this._manager) == null ? void 0 : _a2.notifyVisible(this._activeOriginalIndex());
-      }
-    );
-  }
-  updated(changed) {
-    super.updated(changed);
-    const visible = this._visibleTabs();
-    if (this._selected > visible.length - 1) this._selected = 0;
-  }
-  render() {
-    if (!this._config || !this._built) return A;
-    const visible = this._visibleTabs();
-    const cfg = this._config;
-    const bar = b`
-      <tabdeck-tabbar
-        .items=${visible.map((t2) => ({
-      name: t2.name,
-      icon: t2.icon,
-      accent: t2.accent,
-      badge: this._resolveBadge(t2.badge)
-    }))}
-        .selected=${this._selected}
-        .position=${cfg.position}
-        .tabStyle=${cfg.style}
-        .scrollable=${cfg.scrollable}
-        .animated=${cfg.animated}
-        @tabdeck-select=${this._onSelect}
-      ></tabdeck-tabbar>
-    `;
-    const panels = b`
-      <div
-        class="content"
-        id="tabdeck-panel"
-        role="tabpanel"
-        @touchstart=${this._onTouchStart}
-        @touchend=${this._onTouchEnd}
-      >
-        ${visible.map((tab, i2) => {
-      var _a2;
-      const original = cfg.tabs.indexOf(tab);
-      return b`
-            <div class="panel" ?hidden=${i2 !== this._selected}>
-              ${(_a2 = this._manager) == null ? void 0 : _a2.get(original)}
-            </div>
-          `;
-    })}
-      </div>
-    `;
-    return b`
-      <div class="root pos-${cfg.position}">
-        ${cfg.position === "bottom" ? b`${panels}${bar}` : b`${bar}${panels}`}
-      </div>
-    `;
-  }
-  _resolveBadge(badge) {
-    var _a2;
-    if (!badge) return void 0;
-    if (isTemplate(badge)) {
-      const r2 = (_a2 = this._templates) == null ? void 0 : _a2.result(badge);
-      return r2 === void 0 || r2 === null ? void 0 : String(r2);
-    }
-    if (!this._hass) return void 0;
-    const stateObj = this._hass.states[badge];
-    if (stateObj) return stateObj.state;
-    return badge;
-  }
-};
-TabdeckCard.styles = i$3`
-    :host {
-      display: block;
-    }
-    .root.pos-left,
-    .root.pos-right {
-      display: flex;
-    }
-    .root.pos-right {
-      flex-direction: row-reverse;
-    }
-    .content {
-      padding-top: 8px;
-    }
-    .panel[hidden] {
-      display: none;
-    }
-  `;
-__decorateClass$1([
-  r$1()
-], TabdeckCard.prototype, "_config", 2);
-__decorateClass$1([
-  r$1()
-], TabdeckCard.prototype, "_selected", 2);
-__decorateClass$1([
-  r$1()
-], TabdeckCard.prototype, "_built", 2);
-TabdeckCard = __decorateClass$1([
-  t$1("tabdeck-card")
-], TabdeckCard);
-window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "tabdeck-card",
-  name: "Tabdeck Card",
-  description: "Organize multiple cards into a modern tabbed interface.",
-  preview: true,
-  documentationURL: "https://github.com/tempus2016/tabdeck-card"
-});
-var t, r;
-!function(e2) {
-  e2.language = "language", e2.system = "system", e2.comma_decimal = "comma_decimal", e2.decimal_comma = "decimal_comma", e2.space_comma = "space_comma", e2.none = "none";
-}(t || (t = {})), function(e2) {
-  e2.language = "language", e2.system = "system", e2.am_pm = "12", e2.twenty_four = "24";
-}(r || (r = {}));
-var ne = function(e2, t2, r2, n3) {
-  n3 = n3 || {}, r2 = null == r2 ? {} : r2;
-  var i2 = new Event(t2, { bubbles: void 0 === n3.bubbles || n3.bubbles, cancelable: Boolean(n3.cancelable), composed: void 0 === n3.composed || n3.composed });
-  return i2.detail = r2, e2.dispatchEvent(i2), i2;
-};
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __decorateClass = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
-  for (var i2 = decorators.length - 1, decorator; i2 >= 0; i2--)
-    if (decorator = decorators[i2])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp(target, key, result);
-  return result;
-};
-function pickCardEditorTag(has) {
-  if (has("hui-card-element-editor")) return "hui-card-element-editor";
-  if (has("ha-yaml-editor")) return "ha-yaml-editor";
-  return "textarea-json";
-}
-let TabdeckCardEditor = class extends i {
-  constructor() {
-    super(...arguments);
-    this._editingTab = null;
-    this._cardError = null;
-  }
-  setConfig(config) {
-    this._config = normalizeConfig(config);
-  }
-  _emit(next) {
-    this._config = next;
-    ne(this, "config-changed", { config: next });
-    this.requestUpdate();
-  }
-  _patch(partial) {
-    if (!this._config) return;
-    this._emit({ ...this._config, ...partial });
-  }
-  _patchTab(index, partial) {
-    if (!this._config) return;
-    const tabs = this._config.tabs.map(
-      (t2, i2) => i2 === index ? { ...t2, ...partial } : t2
-    );
-    this._emit({ ...this._config, tabs });
-  }
-  _addTab() {
-    if (!this._config) return;
-    const tabs = [
-      ...this._config.tabs,
-      { name: `Tab ${this._config.tabs.length + 1}`, card: { type: "markdown", content: "" } }
-    ];
-    this._emit({ ...this._config, tabs });
-  }
-  _deleteTab(index) {
-    if (!this._config) return;
-    const tabs = this._config.tabs.filter((_2, i2) => i2 !== index);
-    this._emit({ ...this._config, tabs });
-  }
-  _editCardJson(index, raw) {
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      this._cardError = index;
-      return;
-    }
-    this._cardError = null;
-    this._patchTab(index, { card: parsed });
-  }
-  _move(index, delta) {
-    if (!this._config) return;
-    const target = index + delta;
-    if (target < 0 || target >= this._config.tabs.length) return;
-    const tabs = this._config.tabs.slice();
-    [tabs[index], tabs[target]] = [tabs[target], tabs[index]];
-    this._emit({ ...this._config, tabs });
-  }
-  _openCard(index) {
-    this._cardError = null;
-    this._editingTab = index;
-  }
-  _closeCard() {
-    this._editingTab = null;
-  }
-  get _lovelace() {
-    return this.lovelace ?? { config: { views: [] }, editMode: true };
-  }
-  _onNativeCardChanged(index, e2) {
-    var _a2;
-    e2.stopPropagation();
-    const config = (_a2 = e2.detail) == null ? void 0 : _a2.config;
-    if (!config) return;
-    this._patchTab(index, { card: config });
-  }
-  _onYamlCardChanged(index, e2) {
-    e2.stopPropagation();
-    const detail = e2.detail;
-    if ((detail == null ? void 0 : detail.isValid) === false) return;
-    if ((detail == null ? void 0 : detail.value) === void 0) return;
-    this._patchTab(index, { card: detail.value });
-  }
-  render() {
-    if (!this._config) return b``;
-    if (this._editingTab !== null) return this._renderCardView(this._editingTab);
-    return this._renderListView();
-  }
-  _renderCardView(index) {
-    const tab = this._config.tabs[index];
-    if (!tab) {
-      this._editingTab = null;
-      return this._renderListView();
-    }
-    const tag = pickCardEditorTag((t2) => !!customElements.get(t2));
-    return b`
+  `}};Gt([St({attribute:!1})],re.prototype,"items",void 0),Gt([St({type:Number})],re.prototype,"selected",void 0),Gt([St()],re.prototype,"position",void 0),Gt([St()],re.prototype,"tabStyle",void 0),Gt([St()],re.prototype,"scrollable",void 0),Gt([St({type:Boolean})],re.prototype,"animated",void 0),Gt([Ct()],re.prototype,"_ready",void 0),re=Gt([gt("tabdeck-tabbar")],re);var oe,ae=lt(()=>{!function(t){t.language="language",t.system="system",t.comma_decimal="comma_decimal",t.decimal_comma="decimal_comma",t.space_comma="space_comma",t.none="none"}(ee||(ee={})),function(t){t.language="language",t.system="system",t.am_pm="12",t.twenty_four="24"}(se||(se={})),ie=(t,e,s,i)=>{i=i||{},s=null==s?{}:s;const r=new Event(e,{bubbles:void 0===i.bubbles||i.bubbles,cancelable:Boolean(i.cancelable),composed:void 0===i.composed||i.composed});return r.detail=s,t.dispatchEvent(r),r}}),ne=/* @__PURE__ */dt({TabdeckCardEditor:()=>oe,pickCardEditorTag:()=>ce});function ce(t){return t("hui-card-element-editor")?"hui-card-element-editor":t("ha-yaml-editor")?"ha-yaml-editor":"textarea-json"}var le=lt(()=>{At(),It(),ae(),Qt(),oe=class extends _t{constructor(...t){super(...t),this._editingTab=null,this._cardError=null}setConfig(t){this._config=Dt(t)}_emit(t){this._config=t,ie(this,"config-changed",{config:t}),this.requestUpdate()}_patch(t){this._config&&this._emit({...this._config,...t})}_patchTab(t,e){if(!this._config)return;const s=this._config.tabs.map((s,i)=>i===t?{...s,...e}:s);this._emit({...this._config,tabs:s})}_addTab(){if(!this._config)return;const t=[...this._config.tabs,{name:`Tab ${this._config.tabs.length+1}`,card:{type:"markdown",content:""}}];this._emit({...this._config,tabs:t})}_deleteTab(t){if(!this._config)return;const e=this._config.tabs.filter((e,s)=>s!==t);this._emit({...this._config,tabs:e})}_editCardJson(t,e){let s;try{s=JSON.parse(e)}catch{return void(this._cardError=t)}this._cardError=null,this._patchTab(t,{card:s})}_move(t,e){if(!this._config)return;const s=t+e;if(s<0||s>=this._config.tabs.length)return;const i=this._config.tabs.slice();[i[t],i[s]]=[i[s],i[t]],this._emit({...this._config,tabs:i})}_openCard(t){this._cardError=null,this._editingTab=t}_closeCard(){this._editingTab=null}get _lovelace(){return this.lovelace??{config:{views:[]},editMode:!0}}_onNativeCardChanged(t,e){e.stopPropagation();const s=e.detail?.config;s&&this._patchTab(t,{card:s})}_onYamlCardChanged(t,e){e.stopPropagation();const s=e.detail;!1!==s?.isValid&&void 0!==s?.value&&this._patchTab(t,{card:s.value})}render(){return this._config?null!==this._editingTab?this._renderCardView(this._editingTab):this._renderListView():W``}_renderCardView(t){const e=this._config.tabs[t];if(!e)return this._editingTab=null,this._renderListView();const s=ce(t=>!!customElements.get(t));return W`
       <div class="card-editor-view">
         <div class="card-editor-header">
           <button class="back-to-list" @click=${this._closeCard}>← Back</button>
-          <span class="card-editor-title">${tab.name || `Tab ${index + 1}`}</span>
+          <span class="card-editor-title">${e.name||`Tab ${t+1}`}</span>
         </div>
-        ${this._renderCardEditor(index, tab, tag)}
+        ${this._renderCardEditor(t,e,s)}
       </div>
-    `;
-  }
-  _renderCardEditor(index, tab, tag) {
-    if (tag === "hui-card-element-editor") {
-      return b`
+    `}_renderCardEditor(t,e,s){return"hui-card-element-editor"===s?W`
         <hui-card-element-editor
           .hass=${this.hass}
           .lovelace=${this._lovelace}
-          .value=${tab.card ?? {}}
-          @config-changed=${(e2) => this._onNativeCardChanged(index, e2)}
+          .value=${e.card??{}}
+          @config-changed=${e=>this._onNativeCardChanged(t,e)}
         ></hui-card-element-editor>
-      `;
-    }
-    if (tag === "ha-yaml-editor") {
-      return b`
+      `:"ha-yaml-editor"===s?W`
         <ha-yaml-editor
-          .defaultValue=${tab.card ?? {}}
-          @value-changed=${(e2) => this._onYamlCardChanged(index, e2)}
+          .defaultValue=${e.card??{}}
+          @value-changed=${e=>this._onYamlCardChanged(t,e)}
         ></ha-yaml-editor>
-      `;
-    }
-    return b`
+      `:W`
       <label class="card-label"
         >Card (JSON)
         <textarea
           class="tab-card-json"
           rows="10"
-          .value=${JSON.stringify(tab.card ?? {}, null, 2)}
-          @change=${(e2) => this._editCardJson(index, e2.target.value)}
+          .value=${JSON.stringify(e.card??{},null,2)}
+          @change=${e=>this._editCardJson(t,e.target.value)}
         ></textarea>
       </label>
-      ${this._cardError === index ? b`<div class="tab-card-error">Invalid JSON — not saved.</div>` : A}
-    `;
-  }
-  _renderListView() {
-    const cfg = this._config;
-    return b`
+      ${this._cardError===t?W`<div class="tab-card-error">Invalid JSON — not saved.</div>`:Y}
+    `}_renderListView(){const t=this._config;return W`
       <div class="editor">
         <div class="globals">
           <label
             >Position
             <select
-              .value=${cfg.position}
-              @change=${(e2) => this._patch({ position: e2.target.value })}
+              .value=${t.position}
+              @change=${t=>this._patch({position:t.target.value})}
             >
-              ${["top", "bottom", "left", "right"].map(
-      (p2) => b`<option value=${p2} ?selected=${p2 === cfg.position}>${p2}</option>`
-    )}
+              ${["top","bottom","left","right"].map(e=>W`<option value=${e} ?selected=${e===t.position}>${e}</option>`)}
             </select>
           </label>
           <label
             >Style
             <select
-              .value=${cfg.style}
-              @change=${(e2) => this._patch({ style: e2.target.value })}
+              .value=${t.style}
+              @change=${t=>this._patch({style:t.target.value})}
             >
-              ${["underline", "pill", "segmented"].map(
-      (s2) => b`<option value=${s2} ?selected=${s2 === cfg.style}>${s2}</option>`
-    )}
+              ${["underline","pill","segmented"].map(e=>W`<option value=${e} ?selected=${e===t.style}>${e}</option>`)}
             </select>
           </label>
           <label
             >Remember
             <select
-              .value=${cfg.remember}
-              @change=${(e2) => this._patch({ remember: e2.target.value })}
+              .value=${t.remember}
+              @change=${t=>this._patch({remember:t.target.value})}
             >
-              ${["none", "browser", "url"].map(
-      (r2) => b`<option value=${r2} ?selected=${r2 === cfg.remember}>${r2}</option>`
-    )}
+              ${["none","browser","url"].map(e=>W`<option value=${e} ?selected=${e===t.remember}>${e}</option>`)}
             </select>
           </label>
           <label
             >Default tab
             <select
               class="global-default-tab"
-              @change=${(e2) => this._patch({ default_tab: e2.target.value })}
+              @change=${t=>this._patch({default_tab:t.target.value})}
             >
-              ${cfg.tabs.map((t2, i2) => {
-      const value = t2.name ?? String(i2);
-      return b`<option
-                  value=${value}
-                  ?selected=${String(cfg.default_tab) === value || cfg.default_tab === i2}
+              ${t.tabs.map((e,s)=>{const i=e.name??String(s);return W`<option
+                  value=${i}
+                  ?selected=${String(t.default_tab)===i||t.default_tab===s}
                 >
-                  ${t2.name || `Tab ${i2 + 1}`}
-                </option>`;
-    })}
+                  ${e.name||`Tab ${s+1}`}
+                </option>`})}
             </select>
           </label>
           <label
             >Scrollable
             <select
-              @change=${(e2) => this._patch({
-      scrollable: e2.target.value === "auto" ? "auto" : e2.target.value === "true"
-    })}
+              @change=${t=>this._patch({scrollable:"auto"===t.target.value?"auto":"true"===t.target.value})}
             >
-              ${["auto", "true", "false"].map(
-      (s2) => b`<option value=${s2} ?selected=${String(cfg.scrollable) === s2}>${s2}</option>`
-    )}
+              ${["auto","true","false"].map(e=>W`<option value=${e} ?selected=${String(t.scrollable)===e}>${e}</option>`)}
             </select>
           </label>
           <label class="checkbox"
             ><input
               class="global-lazy"
               type="checkbox"
-              .checked=${cfg.lazy}
-              @change=${(e2) => this._patch({ lazy: e2.target.checked })}
+              .checked=${t.lazy}
+              @change=${t=>this._patch({lazy:t.target.checked})}
             />
             Lazy-mount inactive tabs
           </label>
@@ -1789,8 +249,8 @@ let TabdeckCardEditor = class extends i {
             ><input
               class="global-animated"
               type="checkbox"
-              .checked=${cfg.animated}
-              @change=${(e2) => this._patch({ animated: e2.target.checked })}
+              .checked=${t.animated}
+              @change=${t=>this._patch({animated:t.target.checked})}
             />
             Animate indicator
           </label>
@@ -1798,70 +258,62 @@ let TabdeckCardEditor = class extends i {
             ><input
               class="global-swipe"
               type="checkbox"
-              .checked=${cfg.swipe}
-              @change=${(e2) => this._patch({ swipe: e2.target.checked })}
+              .checked=${t.swipe}
+              @change=${t=>this._patch({swipe:t.target.checked})}
             />
             Swipe to change tabs (mobile)
           </label>
         </div>
 
         <div class="tabs">
-          ${cfg.tabs.map(
-      (tab, index) => {
-        var _a2;
-        return b`
+          ${t.tabs.map((t,e)=>W`
               <div class="tab">
                 <div class="tab-row">
                   <input
                     class="tab-name"
                     type="text"
-                    .value=${tab.name ?? ""}
+                    .value=${t.name??""}
                     placeholder="Tab name"
-                    @input=${(e2) => this._patchTab(index, { name: e2.target.value })}
+                    @input=${t=>this._patchTab(e,{name:t.target.value})}
                   />
                   <input
                     class="tab-icon"
                     type="text"
-                    .value=${tab.icon ?? ""}
+                    .value=${t.icon??""}
                     placeholder="mdi:icon"
-                    @input=${(e2) => this._patchTab(index, { icon: e2.target.value })}
+                    @input=${t=>this._patchTab(e,{icon:t.target.value})}
                   />
-                  <button class="move-up" @click=${() => this._move(index, -1)}>↑</button>
-                  <button class="move-down" @click=${() => this._move(index, 1)}>↓</button>
-                  <button class="delete-tab" @click=${() => this._deleteTab(index)}>✕</button>
+                  <button class="move-up" @click=${()=>this._move(e,-1)}>↑</button>
+                  <button class="move-down" @click=${()=>this._move(e,1)}>↓</button>
+                  <button class="delete-tab" @click=${()=>this._deleteTab(e)}>✕</button>
                 </div>
                 <div class="tab-row">
                   <input
                     class="tab-accent"
                     type="text"
-                    .value=${tab.accent ?? ""}
+                    .value=${t.accent??""}
                     placeholder="Accent colour (e.g. #ff9800)"
-                    @input=${(e2) => this._patchTab(index, { accent: e2.target.value || void 0 })}
+                    @input=${t=>this._patchTab(e,{accent:t.target.value||void 0})}
                   />
                   <input
                     class="tab-badge"
                     type="text"
-                    .value=${tab.badge ?? ""}
+                    .value=${t.badge??""}
                     placeholder="Badge: sensor.unread or {{ template }}"
-                    @input=${(e2) => this._patchTab(index, { badge: e2.target.value || void 0 })}
+                    @input=${t=>this._patchTab(e,{badge:t.target.value||void 0})}
                   />
                 </div>
-                <button class="edit-card" @click=${() => this._openCard(index)}>
+                <button class="edit-card" @click=${()=>this._openCard(e)}>
                   <span class="edit-card-label">Edit card</span>
-                  <span class="edit-card-type">${((_a2 = tab.card) == null ? void 0 : _a2.type) ?? "—"}</span>
+                  <span class="edit-card-type">${t.card?.type??"—"}</span>
                   <span class="edit-card-arrow">→</span>
                 </button>
               </div>
-            `;
-      }
-    )}
+            `)}
           <button class="add-tab" @click=${this._addTab}>+ Add tab</button>
         </div>
       </div>
-    `;
-  }
-};
-TabdeckCardEditor.styles = i$3`
+    `}static{this.styles=a`
     .editor {
       display: flex;
       flex-direction: column;
@@ -1957,26 +409,49 @@ TabdeckCardEditor.styles = i$3`
     button {
       cursor: pointer;
     }
-  `;
-__decorateClass([
-  r$1()
-], TabdeckCardEditor.prototype, "_config", 2);
-__decorateClass([
-  r$1()
-], TabdeckCardEditor.prototype, "_editingTab", 2);
-__decorateClass([
-  r$1()
-], TabdeckCardEditor.prototype, "_cardError", 2);
-TabdeckCardEditor = __decorateClass([
-  t$1("tabdeck-card-editor")
-], TabdeckCardEditor);
-const tabdeckCardEditor = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-  __proto__: null,
-  get TabdeckCardEditor() {
-    return TabdeckCardEditor;
-  },
-  pickCardEditorTag
-}, Symbol.toStringTag, { value: "Module" }));
-export {
-  TabdeckCard
-};
+  `}},Gt([Ct()],oe.prototype,"_config",void 0),Gt([Ct()],oe.prototype,"_editingTab",void 0),Gt([Ct()],oe.prototype,"_cardError",void 0),oe=Gt([gt("tabdeck-card-editor")],oe)});At(),It(),Vt(),Qt();var de=class extends _t{constructor(...t){super(...t),this._selected=0,this._built=!1,this._cardKey="",this._templateResolver=t=>this._templates?.boolean(t),this._onTouchStart=t=>{if(!this._config?.swipe||1!==t.touches.length)return void(this._touchStart=void 0);const e=t.touches[0];this._touchStart={x:e.clientX,y:e.clientY,t:t.timeStamp}},this._onTouchEnd=t=>{const e=this._touchStart;if(this._touchStart=void 0,!e||!this._config?.swipe)return;const s=t.changedTouches[0];if(!s)return;const i=function(t,e,s={}){const i=s.minDistance??50,r=s.maxDuration??800,o=s.ratio??1.5,a=e.x-t.x,n=e.y-t.y;return e.t-t.t>r||Math.abs(a)<i||Math.abs(a)<Math.abs(n)*o?null:a<0?"next":"prev"}(e,{x:s.clientX,y:s.clientY,t:t.timeStamp});if(!i)return;const r=this._visibleTabs().length-1,o="next"===i?this._selected+1:this._selected-1,a=Math.max(0,Math.min(r,o));a!==this._selected&&this._selectIndex(a)}}static getStubConfig(){return{tabs:[{name:"Tab 1",icon:"mdi:numeric-1-box",card:{type:"markdown",content:"Tab 1"}},{name:"Tab 2",icon:"mdi:numeric-2-box",card:{type:"markdown",content:"Tab 2"}}]}}static async getConfigElement(){return await Promise.resolve().then(()=>(le(),ne)),document.createElement("tabdeck-card-editor")}setConfig(t){this._config=Dt(t),this._cardKey=this._computeCardKey(this._config),this._built=!1,this._selected=qt(this._config),this._templates?.destroy(),this._templates=void 0,this._build()}disconnectedCallback(){super.disconnectedCallback(),this._templates?.destroy(),this._templates=void 0}_computeCardKey(t){return`${"undefined"!=typeof location?location.pathname:""}#${t.tabs.map(t=>t.name??"").join("|")}`}async _build(){if(!this._config)return;const t=await async function(){const t=await window.loadCardHelpers();return e=>t.createCardElement(e)}();this._manager=new Ft(t),this._manager.addEventListener("ll-rebuild-done",()=>this.requestUpdate()),await this._manager.build(this._config.tabs.map(t=>t.card)),this._hass&&this._manager.setHass(this._hass),this._syncTemplates(),this._selected=Yt({mode:this._config.remember,cardKey:this._cardKey,defaultIndex:qt(this._config),tabCount:this._visibleTabs().length,hash:"undefined"!=typeof location?location.hash:"",tabNames:this._visibleTabs().map(t=>t.name??"")}),this._built=!0,this.requestUpdate()}set hass(t){this._hass=t,this._manager?.setHass(t),this._syncTemplates(),this.requestUpdate()}get hass(){return this._hass}_visibleTabs(){return this._config?this._config.tabs.filter(t=>{return e=t.visibility,s=this._hass,i=this._templateResolver,!e||0===e.length||!s||e.every(t=>Kt(t,s,i));var e,s,i}):[]}_collectTemplates(){if(!this._config)return[];const t=[];for(const e of this._config.tabs){Xt(e.badge)&&t.push(e.badge);for(const s of e.visibility??[])"template"===s?.condition&&s.value_template&&t.push(s.value_template)}return t}_makeSubscribe(){if(this._hass?.connection?.subscribeMessage)return(t,e,s)=>{const i=this._hass?.connection;if(!i?.subscribeMessage)return s(),()=>{};let r,o=!1;return Promise.resolve(i.subscribeMessage(t=>{t&&void 0!==t.error?s():e(t?.result)},{type:"render_template",template:t,report_errors:!0})).then(t=>{r=t,o&&t?.()}).catch(()=>s()),()=>{o=!0,r?.()}}}_syncTemplates(){const t=this._collectTemplates();if(0===t.length)return this._templates?.destroy(),void(this._templates=void 0);if(!this._templates){const t=this._makeSubscribe();if(!t)return;this._templates=new Zt(t),this._templates.addEventListener("change",()=>this.requestUpdate())}this._templates.track(t)}getCardSize(){const t=this._manager?.get(this._activeOriginalIndex());return t&&"function"==typeof t.getCardSize?t.getCardSize():1}getGridOptions(){return{columns:"full",rows:"auto"}}_activeOriginalIndex(){const t=this._visibleTabs()[this._selected];return this._config?this._config.tabs.indexOf(t):0}_onSelect(t){this._selectIndex(t.detail.index)}_selectIndex(t){this._selected=t;const e=this._visibleTabs()[this._selected];if(this._config){const t="browser"===(s={mode:this._config.remember,cardKey:this._cardKey,index:this._selected,tabName:e?.name}).mode?((s.storage??globalThis.localStorage)?.setItem(Wt(s.cardKey),String(s.index)),{}):"url"===s.mode?{hash:"#tab="+(s.tabName?s.tabName:String(s.index))}:{};t.hash&&"undefined"!=typeof location&&history.replaceState(null,"",t.hash)}var s;this.updateComplete.then(()=>this._manager?.notifyVisible(this._activeOriginalIndex()))}updated(t){super.updated(t);const e=this._visibleTabs();this._selected>e.length-1&&(this._selected=0)}render(){if(!this._config||!this._built)return Y;const t=this._visibleTabs(),e=this._config,s=W`
+      <tabdeck-tabbar
+        .items=${t.map(t=>({name:t.name,icon:t.icon,accent:t.accent,badge:this._resolveBadge(t.badge)}))}
+        .selected=${this._selected}
+        .position=${e.position}
+        .tabStyle=${e.style}
+        .scrollable=${e.scrollable}
+        .animated=${e.animated}
+        @tabdeck-select=${this._onSelect}
+      ></tabdeck-tabbar>
+    `,i=W`
+      <div
+        class="content"
+        id="tabdeck-panel"
+        role="tabpanel"
+        @touchstart=${this._onTouchStart}
+        @touchend=${this._onTouchEnd}
+      >
+        ${t.map((t,s)=>{const i=e.tabs.indexOf(t);return W`
+            <div class="panel" ?hidden=${s!==this._selected}>
+              ${this._manager?.get(i)}
+            </div>
+          `})}
+      </div>
+    `;return W`
+      <div class="root pos-${e.position}">
+        ${"bottom"===e.position?W`${i}${s}`:W`${s}${i}`}
+      </div>
+    `}_resolveBadge(t){if(!t)return;if(Xt(t)){const e=this._templates?.result(t);return null==e?void 0:String(e)}if(!this._hass)return;const e=this._hass.states[t];return e?e.state:t}static{this.styles=a`
+    :host {
+      display: block;
+    }
+    .root.pos-left,
+    .root.pos-right {
+      display: flex;
+    }
+    .root.pos-right {
+      flex-direction: row-reverse;
+    }
+    .content {
+      padding-top: 8px;
+    }
+    .panel[hidden] {
+      display: none;
+    }
+  `}};Gt([Ct()],de.prototype,"_config",void 0),Gt([Ct()],de.prototype,"_selected",void 0),Gt([Ct()],de.prototype,"_built",void 0),de=Gt([gt("tabdeck-card")],de),window.customCards=window.customCards||[],window.customCards.push({type:"tabdeck-card",name:"Tabdeck Card",description:"Organize multiple cards into a modern tabbed interface.",preview:!0,documentationURL:"https://github.com/tempus2016/tabdeck-card"});export{de as TabdeckCard};

@@ -7,7 +7,7 @@ export default defineConfig({
       formats: ["es"],
       fileName: () => "tabdeck-card.js",
     },
-    rollupOptions: { output: { inlineDynamicImports: true } },
+    rollupOptions: { output: { codeSplitting: false } },
     minify: "terser",
     sourcemap: false,
   },
