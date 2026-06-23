@@ -4,6 +4,66 @@ import { fireEvent } from "custom-card-helpers";
 import type { HomeAssistant } from "../types";
 import { normalizeConfig, type TabdeckCardConfig } from "../lib/config";
 
+// MDI icon paths for the per-tab reorder/delete buttons. Inlined rather than
+// pulling in @mdi/js so the bundle stays dependency-free.
+const MDI_ARROW_UP = "M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z";
+const MDI_ARROW_DOWN = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4Z";
+const MDI_DELETE =
+  "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
+const MDI_PLUS = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
+
+// Per-tab field schema for ha-form. The `icon` selector renders HA's native
+// searchable icon picker (with live previews); the text/select/boolean
+// selectors let ha-form resolve the right sub-elements for whatever HA frontend
+// version is running, so we never hard-code version-specific element names.
+const TAB_SCHEMA = [
+  { name: "name", selector: { text: {} } },
+  { name: "icon", selector: { icon: {} } },
+  { name: "accent", selector: { text: {} } },
+  { name: "badge", selector: { text: {} } },
+];
+
+// Common built-in Lovelace card types offered when choosing/changing a tab's
+// card. `custom_value` lets the user type anything else (e.g. `custom:my-card`).
+const CARD_TYPES = [
+  "entities", "tile", "button", "light", "thermostat", "humidifier",
+  "weather-forecast", "markdown", "picture", "picture-entity", "picture-glance",
+  "glance", "gauge", "sensor", "history-graph", "statistics-graph",
+  "media-control", "map", "area", "alarm-panel", "calendar", "todo-list",
+  "iframe", "entity", "conditional", "vertical-stack", "horizontal-stack", "grid",
+];
+
+const CARD_TYPE_SCHEMA = [
+  {
+    name: "type",
+    selector: {
+      select: {
+        mode: "dropdown",
+        custom_value: true,
+        options: CARD_TYPES.map((t) => ({ value: t, label: t })),
+      },
+    },
+  },
+];
+
+const TAB_LABELS: Record<string, string> = {
+  name: "Tab name",
+  icon: "Icon",
+  accent: "Accent colour",
+  badge: "Badge (entity id or template)",
+};
+
+const GLOBAL_LABELS: Record<string, string> = {
+  position: "Position",
+  style: "Style",
+  remember: "Remember selected tab",
+  default_tab: "Default tab",
+  scrollable: "Scrollable",
+  lazy: "Lazy-mount inactive tabs",
+  animated: "Animate indicator",
+  swipe: "Swipe to change tabs (mobile)",
+};
+
 export type CardEditorTag =
   | "hui-card-element-editor"
   | "ha-yaml-editor"
@@ -57,9 +117,11 @@ export class TabdeckCardEditor extends LitElement {
 
   private _addTab(): void {
     if (!this._config) return;
+    // Start with a typeless card so the drill-in shows HA's card picker
+    // (rather than silently locking the new tab to one card type).
     const tabs = [
       ...this._config.tabs,
-      { name: `Tab ${this._config.tabs.length + 1}`, card: { type: "markdown", content: "" } },
+      { name: `Tab ${this._config.tabs.length + 1}`, card: {} as any },
     ];
     this._emit({ ...this._config, tabs });
   }
@@ -111,6 +173,21 @@ export class TabdeckCardEditor extends LitElement {
     this._patchTab(index, { card: config });
   }
 
+  // User picked a card type from the chooser; seed the tab with it so the view
+  // flips to the card editor for that type.
+  private _onTypeChosen(index: number, e: CustomEvent): void {
+    e.stopPropagation();
+    const type = (e.detail as any)?.value?.type;
+    if (!type) return;
+    this._patchTab(index, { card: { type } as any });
+  }
+
+  // Reset the card to typeless so the chooser reappears, letting the user switch
+  // to a different card type.
+  private _changeCardType(index: number): void {
+    this._patchTab(index, { card: {} as any });
+  }
+
   private _onYamlCardChanged(index: number, e: CustomEvent): void {
     e.stopPropagation();
     const detail = e.detail as any;
@@ -118,6 +195,82 @@ export class TabdeckCardEditor extends LitElement {
     if (detail?.value === undefined) return;
     this._patchTab(index, { card: detail.value });
   }
+
+  // Current default_tab expressed as a single option value (tab name, or the
+  // stringified index) so it can seed the ha-form select.
+  private get _currentDefaultTab(): string | undefined {
+    const cfg = this._config!;
+    for (let i = 0; i < cfg.tabs.length; i++) {
+      const value = cfg.tabs[i].name ?? String(i);
+      if (String(cfg.default_tab) === value || cfg.default_tab === i) return value;
+    }
+    return undefined;
+  }
+
+  private _globalSchema() {
+    const cfg = this._config!;
+    // ha-form's select selector wants options as {value,label} objects.
+    const opts = (values: string[]) => values.map((v) => ({ value: v, label: v }));
+    const tabOptions = cfg.tabs.map((t, i) => ({
+      value: t.name ?? String(i),
+      label: t.name || `Tab ${i + 1}`,
+    }));
+    return [
+      { name: "position", selector: { select: { mode: "dropdown", options: opts(["top", "bottom", "left", "right"]) } } },
+      { name: "style", selector: { select: { mode: "dropdown", options: opts(["underline", "pill", "segmented"]) } } },
+      { name: "remember", selector: { select: { mode: "dropdown", options: opts(["none", "browser", "url"]) } } },
+      { name: "default_tab", selector: { select: { mode: "dropdown", options: tabOptions } } },
+      { name: "scrollable", selector: { select: { mode: "dropdown", options: opts(["auto", "true", "false"]) } } },
+      { name: "lazy", selector: { boolean: {} } },
+      { name: "animated", selector: { boolean: {} } },
+      { name: "swipe", selector: { boolean: {} } },
+    ];
+  }
+
+  private get _globalData() {
+    const cfg = this._config!;
+    return {
+      position: cfg.position,
+      style: cfg.style,
+      remember: cfg.remember,
+      default_tab: this._currentDefaultTab,
+      scrollable: String(cfg.scrollable),
+      lazy: cfg.lazy,
+      animated: cfg.animated,
+      swipe: cfg.swipe,
+    };
+  }
+
+  private _onGlobalChanged(e: CustomEvent): void {
+    e.stopPropagation();
+    const v = (e.detail as any).value ?? {};
+    const scrollable =
+      v.scrollable === "auto" ? "auto" : v.scrollable === "true" || v.scrollable === true;
+    this._patch({
+      position: v.position,
+      style: v.style,
+      remember: v.remember,
+      default_tab: v.default_tab,
+      scrollable,
+      lazy: !!v.lazy,
+      animated: !!v.animated,
+      swipe: !!v.swipe,
+    });
+  }
+
+  private _onTabFieldsChanged(index: number, e: CustomEvent): void {
+    e.stopPropagation();
+    const v = (e.detail as any).value ?? {};
+    this._patchTab(index, {
+      name: v.name ?? "",
+      icon: v.icon || undefined,
+      accent: v.accent || undefined,
+      badge: v.badge || undefined,
+    });
+  }
+
+  private _computeGlobalLabel = (s: { name: string }) => GLOBAL_LABELS[s.name] ?? s.name;
+  private _computeTabLabel = (s: { name: string }) => TAB_LABELS[s.name] ?? s.name;
 
   render() {
     if (!this._config) return html``;
@@ -132,19 +285,46 @@ export class TabdeckCardEditor extends LitElement {
       this._editingTab = null;
       return this._renderListView();
     }
-    const tag = pickCardEditorTag((t) => !!customElements.get(t));
+    const hasType = !!tab.card?.type;
     return html`
       <div class="card-editor-view">
         <div class="card-editor-header">
           <button class="back-to-list" @click=${this._closeCard}>← Back</button>
           <span class="card-editor-title">${tab.name || `Tab ${index + 1}`}</span>
+          ${hasType
+            ? html`<button class="change-card-type" @click=${() => this._changeCardType(index)}>
+                Change card type
+              </button>`
+            : nothing}
         </div>
-        ${this._renderCardEditor(index, tab, tag)}
+        ${hasType
+          ? this._renderCardEditor(index, tab)
+          : this._renderCardTypeChooser(index)}
       </div>
     `;
   }
 
-  private _renderCardEditor(index: number, tab: any, tag: CardEditorTag) {
+  private _renderCardTypeChooser(index: number) {
+    return html`
+      <div class="card-type-chooser">
+        <ha-form
+          class="card-type-form"
+          .hass=${this.hass}
+          .data=${{}}
+          .schema=${CARD_TYPE_SCHEMA}
+          .computeLabel=${() => "Card type"}
+          @value-changed=${(e: CustomEvent) => this._onTypeChosen(index, e)}
+        ></ha-form>
+        <p class="card-type-hint">
+          Choose a card type to configure it. Enter a custom type (e.g.
+          <code>custom:my-card</code>) for cards not in the list.
+        </p>
+      </div>
+    `;
+  }
+
+  private _renderCardEditor(index: number, tab: any) {
+    const tag = pickCardEditorTag((t) => !!customElements.get(t));
     if (tag === "hui-card-element-editor") {
       return html`
         <hui-card-element-editor
@@ -183,141 +363,57 @@ export class TabdeckCardEditor extends LitElement {
     const cfg = this._config!;
     return html`
       <div class="editor">
-        <div class="globals">
-          <label
-            >Position
-            <select
-              .value=${cfg.position}
-              @change=${(e: any) => this._patch({ position: e.target.value })}
-            >
-              ${["top", "bottom", "left", "right"].map(
-                (p) => html`<option value=${p} ?selected=${p === cfg.position}>${p}</option>`,
-              )}
-            </select>
-          </label>
-          <label
-            >Style
-            <select
-              .value=${cfg.style}
-              @change=${(e: any) => this._patch({ style: e.target.value })}
-            >
-              ${["underline", "pill", "segmented"].map(
-                (s) => html`<option value=${s} ?selected=${s === cfg.style}>${s}</option>`,
-              )}
-            </select>
-          </label>
-          <label
-            >Remember
-            <select
-              .value=${cfg.remember}
-              @change=${(e: any) => this._patch({ remember: e.target.value })}
-            >
-              ${["none", "browser", "url"].map(
-                (r) => html`<option value=${r} ?selected=${r === cfg.remember}>${r}</option>`,
-              )}
-            </select>
-          </label>
-          <label
-            >Default tab
-            <select
-              class="global-default-tab"
-              @change=${(e: any) => this._patch({ default_tab: e.target.value })}
-            >
-              ${cfg.tabs.map((t, i) => {
-                const value = t.name ?? String(i);
-                return html`<option
-                  value=${value}
-                  ?selected=${String(cfg.default_tab) === value || cfg.default_tab === i}
-                >
-                  ${t.name || `Tab ${i + 1}`}
-                </option>`;
-              })}
-            </select>
-          </label>
-          <label
-            >Scrollable
-            <select
-              @change=${(e: any) =>
-                this._patch({
-                  scrollable:
-                    e.target.value === "auto" ? "auto" : e.target.value === "true",
-                })}
-            >
-              ${["auto", "true", "false"].map(
-                (s) => html`<option value=${s} ?selected=${String(cfg.scrollable) === s}>${s}</option>`,
-              )}
-            </select>
-          </label>
-          <label class="checkbox"
-            ><input
-              class="global-lazy"
-              type="checkbox"
-              .checked=${cfg.lazy}
-              @change=${(e: any) => this._patch({ lazy: e.target.checked })}
-            />
-            Lazy-mount inactive tabs
-          </label>
-          <label class="checkbox"
-            ><input
-              class="global-animated"
-              type="checkbox"
-              .checked=${cfg.animated}
-              @change=${(e: any) => this._patch({ animated: e.target.checked })}
-            />
-            Animate indicator
-          </label>
-          <label class="checkbox"
-            ><input
-              class="global-swipe"
-              type="checkbox"
-              .checked=${cfg.swipe}
-              @change=${(e: any) => this._patch({ swipe: e.target.checked })}
-            />
-            Swipe to change tabs (mobile)
-          </label>
-        </div>
+        <ha-form
+          class="globals-form"
+          .hass=${this.hass}
+          .data=${this._globalData}
+          .schema=${this._globalSchema()}
+          .computeLabel=${this._computeGlobalLabel}
+          @value-changed=${this._onGlobalChanged}
+        ></ha-form>
 
         <div class="tabs">
           ${cfg.tabs.map(
             (tab, index) => html`
               <div class="tab">
-                <div class="tab-row">
-                  <input
-                    class="tab-name"
-                    type="text"
-                    .value=${tab.name ?? ""}
-                    placeholder="Tab name"
-                    @input=${(e: any) => this._patchTab(index, { name: e.target.value })}
-                  />
-                  <input
-                    class="tab-icon"
-                    type="text"
-                    .value=${tab.icon ?? ""}
-                    placeholder="mdi:icon"
-                    @input=${(e: any) => this._patchTab(index, { icon: e.target.value })}
-                  />
-                  <button class="move-up" @click=${() => this._move(index, -1)}>↑</button>
-                  <button class="move-down" @click=${() => this._move(index, 1)}>↓</button>
-                  <button class="delete-tab" @click=${() => this._deleteTab(index)}>✕</button>
+                <div class="tab-header">
+                  <span class="tab-title">${tab.name || `Tab ${index + 1}`}</span>
+                  <div class="tab-controls">
+                    <ha-icon-button
+                      class="move-up"
+                      label="Move up"
+                      .path=${MDI_ARROW_UP}
+                      .disabled=${index === 0}
+                      @click=${() => this._move(index, -1)}
+                    ></ha-icon-button>
+                    <ha-icon-button
+                      class="move-down"
+                      label="Move down"
+                      .path=${MDI_ARROW_DOWN}
+                      .disabled=${index === cfg.tabs.length - 1}
+                      @click=${() => this._move(index, 1)}
+                    ></ha-icon-button>
+                    <ha-icon-button
+                      class="delete-tab"
+                      label="Delete tab"
+                      .path=${MDI_DELETE}
+                      @click=${() => this._deleteTab(index)}
+                    ></ha-icon-button>
+                  </div>
                 </div>
-                <div class="tab-row">
-                  <input
-                    class="tab-accent"
-                    type="text"
-                    .value=${tab.accent ?? ""}
-                    placeholder="Accent colour (e.g. #ff9800)"
-                    @input=${(e: any) =>
-                      this._patchTab(index, { accent: e.target.value || undefined })}
-                  />
-                  <input
-                    class="tab-badge"
-                    type="text"
-                    .value=${tab.badge ?? ""}
-                    placeholder="Badge: sensor.unread or {{ template }}"
-                    @input=${(e: any) =>
-                      this._patchTab(index, { badge: e.target.value || undefined })}
-                  />
-                </div>
+                <ha-form
+                  class="tab-form"
+                  .hass=${this.hass}
+                  .data=${{
+                    name: tab.name ?? "",
+                    icon: tab.icon ?? "",
+                    accent: tab.accent ?? "",
+                    badge: tab.badge ?? "",
+                  }}
+                  .schema=${TAB_SCHEMA}
+                  .computeLabel=${this._computeTabLabel}
+                  @value-changed=${(e: CustomEvent) => this._onTabFieldsChanged(index, e)}
+                ></ha-form>
                 <button class="edit-card" @click=${() => this._openCard(index)}>
                   <span class="edit-card-label">Edit card</span>
                   <span class="edit-card-type">${tab.card?.type ?? "—"}</span>
@@ -326,7 +422,10 @@ export class TabdeckCardEditor extends LitElement {
               </div>
             `,
           )}
-          <button class="add-tab" @click=${this._addTab}>+ Add tab</button>
+          <ha-button class="add-tab" @click=${this._addTab}>
+            <ha-svg-icon slot="icon" .path=${MDI_PLUS}></ha-svg-icon>
+            Add tab
+          </ha-button>
         </div>
       </div>
     `;
@@ -336,42 +435,44 @@ export class TabdeckCardEditor extends LitElement {
     .editor {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 24px;
     }
-    .globals {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
+    .globals-form {
+      display: block;
     }
-    label {
+    .tabs {
       display: flex;
       flex-direction: column;
-      font-size: 12px;
-      gap: 4px;
-    }
-    label.checkbox {
-      flex-direction: row;
-      align-items: center;
-      gap: 6px;
+      gap: 16px;
     }
     .tab {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      padding: 12px;
-      margin-bottom: 12px;
+      gap: 16px;
+      padding: 16px;
       border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
+      border-radius: var(--ha-card-border-radius, 12px);
+      background: var(--card-background-color, var(--ha-card-background));
     }
-    .tab-row {
+    .tab-header {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 8px;
     }
-    .tab-name,
-    .tab-accent,
-    .tab-badge {
-      flex: 1;
+    .tab-title {
+      font-weight: 500;
+      font-size: 15px;
+      color: var(--primary-text-color);
+    }
+    .tab-controls {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      --mdc-icon-button-size: 40px;
+    }
+    .delete-tab {
+      color: var(--error-color, #db4437);
     }
     .edit-card {
       display: flex;
@@ -379,12 +480,16 @@ export class TabdeckCardEditor extends LitElement {
       gap: 8px;
       width: 100%;
       box-sizing: border-box;
-      padding: 8px 12px;
+      padding: 10px 12px;
+      color: var(--primary-text-color);
       background: var(--secondary-background-color, #f5f5f5);
       border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 6px;
-      font-size: 13px;
+      border-radius: var(--ha-card-border-radius, 12px);
+      font-size: 14px;
       text-align: left;
+    }
+    .edit-card:hover {
+      background: var(--divider-color, #e0e0e0);
     }
     .edit-card-type {
       color: var(--secondary-text-color);
@@ -394,6 +499,9 @@ export class TabdeckCardEditor extends LitElement {
     .edit-card-arrow {
       margin-left: auto;
       color: var(--secondary-text-color);
+    }
+    .add-tab {
+      align-self: flex-start;
     }
     .card-editor-view {
       display: flex;
@@ -408,8 +516,35 @@ export class TabdeckCardEditor extends LitElement {
     .card-editor-title {
       font-weight: 500;
     }
-    .back-to-list {
+    .back-to-list,
+    .change-card-type {
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      color: var(--primary-text-color);
+      background: none;
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: var(--ha-card-border-radius, 12px);
+      font-size: 14px;
+    }
+    .change-card-type {
+      margin-left: auto;
+      color: var(--primary-color);
+    }
+    .card-type-chooser {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .card-type-hint {
+      margin: 0;
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+    .card-type-hint code {
+      font-family: var(--code-font-family, monospace);
     }
     .card-label {
       font-size: 12px;
