@@ -1,16 +1,36 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { fireEvent } from "custom-card-helpers";
 import type { HomeAssistant } from "../types";
 import { normalizeConfig, type TabdeckCardConfig } from "../lib/config";
 
+export type CardEditorTag =
+  | "hui-card-element-editor"
+  | "ha-yaml-editor"
+  | "textarea-json";
+
+// Decide which nested card editor to use. Prefer Home Assistant's own
+// hui-card-element-editor (visual + per-card YAML toggle + card picker); fall
+// back to ha-yaml-editor, then to a raw JSON textarea, so the editor never
+// hard-fails on an HA version that lacks the internal element.
+export function pickCardEditorTag(has: (tag: string) => boolean): CardEditorTag {
+  if (has("hui-card-element-editor")) return "hui-card-element-editor";
+  if (has("ha-yaml-editor")) return "ha-yaml-editor";
+  return "textarea-json";
+}
+
 @customElement("tabdeck-card-editor")
 export class TabdeckCardEditor extends LitElement {
   @state() private _config?: TabdeckCardConfig;
+  // Index of the tab currently being edited in the drill-in card view, or null
+  // for the tab-list view.
+  @state() private _editingTab: number | null = null;
   // Index of the tab whose card JSON failed to parse, so we can show an error
   // without discarding what the user is typing.
   @state() private _cardError: number | null = null;
   public hass?: HomeAssistant;
+  // Set by Home Assistant's card-editor dialog; forwarded to the nested editor.
+  public lovelace?: any;
 
   setConfig(config: any): void {
     this._config = normalizeConfig(config);
@@ -71,9 +91,96 @@ export class TabdeckCardEditor extends LitElement {
     this._emit({ ...this._config, tabs });
   }
 
+  private _openCard(index: number): void {
+    this._cardError = null;
+    this._editingTab = index;
+  }
+
+  private _closeCard(): void {
+    this._editingTab = null;
+  }
+
+  private get _lovelace(): any {
+    return this.lovelace ?? { config: { views: [] }, editMode: true };
+  }
+
+  private _onNativeCardChanged(index: number, e: CustomEvent): void {
+    e.stopPropagation();
+    const config = (e.detail as any)?.config;
+    if (!config) return;
+    this._patchTab(index, { card: config });
+  }
+
+  private _onYamlCardChanged(index: number, e: CustomEvent): void {
+    e.stopPropagation();
+    const detail = e.detail as any;
+    if (detail?.isValid === false) return;
+    if (detail?.value === undefined) return;
+    this._patchTab(index, { card: detail.value });
+  }
+
   render() {
     if (!this._config) return html``;
-    const cfg = this._config;
+    if (this._editingTab !== null) return this._renderCardView(this._editingTab);
+    return this._renderListView();
+  }
+
+  private _renderCardView(index: number) {
+    const tab = this._config!.tabs[index];
+    if (!tab) {
+      // Tab vanished (e.g. deleted elsewhere) — bail back to the list.
+      this._editingTab = null;
+      return this._renderListView();
+    }
+    const tag = pickCardEditorTag((t) => !!customElements.get(t));
+    return html`
+      <div class="card-editor-view">
+        <div class="card-editor-header">
+          <button class="back-to-list" @click=${this._closeCard}>← Back</button>
+          <span class="card-editor-title">${tab.name || `Tab ${index + 1}`}</span>
+        </div>
+        ${this._renderCardEditor(index, tab, tag)}
+      </div>
+    `;
+  }
+
+  private _renderCardEditor(index: number, tab: any, tag: CardEditorTag) {
+    if (tag === "hui-card-element-editor") {
+      return html`
+        <hui-card-element-editor
+          .hass=${this.hass}
+          .lovelace=${this._lovelace}
+          .value=${tab.card ?? {}}
+          @config-changed=${(e: CustomEvent) => this._onNativeCardChanged(index, e)}
+        ></hui-card-element-editor>
+      `;
+    }
+    if (tag === "ha-yaml-editor") {
+      return html`
+        <ha-yaml-editor
+          .defaultValue=${tab.card ?? {}}
+          @value-changed=${(e: CustomEvent) => this._onYamlCardChanged(index, e)}
+        ></ha-yaml-editor>
+      `;
+    }
+    return html`
+      <label class="card-label"
+        >Card (JSON)
+        <textarea
+          class="tab-card-json"
+          rows="10"
+          .value=${JSON.stringify(tab.card ?? {}, null, 2)}
+          @change=${(e: any) => this._editCardJson(index, e.target.value)}
+        ></textarea>
+      </label>
+      ${this._cardError === index
+        ? html`<div class="tab-card-error">Invalid JSON — not saved.</div>`
+        : nothing}
+    `;
+  }
+
+  private _renderListView() {
+    const cfg = this._config!;
     return html`
       <div class="editor">
         <div class="globals">
@@ -193,18 +300,11 @@ export class TabdeckCardEditor extends LitElement {
                       this._patchTab(index, { badge: e.target.value || undefined })}
                   />
                 </div>
-                <label class="card-label"
-                  >Card (JSON)
-                  <textarea
-                    class="tab-card-json"
-                    rows="6"
-                    .value=${JSON.stringify(tab.card ?? {}, null, 2)}
-                    @change=${(e: any) => this._editCardJson(index, e.target.value)}
-                  ></textarea>
-                </label>
-                ${this._cardError === index
-                  ? html`<div class="tab-card-error">Invalid JSON — not saved.</div>`
-                  : ""}
+                <button class="edit-card" @click=${() => this._openCard(index)}>
+                  <span class="edit-card-label">Edit card</span>
+                  <span class="edit-card-type">${tab.card?.type ?? "—"}</span>
+                  <span class="edit-card-arrow">→</span>
+                </button>
               </div>
             `,
           )}
@@ -254,6 +354,44 @@ export class TabdeckCardEditor extends LitElement {
     .tab-accent,
     .tab-badge {
       flex: 1;
+    }
+    .edit-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      background: var(--secondary-background-color, #f5f5f5);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 6px;
+      font-size: 13px;
+      text-align: left;
+    }
+    .edit-card-type {
+      color: var(--secondary-text-color);
+      font-family: var(--code-font-family, monospace);
+      font-size: 12px;
+    }
+    .edit-card-arrow {
+      margin-left: auto;
+      color: var(--secondary-text-color);
+    }
+    .card-editor-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .card-editor-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .card-editor-title {
+      font-weight: 500;
+    }
+    .back-to-list {
+      cursor: pointer;
     }
     .card-label {
       font-size: 12px;
