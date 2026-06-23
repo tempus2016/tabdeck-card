@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeAll, vi } from "vitest";
 import "./tabdeck-tabbar";
 
+const nextFrame = () =>
+  new Promise<void>((r) => requestAnimationFrame(() => r()));
+
 async function mount() {
   const el = document.createElement("tabdeck-tabbar") as any;
   el.items = [{ name: "A" }, { name: "B" }, { name: "C" }];
@@ -50,5 +53,39 @@ describe("tabdeck-tabbar", () => {
     expect(events[events.length - 1]).toBe(2);
     el.dispatchEvent(new KeyboardEvent("keydown", { key: "Home" }));
     expect(events[events.length - 1]).toBe(0);
+  });
+
+  it("renders a single indicator element inside the bar", async () => {
+    const el = await mount();
+    const bar = el.shadowRoot.querySelector(".bar");
+    expect(bar.querySelectorAll(".indicator")).toHaveLength(1);
+  });
+
+  it("hides the indicator (opacity 0) when offsets are unmeasurable in jsdom", async () => {
+    const el = await mount();
+    expect(el.shadowRoot.querySelector(".indicator").style.opacity).toBe("0");
+  });
+
+  it("adds the animate class after first paint when animated (default)", async () => {
+    const el = await mount();
+    await nextFrame();
+    await el.updateComplete;
+    expect(
+      el.shadowRoot.querySelector(".indicator").classList.contains("animate"),
+    ).toBe(true);
+  });
+
+  it("never adds the animate class when animated is false", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }, { name: "B" }, { name: "C" }];
+    el.selected = 0;
+    el.animated = false;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    await nextFrame();
+    await el.updateComplete;
+    expect(
+      el.shadowRoot.querySelector(".indicator").classList.contains("animate"),
+    ).toBe(false);
   });
 });
