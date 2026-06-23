@@ -1,0 +1,118 @@
+name: Announce Release in Discussions
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    # Skip pre-releases entirely — only stable releases get a discussion thread.
+    # Without this, every -alpha.N / -beta.N pushed for testing posts noise.
+    if: github.event.release.prerelease == false
+    permissions:
+      discussions: write
+
+    steps:
+      - name: Create Discussion Announcement
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9 2026-06-17
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const release = context.payload.release;
+            const tag = release.tag_name;
+            const name = release.name || tag;
+            const body = release.body || '_No release notes provided._';
+            const isPrerelease = release.prerelease;
+            const url = release.html_url;
+
+            const discussionBody = [
+              `## ${isPrerelease ? '🧪 Pre-release' : '🚀 New Release'}: ${name}`,
+              ``,
+              `> **[View full release and download on GitHub](${url})**`,
+              ``,
+              `---`,
+              ``,
+              body,
+              ``,
+              `---`,
+              ``,
+              `### Upgrading`,
+              ``,
+              isPrerelease
+                ? `This is a pre-release — it may contain bugs. Install via a HACS custom repository or manually if you want to test early.`
+                : `Update via **HACS**, or download \`tabdeck-card.js\` from the [latest release](${url}) and copy it to \`/config/www/\`.`,
+              ``,
+              `After updating, **hard-refresh your browser** (Ctrl/Cmd+Shift+R) so the new card module loads instead of a cached one.`,
+              ``,
+              `---`,
+              ``,
+              `💬 **Questions or issues with this release?** Reply below or [open an issue](https://github.com/${context.repo.owner}/${context.repo.repo}/issues/new/choose).`,
+            ].join('\n');
+
+            const categoriesQuery = `
+              query($owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
+                  discussionCategories(first: 20) {
+                    nodes { id name }
+                  }
+                }
+              }
+            `;
+            const categoriesResult = await github.graphql(categoriesQuery, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const categories = categoriesResult.repository.discussionCategories.nodes;
+            console.log('Available categories:', categories.map(c => c.name));
+
+            const announcements = categories.find(c => c.name === 'Announcements');
+            const general = categories.find(c => c.name === 'General');
+            const category = announcements || general;
+            if (!category) {
+              core.setFailed('Could not find Announcements or General discussion category. Please enable Discussions in the repository.');
+              return;
+            }
+            console.log(`Using category: ${category.name} (${category.id})`);
+
+            const repoQuery = `
+              query($owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) { id }
+              }
+            `;
+            const repoResult = await github.graphql(repoQuery, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const repositoryId = repoResult.repository.id;
+
+            const createMutation = `
+              mutation($repoId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
+                createDiscussion(input: {
+                  repositoryId: $repoId,
+                  categoryId: $categoryId,
+                  title: $title,
+                  body: $body
+                }) {
+                  discussion { id url }
+                }
+              }
+            `;
+            const discussionTitle = isPrerelease
+              ? `🧪 Pre-release: ${name}`
+              : `🚀 Release: ${name}`;
+
+            const result = await github.graphql(createMutation, {
+              repoId: repositoryId,
+              categoryId: category.id,
+              title: discussionTitle,
+              body: discussionBody,
+            });
+
+            const discussionUrl = result.createDiscussion.discussion.url;
+            console.log(`Discussion created: ${discussionUrl}`);
+
+            await core.summary
+              .addHeading('Release Announcement Created')
+              .addLink(discussionTitle, discussionUrl)
+              .write();
