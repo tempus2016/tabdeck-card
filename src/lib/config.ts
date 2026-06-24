@@ -58,6 +58,7 @@ export interface TabdeckCardConfig {
   animated: boolean;
   accent_indicator: boolean;
   header: boolean;
+  aria_label?: string;
   sticky: boolean;
   elevation: boolean;
   scroll_buttons: boolean;
@@ -162,6 +163,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     animated: raw?.animated === undefined ? true : Boolean(raw.animated),
     accent_indicator: raw?.accent_indicator === undefined ? true : Boolean(raw.accent_indicator),
     header: Boolean(raw?.header),
+    aria_label: raw?.aria_label ?? undefined,
     sticky: Boolean(raw?.sticky),
     elevation: Boolean(raw?.elevation),
     scroll_buttons: Boolean(raw?.scroll_buttons),

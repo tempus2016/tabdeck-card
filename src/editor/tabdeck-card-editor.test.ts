@@ -76,6 +76,7 @@ function globalsData() {
     animated: true,
     accent_indicator: true,
     header: false,
+    aria_label: "",
     sticky: false,
     elevation: false,
     scroll_buttons: false,

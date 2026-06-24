@@ -430,6 +430,7 @@ export class TabdeckCard extends LitElement {
         .sticky=${cfg.sticky}
         .elevation=${cfg.elevation}
         .scrollButtons=${cfg.scroll_buttons}
+        .barLabel=${cfg.aria_label ?? "Tabs"}
         .barBackground=${cfg.bar_background}
         @tabdeck-select=${this._onSelect}
       ></tabdeck-tabbar>
