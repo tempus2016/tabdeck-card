@@ -3,9 +3,9 @@
 All notable changes are documented here. Release notes are also generated
 automatically on GitHub (see `.github/release.yml`).
 
-## Unreleased
+## v1.0.0 — 2026-06-24
 
-A large feature expansion — every item is an opt-in option, unit-tested,
+First stable release. A large feature expansion — every item is an opt-in option, unit-tested,
 verified on a real Home Assistant instance, and documented on the
 [Wiki](https://github.com/tempus2016/tabdeck-card/wiki).
 
