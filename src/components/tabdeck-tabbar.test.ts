@@ -222,6 +222,31 @@ describe("tabdeck-tabbar", () => {
     expect(el.shadowRoot.querySelector(".scroll-btn")).toBeNull();
   });
 
+  it("opens an overflow menu listing all tabs and selects from it", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }, { name: "B" }, { name: "C" }];
+    el.selected = 0;
+    el.overflowMenu = true;
+    el.position = "top";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const bar = el.shadowRoot.querySelector(".bar");
+    Object.defineProperty(bar, "scrollWidth", { value: 500, configurable: true });
+    Object.defineProperty(bar, "clientWidth", { value: 100, configurable: true });
+    el._updateOverflow();
+    await el.updateComplete;
+    el.shadowRoot.querySelector(".overflow-btn").click();
+    await el.updateComplete;
+    const items = el.shadowRoot.querySelectorAll(".overflow-item");
+    expect(items).toHaveLength(3);
+    const events: number[] = [];
+    el.addEventListener("tabdeck-select", (e: any) => events.push(e.detail.index));
+    items[2].click();
+    expect(events).toEqual([2]);
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".overflow-menu")).toBeNull(); // closed after pick
+  });
+
   it("applies the alignment class to the bar", async () => {
     const el = document.createElement("tabdeck-tabbar") as any;
     el.items = [{ name: "A" }, { name: "B" }];

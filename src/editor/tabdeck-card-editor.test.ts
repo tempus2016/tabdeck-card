@@ -80,6 +80,7 @@ function globalsData() {
     sticky: false,
     elevation: false,
     scroll_buttons: false,
+    overflow_menu: false,
     bar_background: "",
     swipe: false,
     swipe_mouse: false,

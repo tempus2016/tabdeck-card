@@ -42,6 +42,10 @@ export class TabdeckTabbar extends LitElement {
   @property({ type: Boolean }) elevation = false;
   // Show ‹ › buttons to scroll an overflowing horizontal bar.
   @property({ type: Boolean }) scrollButtons = false;
+  // Show a ⋯ menu (jump-to-tab list) when an overflowing horizontal bar can't
+  // fit all tabs.
+  @property({ type: Boolean }) overflowMenu = false;
+  @state() private _menuOpen = false;
   // Accessible name for the tablist.
   @property() barLabel = "Tabs";
   // Optional custom bar background colour.
@@ -263,7 +267,7 @@ export class TabdeckTabbar extends LitElement {
   }
 
   private _updateOverflow(): void {
-    if (!this.scrollButtons || !this._horizontal) {
+    if ((!this.scrollButtons && !this.overflowMenu) || !this._horizontal) {
       if (this._overflow) this._overflow = false;
       return;
     }
@@ -278,11 +282,17 @@ export class TabdeckTabbar extends LitElement {
     bar.scrollBy({ left: dir * bar.clientWidth * 0.8, behavior: "smooth" });
   }
 
+  private _pickFromMenu(index: number): void {
+    this._menuOpen = false;
+    if (!this.items[index]?.disabled) this._select(index);
+  }
+
   render() {
     const animateClass = this._ready && this.animated ? " animate" : "";
     const arrows = this.scrollButtons && this._horizontal && this._overflow;
+    const menu = this.overflowMenu && this._horizontal && this._overflow;
     return html`
-      <div class="bar-wrap ${arrows ? "has-arrows" : ""}">
+      <div class="bar-wrap ${arrows || menu ? "has-arrows" : ""}">
       ${arrows
         ? html`<button class="scroll-btn left" aria-label="Scroll left" @click=${() => this._scrollBy(-1)}>‹</button>`
         : ""}
@@ -321,6 +331,31 @@ export class TabdeckTabbar extends LitElement {
       ${arrows
         ? html`<button class="scroll-btn right" aria-label="Scroll right" @click=${() => this._scrollBy(1)}>›</button>`
         : ""}
+      ${menu
+        ? html`<button
+              class="overflow-btn"
+              aria-label="All tabs"
+              aria-haspopup="menu"
+              aria-expanded=${this._menuOpen ? "true" : "false"}
+              @click=${() => (this._menuOpen = !this._menuOpen)}
+            >
+              ⋯
+            </button>
+            ${this._menuOpen
+              ? html`<div class="overflow-menu" role="menu">
+                  ${this.items.map(
+                    (item, index) => html`<button
+                      class="overflow-item ${index === this.selected ? "current" : ""}"
+                      role="menuitem"
+                      ?disabled=${item.disabled}
+                      @click=${() => this._pickFromMenu(index)}
+                    >
+                      ${item.name ?? `Tab ${index + 1}`}
+                    </button>`,
+                  )}
+                </div>`
+              : ""}`
+        : ""}
       </div>
     `;
   }
@@ -332,6 +367,54 @@ export class TabdeckTabbar extends LitElement {
     .bar-wrap.has-arrows {
       display: flex;
       align-items: center;
+      position: relative;
+    }
+    .overflow-btn {
+      flex-shrink: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 0 8px;
+      color: var(--secondary-text-color);
+    }
+    .overflow-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      z-index: 3;
+      min-width: 160px;
+      max-height: 320px;
+      overflow: auto;
+      background: var(--card-background-color, #fff);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+    }
+    .overflow-item {
+      text-align: left;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: var(--primary-text-color);
+      font-size: 14px;
+    }
+    .overflow-item:hover {
+      background: var(--secondary-background-color, #f5f5f5);
+    }
+    .overflow-item.current {
+      color: var(--tabdeck-accent, var(--primary-color));
+      font-weight: 600;
+    }
+    .overflow-item[disabled] {
+      opacity: 0.5;
+      cursor: default;
     }
     .bar-wrap.has-arrows .bar {
       flex: 1;
