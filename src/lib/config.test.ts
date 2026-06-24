@@ -106,6 +106,20 @@ describe("normalizeConfig", () => {
     expect(c.tabs[0].card.cards[1].type).toBe("light");
   });
 
+  it("uses a grid card when cards + columns>1 are given", () => {
+    const c = normalizeConfig({
+      tabs: [{ name: "A", columns: 2, cards: [{ type: "a" }, { type: "b" }, { type: "c" }] }],
+    });
+    expect(c.tabs[0].card.type).toBe("grid");
+    expect(c.tabs[0].card.columns).toBe(2);
+    expect(c.tabs[0].card.cards).toHaveLength(3);
+  });
+
+  it("falls back to vertical-stack for cards without columns", () => {
+    const c = normalizeConfig({ tabs: [{ name: "A", cards: [{ type: "a" }] }] });
+    expect(c.tabs[0].card.type).toBe("vertical-stack");
+  });
+
   it("prefers `cards` over a single `card` when both are given", () => {
     const c = normalizeConfig({
       tabs: [{ name: "A", card: { type: "light" }, cards: [{ type: "markdown" }] }],
