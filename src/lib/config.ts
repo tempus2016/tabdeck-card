@@ -19,6 +19,8 @@ export interface TabdeckTabConfig {
   disabled?: boolean;
   // Home Assistant action fired on a long-press of the tab (tap still selects).
   hold_action?: any;
+  // HA action fired when the tab's badge is clicked (does not select the tab).
+  badge_action?: any;
   // Switch to this tab when the entity enters the given state (or becomes
   // active when no state is given). Edge-triggered.
   auto_select?: { entity: string; state?: string };
@@ -116,6 +118,7 @@ function normalizeTab(raw: any): TabdeckTabConfig {
     badge_color: raw?.badge_color ?? undefined,
     disabled: raw?.disabled ? true : undefined,
     hold_action: raw?.hold_action ?? undefined,
+    badge_action: raw?.badge_action ?? undefined,
     auto_select: normalizeAutoSelect(raw?.auto_select),
     default_if: raw?.default_if ?? undefined,
     visibility: raw?.visibility ?? undefined,

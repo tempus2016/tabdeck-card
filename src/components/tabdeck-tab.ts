@@ -19,6 +19,7 @@ export class TabdeckTab extends LitElement {
   @property() icon?: string;
   @property() badge?: string;
   @property() badgeColor?: string;
+  @property({ type: Boolean }) badgeAction = false;
   @property() badgeDisplay: BadgeDisplay = "text";
   @property() accent?: string;
   @property() color?: string;
@@ -63,15 +64,23 @@ export class TabdeckTab extends LitElement {
     `;
   }
 
+  private _onBadgeClick(e: Event): void {
+    if (!this.badgeAction) return;
+    // Don't let a badge click also select the tab.
+    e.stopPropagation();
+    this.dispatchEvent(new CustomEvent("badge-click", { bubbles: true, composed: true }));
+  }
+
   private _renderBadge() {
     const bg = this.badgeColor ? `background:${this.badgeColor}` : "";
+    const cls = this.badgeAction ? " clickable" : "";
     if (this.badgeDisplay === "dot") {
       return isActiveBadge(this.badge)
-        ? html`<span class="badge-dot" part="badge-dot" style=${bg}></span>`
+        ? html`<span class="badge-dot${cls}" part="badge-dot" style=${bg} @click=${this._onBadgeClick}></span>`
         : nothing;
     }
     return this.badge
-      ? html`<span class="badge" part="badge" style=${bg}>${this.badge}</span>`
+      ? html`<span class="badge${cls}" part="badge" style=${bg} @click=${this._onBadgeClick}>${this.badge}</span>`
       : nothing;
   }
 
@@ -139,6 +148,10 @@ export class TabdeckTab extends LitElement {
       border-radius: 50%;
       background: var(--tabdeck-accent, var(--primary-color));
       flex-shrink: 0;
+    }
+    .badge.clickable,
+    .badge-dot.clickable {
+      cursor: pointer;
     }
   `;
 }

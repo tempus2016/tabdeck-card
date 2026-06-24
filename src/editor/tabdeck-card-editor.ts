@@ -34,6 +34,7 @@ const TAB_SCHEMA = [
   { name: "badge_color", selector: { text: {} } },
   { name: "disabled", selector: { boolean: {} } },
   { name: "hold_action", selector: { ui_action: {} } },
+  { name: "badge_action", selector: { ui_action: {} } },
 ];
 
 // Common built-in Lovelace card types offered when choosing/changing a tab's
@@ -74,6 +75,7 @@ const TAB_LABELS: Record<string, string> = {
   badge_color: "Badge colour",
   disabled: "Disable tab (greyed, not selectable)",
   hold_action: "Long-press action",
+  badge_action: "Badge tap action",
 };
 
 const GLOBAL_LABELS: Record<string, string> = {
@@ -443,6 +445,7 @@ export class TabdeckCardEditor extends LitElement {
       badge_color: v.badge_color || undefined,
       disabled: v.disabled ? true : undefined,
       hold_action: v.hold_action ?? undefined,
+      badge_action: v.badge_action ?? undefined,
     });
   }
 
@@ -651,6 +654,7 @@ export class TabdeckCardEditor extends LitElement {
                           badge_color: tab.badge_color ?? "",
                           disabled: !!tab.disabled,
                           hold_action: tab.hold_action,
+                          badge_action: tab.badge_action,
                         }}
                         .schema=${TAB_SCHEMA}
                         .computeLabel=${this._computeTabLabel}
