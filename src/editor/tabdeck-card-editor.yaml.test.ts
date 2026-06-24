@@ -32,6 +32,8 @@ async function mount(config: any) {
 describe("tabdeck-card-editor ha-yaml-editor fallback", () => {
   it("drills into ha-yaml-editor seeded with the tab's card", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown", content: "hi" } }] });
+    el.shadowRoot.querySelector(".tab-header").click();
+    await el.updateComplete;
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     const yaml = el.shadowRoot.querySelector("ha-yaml-editor") as any;
@@ -42,6 +44,8 @@ describe("tabdeck-card-editor ha-yaml-editor fallback", () => {
 
   it("patches the tab card on ha-yaml-editor value-changed (valid yaml)", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    el.shadowRoot.querySelector(".tab-header").click();
+    await el.updateComplete;
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     const handler = vi.fn();
@@ -63,6 +67,8 @@ describe("tabdeck-card-editor ha-yaml-editor fallback", () => {
 
   it("ignores ha-yaml-editor value-changed when invalid", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    el.shadowRoot.querySelector(".tab-header").click();
+    await el.updateComplete;
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     const handler = vi.fn();

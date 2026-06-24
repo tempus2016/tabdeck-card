@@ -16,6 +16,8 @@ async function mount(config: any) {
 describe("tabdeck-card-editor JSON fallback", () => {
   it("edits a tab's card via the JSON editor when valid", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    el.shadowRoot.querySelector(".tab-header").click();
+    await el.updateComplete;
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     const handler = vi.fn();
@@ -33,6 +35,8 @@ describe("tabdeck-card-editor JSON fallback", () => {
 
   it("does not emit when the card JSON is invalid", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    el.shadowRoot.querySelector(".tab-header").click();
+    await el.updateComplete;
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     const handler = vi.fn();

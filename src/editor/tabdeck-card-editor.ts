@@ -11,6 +11,10 @@ const MDI_ARROW_DOWN = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.
 const MDI_DELETE =
   "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
 const MDI_PLUS = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
+const MDI_CHEVRON_DOWN = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z";
+
+// Fallback icon shown in a collapsed tab header when the tab has no icon set.
+const DEFAULT_TAB_ICON = "mdi:tab";
 
 // Per-tab field schema for ha-form. The `icon` selector renders HA's native
 // searchable icon picker (with live previews); the text/select/boolean
@@ -88,6 +92,9 @@ export class TabdeckCardEditor extends LitElement {
   // Index of the tab whose card JSON failed to parse, so we can show an error
   // without discarding what the user is typing.
   @state() private _cardError: number | null = null;
+  // Indices of tabs whose fields are expanded in the list view. Empty by
+  // default, so every tab opens collapsed to save vertical space.
+  @state() private _expanded = new Set<number>();
   public hass?: HomeAssistant;
   // Set by Home Assistant's card-editor dialog; forwarded to the nested editor.
   public lovelace?: any;
@@ -123,13 +130,31 @@ export class TabdeckCardEditor extends LitElement {
       ...this._config.tabs,
       { name: `Tab ${this._config.tabs.length + 1}`, card: {} as any },
     ];
+    // Reindexing tabs invalidates the expanded set; collapse all so a stale
+    // index never reveals the wrong tab.
+    this._expanded = new Set();
     this._emit({ ...this._config, tabs });
   }
 
   private _deleteTab(index: number): void {
     if (!this._config) return;
     const tabs = this._config.tabs.filter((_, i) => i !== index);
+    this._expanded = new Set();
     this._emit({ ...this._config, tabs });
+  }
+
+  private _toggleExpanded(index: number): void {
+    const next = new Set(this._expanded);
+    if (next.has(index)) next.delete(index);
+    else next.add(index);
+    this._expanded = next;
+  }
+
+  private _onHeaderKeydown(index: number, e: KeyboardEvent): void {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      this._toggleExpanded(index);
+    }
   }
 
   private _editCardJson(index: number, raw: string): void {
@@ -150,6 +175,7 @@ export class TabdeckCardEditor extends LitElement {
     if (target < 0 || target >= this._config.tabs.length) return;
     const tabs = this._config.tabs.slice();
     [tabs[index], tabs[target]] = [tabs[target], tabs[index]];
+    this._expanded = new Set();
     this._emit({ ...this._config, tabs });
   }
 
@@ -373,55 +399,88 @@ export class TabdeckCardEditor extends LitElement {
         ></ha-form>
 
         <div class="tabs">
-          ${cfg.tabs.map(
-            (tab, index) => html`
-              <div class="tab">
-                <div class="tab-header">
-                  <span class="tab-title">${tab.name || `Tab ${index + 1}`}</span>
+          ${cfg.tabs.map((tab, index) => {
+            const expanded = this._expanded.has(index);
+            return html`
+              <div class="tab ${expanded ? "expanded" : "collapsed"}">
+                <div
+                  class="tab-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded=${expanded ? "true" : "false"}
+                  @click=${() => this._toggleExpanded(index)}
+                  @keydown=${(e: KeyboardEvent) => this._onHeaderKeydown(index, e)}
+                >
+                  <div class="tab-summary">
+                    <ha-svg-icon
+                      class="expand-chevron"
+                      .path=${MDI_CHEVRON_DOWN}
+                    ></ha-svg-icon>
+                    <ha-icon
+                      class="tab-icon"
+                      .icon=${tab.icon || DEFAULT_TAB_ICON}
+                    ></ha-icon>
+                    <span class="tab-title">${tab.name || `Tab ${index + 1}`}</span>
+                    <span class="tab-type">${tab.card?.type ?? "—"}</span>
+                  </div>
                   <div class="tab-controls">
                     <ha-icon-button
                       class="move-up"
                       label="Move up"
                       .path=${MDI_ARROW_UP}
                       .disabled=${index === 0}
-                      @click=${() => this._move(index, -1)}
+                      @click=${(e: Event) => {
+                        e.stopPropagation();
+                        this._move(index, -1);
+                      }}
                     ></ha-icon-button>
                     <ha-icon-button
                       class="move-down"
                       label="Move down"
                       .path=${MDI_ARROW_DOWN}
                       .disabled=${index === cfg.tabs.length - 1}
-                      @click=${() => this._move(index, 1)}
+                      @click=${(e: Event) => {
+                        e.stopPropagation();
+                        this._move(index, 1);
+                      }}
                     ></ha-icon-button>
                     <ha-icon-button
                       class="delete-tab"
                       label="Delete tab"
                       .path=${MDI_DELETE}
-                      @click=${() => this._deleteTab(index)}
+                      @click=${(e: Event) => {
+                        e.stopPropagation();
+                        this._deleteTab(index);
+                      }}
                     ></ha-icon-button>
                   </div>
                 </div>
-                <ha-form
-                  class="tab-form"
-                  .hass=${this.hass}
-                  .data=${{
-                    name: tab.name ?? "",
-                    icon: tab.icon ?? "",
-                    accent: tab.accent ?? "",
-                    badge: tab.badge ?? "",
-                  }}
-                  .schema=${TAB_SCHEMA}
-                  .computeLabel=${this._computeTabLabel}
-                  @value-changed=${(e: CustomEvent) => this._onTabFieldsChanged(index, e)}
-                ></ha-form>
-                <button class="edit-card" @click=${() => this._openCard(index)}>
-                  <span class="edit-card-label">Edit card</span>
-                  <span class="edit-card-type">${tab.card?.type ?? "—"}</span>
-                  <span class="edit-card-arrow">→</span>
-                </button>
+                ${expanded
+                  ? html`
+                      <ha-form
+                        class="tab-form"
+                        .hass=${this.hass}
+                        .data=${{
+                          name: tab.name ?? "",
+                          icon: tab.icon ?? "",
+                          accent: tab.accent ?? "",
+                          badge: tab.badge ?? "",
+                        }}
+                        .schema=${TAB_SCHEMA}
+                        .computeLabel=${this._computeTabLabel}
+                        @value-changed=${(e: CustomEvent) =>
+                          this._onTabFieldsChanged(index, e)}
+                      ></ha-form>
+                      <button class="edit-card" @click=${() => this._openCard(index)}>
+                        <span class="edit-card-label">Edit card</span>
+                        <span class="edit-card-type">${tab.card?.type ?? "—"}</span>
+                        <span class="edit-card-arrow">→</span>
+                      </button>
+                    `
+                  : nothing}
               </div>
-            `,
-          )}
+            `;
+          })}
           <ha-button class="add-tab" @click=${this._addTab}>
             <ha-svg-icon slot="icon" .path=${MDI_PLUS}></ha-svg-icon>
             Add tab
@@ -459,11 +518,51 @@ export class TabdeckCardEditor extends LitElement {
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      cursor: pointer;
+      padding: 4px;
+      margin: -4px;
+      border-radius: 8px;
+      user-select: none;
+    }
+    .tab-header:hover {
+      background: var(--secondary-background-color, #f5f5f5);
+    }
+    .tab-header:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 0;
+    }
+    .tab-summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+    .expand-chevron {
+      flex-shrink: 0;
+      color: var(--secondary-text-color);
+      transition: transform 0.2s ease;
+    }
+    .tab.expanded .expand-chevron {
+      transform: rotate(180deg);
+    }
+    .tab-icon {
+      flex-shrink: 0;
+      color: var(--secondary-text-color);
     }
     .tab-title {
       font-weight: 500;
       font-size: 15px;
       color: var(--primary-text-color);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tab-type {
+      flex-shrink: 0;
+      color: var(--secondary-text-color);
+      font-family: var(--code-font-family, monospace);
+      font-size: 12px;
     }
     .tab-controls {
       display: flex;
