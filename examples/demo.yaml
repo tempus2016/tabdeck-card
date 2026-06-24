@@ -1,0 +1,88 @@
+# Tabdeck Card — demo dashboard
+# Paste a card below into a Lovelace view (or use as a whole view's cards).
+# Replace entity ids with your own.
+
+# 1) App-style pill bar, icon+label, accent-coloured indicator, slide transitions
+- type: custom:tabdeck-card
+  style: pill
+  align: center
+  transition: slide
+  tabs:
+    - name: Climate
+      icon: mdi:thermostat
+      accent: "#e8743b"
+      subtitle: Living room
+      card:
+        type: thermostat
+        entity: climate.living_room
+    - name: Lights
+      icon: mdi:lightbulb-group
+      accent: "#3b82e8"
+      badge: "{{ states.light | selectattr('state','eq','on') | list | count }}"
+      badge_display: dot
+      cards:
+        - type: entities
+          entities: [light.kitchen, light.hall]
+        - type: entities
+          entities: [light.bedroom]
+    - name: Energy
+      icon: mdi:flash
+      accent: "#2faa54"
+      columns: 2
+      cards:
+        - type: gauge
+          entity: sensor.power
+        - type: gauge
+          entity: sensor.solar
+
+# 2) Sticky boxed bar with a content header, hidden inactive badges, and a
+#    long-press action; a guest tab that only appears in guest mode
+- type: custom:tabdeck-card
+  style: boxed
+  sticky: true
+  header: true
+  hide_inactive_badge: true
+  remember: url
+  tabs:
+    - name: Home
+      icon: mdi:home
+      hold_action:
+        action: navigate
+        navigation_path: /lovelace/0
+      card:
+        type: markdown
+        content: "## Home"
+    - name: Cameras
+      icon: mdi:cctv
+      auto_select: binary_sensor.doorbell      # jump here when it rings
+      card:
+        type: picture-glance
+        title: Driveway
+        entities: []
+        camera_image: camera.driveway
+    - name: Guests
+      icon: mdi:account-group
+      visibility:
+        - condition: state
+          entity: input_boolean.guest_mode
+          state: "on"
+      card:
+        type: entities
+        entities: [light.guest_room]
+
+# 3) Cross-device persistence + dark themed bar
+- type: custom:tabdeck-card
+  remember: entity
+  remember_entity: input_number.dashboard_tab
+  bar_background: "#1f2937"
+  elevation: true
+  tab_display: icon
+  tabs:
+    - name: One
+      icon: mdi:numeric-1-box
+      color: "#ffffff"
+      card: { type: markdown, content: One }
+    - name: Two
+      icon: mdi:numeric-2-box
+      color: "#cbd5e1"
+      card: { type: markdown, content: Two }

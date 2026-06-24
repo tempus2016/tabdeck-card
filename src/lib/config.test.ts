@@ -194,6 +194,39 @@ describe("normalizeConfig", () => {
   });
 });
 
+describe("backward compatibility", () => {
+  it("a minimal legacy config still normalizes with all current defaults present", () => {
+    const c = normalizeConfig({ tabs: [{ card: { type: "light" } }] });
+    // every top-level option has a defined default (guards against undefined regressions)
+    for (const k of [
+      "position", "style", "tab_display", "align", "badge_display",
+      "transition", "indicator_size", "accent_indicator", "header", "sticky",
+      "elevation", "unmount_hidden", "swipe_wrap", "scrollable", "remember",
+      "lazy", "animated", "swipe", "hide_inactive_badge",
+    ]) {
+      expect(c[k as keyof typeof c]).toBeDefined();
+    }
+  });
+
+  it("the demo-style feature-rich config round-trips without throwing", () => {
+    const c = normalizeConfig({
+      style: "boxed", tab_display: "icon", align: "justify", transition: "slide",
+      remember: "entity", remember_entity: "input_number.t", header: true,
+      hide_inactive_badge: true, sticky: true, elevation: true, bar_background: "#111",
+      tabs: [
+        { name: "A", subtitle: "s", accent: "#f00", color: "#fff", badge: "1",
+          badge_color: "#0f0", hold_action: { action: "more-info", entity: "sun.sun" },
+          auto_select: "binary_sensor.x", default_if: [{ condition: "state", entity: "x.y", state: "on" }],
+          columns: 2, cards: [{ type: "a" }, { type: "b" }] },
+        { name: "B", disabled: true, visibility: [{ condition: "or", conditions: [] }], card: { type: "c" } },
+      ],
+    });
+    expect(c.tabs).toHaveLength(2);
+    expect(c.tabs[0].card.type).toBe("grid");
+    expect(c.tabs[1].disabled).toBe(true);
+  });
+});
+
 describe("resolveDefaultIndex", () => {
   const base = normalizeConfig({
     tabs: [{ name: "A", card: {} }, { name: "B", card: {} }],
