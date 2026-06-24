@@ -18,7 +18,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Multiple cards per tab](Feature-Multiple-Cards)** — stack several cards in one tab (`cards`).
 
 ## Navigation & interaction
-- _(pages added as features land)_
+- **[Panel transitions](Feature-Panel-Transition)** — fade or slide when switching tabs (`transition`).
 
 ## Dynamic behaviour
 - _(pages added as features land)_

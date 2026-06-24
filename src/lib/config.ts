@@ -6,6 +6,7 @@ export type RememberMode = "none" | "browser" | "url";
 export type TabDisplay = "both" | "icon" | "label";
 export type TabAlign = "start" | "center" | "end" | "justify";
 export type BadgeDisplay = "text" | "dot";
+export type PanelTransition = "none" | "fade" | "slide";
 
 export interface TabdeckTabConfig {
   name?: string;
@@ -27,6 +28,7 @@ export interface TabdeckCardConfig {
   tab_display: TabDisplay;
   align: TabAlign;
   badge_display: BadgeDisplay;
+  transition: PanelTransition;
   indicator_size: number;
   scrollable: "auto" | boolean;
   remember: RememberMode;
@@ -45,6 +47,7 @@ const REMEMBER: RememberMode[] = ["none", "browser", "url"];
 const DISPLAYS: TabDisplay[] = ["both", "icon", "label"];
 const ALIGNS: TabAlign[] = ["start", "center", "end", "justify"];
 const BADGE_DISPLAYS: BadgeDisplay[] = ["text", "dot"];
+const TRANSITIONS: PanelTransition[] = ["none", "fade", "slide"];
 
 function pick<T>(value: any, allowed: T[], fallback: T): T {
   return allowed.includes(value) ? value : fallback;
@@ -90,6 +93,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     tab_display: pick(raw?.tab_display, DISPLAYS, "both"),
     align: pick(raw?.align, ALIGNS, "start"),
     badge_display: pick(raw?.badge_display, BADGE_DISPLAYS, "text"),
+    transition: pick(raw?.transition, TRANSITIONS, "none"),
     indicator_size: clampNumber(raw?.indicator_size, 1, 16, 3),
     scrollable: raw?.scrollable === undefined ? "auto" : raw.scrollable,
     remember: pick(raw?.remember, REMEMBER, "none"),
