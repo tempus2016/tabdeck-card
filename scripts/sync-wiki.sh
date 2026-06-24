@@ -19,7 +19,9 @@ echo "Cloning wiki repo..."
 git clone "$REMOTE" "$WORK"
 
 echo "Copying wiki/ -> wiki repo (images included)..."
-rsync -a --delete --exclude='.git' "$SRC_DIR"/ "$WORK"/
+# Remove tracked files (keep .git), then copy fresh — avoids an rsync dependency.
+find "$WORK" -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+cp -a "$SRC_DIR"/. "$WORK"/
 
 cd "$WORK"
 git config user.name tempus2016
