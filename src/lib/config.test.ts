@@ -15,6 +15,11 @@ describe("normalizeConfig", () => {
     expect(c.tabs).toHaveLength(1);
   });
 
+  it("defaults accent_indicator to true and respects explicit false", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).accent_indicator).toBe(true);
+    expect(normalizeConfig({ accent_indicator: false, tabs: [{ card: {} }] }).accent_indicator).toBe(false);
+  });
+
   it("picks a valid tab_display and falls back to both", () => {
     expect(normalizeConfig({ tab_display: "icon", tabs: [{ card: {} }] }).tab_display).toBe("icon");
     expect(normalizeConfig({ tab_display: "label", tabs: [{ card: {} }] }).tab_display).toBe("label");

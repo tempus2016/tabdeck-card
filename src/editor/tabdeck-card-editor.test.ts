@@ -64,6 +64,7 @@ function globalsData() {
     scrollable: "auto",
     lazy: false,
     animated: true,
+    accent_indicator: true,
     swipe: false,
   };
 }
