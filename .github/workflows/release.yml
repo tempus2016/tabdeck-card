@@ -20,7 +20,19 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Extract release notes from CHANGELOG
+        run: |
+          awk -v tag="$GITHUB_REF_NAME" '
+            $0 ~ "^## "tag { flag=1; next }
+            /^## / && flag { exit }
+            flag { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+          # Fall back to a CHANGELOG link if the tag has no matching section.
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "See the [CHANGELOG](https://github.com/${GITHUB_REPOSITORY}/blob/main/CHANGELOG.md)." > RELEASE_NOTES.md
+          fi
+          echo "----- release notes -----"; cat RELEASE_NOTES.md
       - uses: softprops/action-gh-release@v3
         with:
           files: dist/tabdeck-card.js
-          generate_release_notes: true
+          body_path: RELEASE_NOTES.md
