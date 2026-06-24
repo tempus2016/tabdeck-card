@@ -71,6 +71,13 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ tab_display: "bogus", tabs: [{ card: {} }] }).tab_display).toBe("both");
   });
 
+  it("accepts remember:entity with remember_entity and storage_key", () => {
+    const c = normalizeConfig({ remember: "entity", remember_entity: "input_number.t", storage_key: "deck1", tabs: [{ card: {} }] });
+    expect(c.remember).toBe("entity");
+    expect(c.remember_entity).toBe("input_number.t");
+    expect(c.storage_key).toBe("deck1");
+  });
+
   it("defaults animated to true and respects explicit false", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).animated).toBe(true);
     expect(normalizeConfig({ animated: false, tabs: [{ card: {} }] }).animated).toBe(false);

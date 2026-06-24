@@ -60,6 +60,8 @@ export class TabdeckCard extends LitElement {
   }
 
   private _computeCardKey(cfg: TabdeckCardConfig): string {
+    // An explicit storage_key lets two identical decks persist independently.
+    if (cfg.storage_key) return cfg.storage_key;
     const path = typeof location !== "undefined" ? location.pathname : "";
     const names = cfg.tabs.map((t) => t.name ?? "").join("|");
     return `${path}#${names}`;
@@ -80,6 +82,9 @@ export class TabdeckCard extends LitElement {
       tabCount: this._visibleTabs().length,
       hash: typeof location !== "undefined" ? location.hash : "",
       tabNames: this._visibleTabs().map((t) => t.name ?? ""),
+      entityValue: this._config.remember_entity
+        ? this._hass?.states?.[this._config.remember_entity]?.state
+        : undefined,
     });
     this._built = true;
     this.requestUpdate();
@@ -247,10 +252,25 @@ export class TabdeckCard extends LitElement {
       if (r.hash && typeof location !== "undefined") {
         history.replaceState(null, "", r.hash);
       }
+      if (this._config.remember === "entity") this._writeRememberEntity(this._selected);
     }
     this.updateComplete.then(() =>
       this._manager?.notifyVisible(this._activeOriginalIndex()),
     );
+  }
+
+  // Persist the selected index to an HA helper entity (input_number/input_text),
+  // so the active tab syncs across devices. Skipped if the entity is absent.
+  private _writeRememberEntity(index: number): void {
+    const ent = this._config?.remember_entity;
+    const hass = this._hass as any;
+    if (!ent || !hass?.callService || !hass.states?.[ent]) return;
+    const domain = ent.split(".")[0];
+    if (domain === "input_number") {
+      hass.callService("input_number", "set_value", { entity_id: ent, value: index });
+    } else if (domain === "input_text") {
+      hass.callService("input_text", "set_value", { entity_id: ent, value: String(index) });
+    }
   }
 
   private _touchStart?: SwipePoint;

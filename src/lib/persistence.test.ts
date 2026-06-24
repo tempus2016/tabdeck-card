@@ -20,6 +20,15 @@ function memStorage(seed: Record<string, string> = {}): Storage {
   } as Storage;
 }
 
+describe("loadInitialIndex entity mode", () => {
+  it("reads the index from the entity value, clamped", () => {
+    expect(loadInitialIndex({ mode: "entity", cardKey: "k", defaultIndex: 0, tabCount: 3, entityValue: "2" })).toBe(2);
+    expect(loadInitialIndex({ mode: "entity", cardKey: "k", defaultIndex: 1, tabCount: 3, entityValue: "9" })).toBe(1);
+    expect(loadInitialIndex({ mode: "entity", cardKey: "k", defaultIndex: 1, tabCount: 3, entityValue: undefined })).toBe(1);
+    expect(loadInitialIndex({ mode: "entity", cardKey: "k", defaultIndex: 0, tabCount: 3, entityValue: "x" })).toBe(0);
+  });
+});
+
 describe("parseHashIndex", () => {
   it("matches a tab name", () => {
     expect(parseHashIndex("#tab=Lights", ["Lights", "Climate"])).toBe(0);
