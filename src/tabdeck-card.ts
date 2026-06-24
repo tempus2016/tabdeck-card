@@ -78,7 +78,7 @@ export class TabdeckCard extends LitElement {
     this._selected = loadInitialIndex({
       mode: this._config.remember,
       cardKey: this._cardKey,
-      defaultIndex: resolveDefaultIndex(this._config),
+      defaultIndex: this._computeDefaultIndex(),
       tabCount: this._visibleTabs().length,
       hash: typeof location !== "undefined" ? location.hash : "",
       tabNames: this._visibleTabs().map((t) => t.name ?? ""),
@@ -157,6 +157,7 @@ export class TabdeckCard extends LitElement {
     for (const t of this._config.tabs) {
       if (isTemplate(t.badge)) out.push(t.badge!);
       walk(t.visibility);
+      walk(t.default_if);
     }
     return out;
   }
@@ -216,6 +217,22 @@ export class TabdeckCard extends LitElement {
 
   getGridOptions() {
     return { columns: "full", rows: "auto" };
+  }
+
+  // The starting tab index (in visible space) when nothing is remembered:
+  // the first visible tab whose `default_if` conditions are met, else the
+  // configured `default_tab`.
+  private _computeDefaultIndex(): number {
+    const visible = this._visibleTabs();
+    for (let i = 0; i < visible.length; i++) {
+      const c = visible[i].default_if;
+      if (Array.isArray(c) && c.length > 0 && isTabVisible(c, this._hass, this._templateResolver)) {
+        return i;
+      }
+    }
+    const orig = resolveDefaultIndex(this._config!);
+    const vIdx = visible.indexOf(this._config!.tabs[orig]);
+    return vIdx >= 0 ? vIdx : 0;
   }
 
   private _activeOriginalIndex(): number {

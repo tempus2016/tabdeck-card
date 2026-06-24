@@ -144,6 +144,11 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).tabs[0].disabled).toBeUndefined();
   });
 
+  it("keeps a per-tab default_if", () => {
+    const c = normalizeConfig({ tabs: [{ default_if: [{ condition: "state", entity: "x.y", state: "on" }], card: {} }] });
+    expect(c.tabs[0].default_if).toHaveLength(1);
+  });
+
   it("keeps a per-tab hold_action", () => {
     const c = normalizeConfig({ tabs: [{ hold_action: { action: "more-info", entity: "sun.sun" }, card: {} }] });
     expect(c.tabs[0].hold_action).toEqual({ action: "more-info", entity: "sun.sun" });
