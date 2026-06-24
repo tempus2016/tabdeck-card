@@ -22,6 +22,9 @@ export interface TabdeckTabConfig {
   // Switch to this tab when the entity enters the given state (or becomes
   // active when no state is given). Edge-triggered.
   auto_select?: { entity: string; state?: string };
+  // Conditions (visibility-style) that, when met, make this the default tab on
+  // load (first matching tab wins, unless a remembered selection exists).
+  default_if?: any[];
   visibility?: any[];
   // A single resolved card. When the source config supplies `cards: [...]`,
   // it is collapsed into one `vertical-stack` card here.
@@ -111,6 +114,7 @@ function normalizeTab(raw: any): TabdeckTabConfig {
     disabled: raw?.disabled ? true : undefined,
     hold_action: raw?.hold_action ?? undefined,
     auto_select: normalizeAutoSelect(raw?.auto_select),
+    default_if: raw?.default_if ?? undefined,
     visibility: raw?.visibility ?? undefined,
     card,
   };

@@ -76,6 +76,43 @@ describe("tabdeck-card", () => {
     expect(panels[1].hasAttribute("hidden")).toBe(false);
   });
 
+  it("starts on the tab whose default_if conditions are met", async () => {
+    const hass = { states: { "input_boolean.guest": { state: "on" } } };
+    const el = await mountWith(
+      {
+        tabs: [
+          { name: "Home", card: { type: "markdown" } },
+          {
+            name: "Guest",
+            card: { type: "light" },
+            default_if: [{ condition: "state", entity: "input_boolean.guest", state: "on" }],
+          },
+        ],
+      },
+      hass,
+    );
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(1);
+  });
+
+  it("falls back to default_tab when no default_if matches", async () => {
+    const hass = { states: { "input_boolean.guest": { state: "off" } } };
+    const el = await mountWith(
+      {
+        default_tab: 0,
+        tabs: [
+          { name: "Home", card: { type: "markdown" } },
+          {
+            name: "Guest",
+            card: { type: "light" },
+            default_if: [{ condition: "state", entity: "input_boolean.guest", state: "on" }],
+          },
+        ],
+      },
+      hass,
+    );
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(0);
+  });
+
   it("hides a tab whose visibility conditions are unmet", async () => {
     const el = await mount({
       tabs: [
