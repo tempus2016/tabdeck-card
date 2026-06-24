@@ -7,7 +7,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 ## Tab bar appearance
 - **[Tab display mode](Feature-Tab-Display)** — show icons, labels, or both (`tab_display`).
 - **[Accent-coloured indicator](Feature-Accent-Indicator)** — indicator adopts the selected tab's accent (`accent_indicator`).
-- **[Extra bar styles](Feature-Bar-Styles)** — `boxed` (bordered chips) and `text` (no indicator) styles.
+- **[Extra bar styles](Feature-Bar-Styles)** — `boxed`, `text`, `rail` styles + `indicator_radius`.
 - **[Indicator thickness](Feature-Indicator-Size)** — set the underline bar thickness (`indicator_size`).
 - **[Sticky tab bar](Feature-Sticky-Bar)** — keep the bar pinned while content scrolls (`sticky`).
 - **[Tab alignment](Feature-Tab-Alignment)** — start / center / end / justify the tabs (`align`).

@@ -33,6 +33,8 @@ export class TabdeckTabbar extends LitElement {
   @property({ type: Boolean }) accentIndicator = true;
   // Underline indicator thickness in px.
   @property({ type: Number }) indicatorSize = 3;
+  // Optional override for the pill/segmented/boxed indicator corner radius (px).
+  @property({ type: Number }) indicatorRadius?: number;
   // When true, the bar stays pinned (position: sticky) while content scrolls.
   @property({ type: Boolean }) sticky = false;
   // Raise the bar with a subtle shadow.
@@ -198,6 +200,11 @@ export class TabdeckTabbar extends LitElement {
       : undefined;
     if (accent) this.style.setProperty("--tabdeck-accent", accent);
     else this.style.removeProperty("--tabdeck-accent");
+    if (this.indicatorRadius != null) {
+      this.style.setProperty("--tabdeck-indicator-radius", `${this.indicatorRadius}px`);
+    } else {
+      this.style.removeProperty("--tabdeck-indicator-radius");
+    }
   }
 
   // Pin the bar with position: sticky so it stays visible while the panel
@@ -388,6 +395,30 @@ export class TabdeckTabbar extends LitElement {
       gap: 4px;
       border: none;
     }
+    /* rail: compact icon rail — centered tabs, rounded selected highlight.
+       Designed to pair with position:left/right + tab_display:icon. */
+    .bar.style-rail {
+      gap: 4px;
+      border: none;
+      padding: 4px;
+      justify-content: center;
+    }
+    .bar.style-rail tabdeck-tab {
+      justify-content: center;
+      border-radius: 12px;
+    }
+    .bar.style-rail.left,
+    .bar.style-rail.right {
+      align-items: center;
+    }
+    .bar.style-rail .indicator {
+      background: color-mix(
+        in srgb,
+        var(--tabdeck-accent, var(--primary-color)) 18%,
+        transparent
+      );
+      border-radius: var(--tabdeck-indicator-radius, 12px);
+    }
     .bar.elevated {
       box-shadow: var(--tabdeck-bar-shadow, 0 2px 6px rgba(0, 0, 0, 0.18));
       z-index: 1;
@@ -440,11 +471,11 @@ export class TabdeckTabbar extends LitElement {
         var(--tabdeck-accent, var(--primary-color)) 18%,
         transparent
       );
-      border-radius: 999px;
+      border-radius: var(--tabdeck-indicator-radius, 999px);
     }
     .bar.style-segmented .indicator {
       background: var(--card-background-color);
-      border-radius: 7px;
+      border-radius: var(--tabdeck-indicator-radius, 7px);
     }
     .bar.style-boxed .indicator {
       background: color-mix(
@@ -452,7 +483,7 @@ export class TabdeckTabbar extends LitElement {
         var(--tabdeck-accent, var(--primary-color)) 20%,
         transparent
       );
-      border-radius: 10px;
+      border-radius: var(--tabdeck-indicator-radius, 10px);
     }
   `;
 }

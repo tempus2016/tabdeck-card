@@ -55,6 +55,12 @@ describe("computeIndicatorRect", () => {
     expect(computeIndicatorRect(tab, "top", "text")).toBeNull();
   });
 
+  it("rail: full tab box", () => {
+    expect(computeIndicatorRect(tab, "left", "rail")).toEqual({
+      left: 10, top: 20, width: 100, height: 48,
+    });
+  });
+
   it("underline thickness is configurable", () => {
     expect(computeIndicatorRect(tab, "top", "underline", 6)).toEqual({
       left: 10, top: 62, width: 100, height: 6,
