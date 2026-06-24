@@ -245,14 +245,17 @@ export class TabdeckCard extends LitElement {
     this._selectIndex(e.detail.index);
   }
 
-  // Long-press on a tab → fire its hold_action via HA's action handler.
-  // handleAction reads `entity` from the top-level config (for more-info/toggle),
-  // so surface the action's entity there.
-  private _onTabAction(e: CustomEvent<{ index: number }>): void {
+  // Tab long-press (kind="hold") or badge click (kind="badge") → fire the tab's
+  // corresponding action via HA's handler. handleAction reads `entity` from the
+  // top-level config (for more-info/toggle), so surface the action's entity.
+  private _onTabAction(e: CustomEvent<{ index: number; kind: "hold" | "badge" }>): void {
     const tab = this._visibleTabs()[e.detail.index];
-    if (!tab?.hold_action || !this._hass) return;
-    const cfg = { entity: tab.hold_action?.entity, hold_action: tab.hold_action };
-    handleAction(this, this._hass as any, cfg as any, "hold");
+    if (!tab || !this._hass) return;
+    const action = e.detail.kind === "badge" ? tab.badge_action : tab.hold_action;
+    if (!action) return;
+    const key = e.detail.kind === "badge" ? "tap" : "hold";
+    const cfg = { entity: action?.entity, [`${key}_action`]: action };
+    handleAction(this, this._hass as any, cfg as any, key as any);
   }
 
   private _selectIndex(index: number): void {
@@ -384,6 +387,7 @@ export class TabdeckCard extends LitElement {
           disabled: t.disabled,
           badgeColor: t.badge_color,
           holdAction: !!t.hold_action,
+          badgeAction: !!t.badge_action,
           badge: this._resolveBadgeFinal(t.badge),
         }))}
         .selected=${this._selected}

@@ -14,6 +14,7 @@ interface TabItem {
   badgeColor?: string;
   disabled?: boolean;
   holdAction?: boolean;
+  badgeAction?: boolean;
 }
 
 const HOLD_MS = 500;
@@ -90,18 +91,22 @@ export class TabdeckTabbar extends LitElement {
   private _holdTimer?: ReturnType<typeof setTimeout>;
   private _suppressClick = false;
 
+  private _emitAction(index: number, kind: "hold" | "badge"): void {
+    this.dispatchEvent(
+      new CustomEvent("tabdeck-action", {
+        detail: { index, kind },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
   private _onPointerDown(index: number): void {
     this._suppressClick = false;
     if (!this.items[index]?.holdAction) return;
     this._holdTimer = setTimeout(() => {
       this._suppressClick = true;
-      this.dispatchEvent(
-        new CustomEvent("tabdeck-action", {
-          detail: { index },
-          bubbles: true,
-          composed: true,
-        }),
-      );
+      this._emitAction(index, "hold");
     }, HOLD_MS);
   }
 
@@ -291,7 +296,9 @@ export class TabdeckTabbar extends LitElement {
               .icon=${item.icon}
               .badge=${item.badge}
               .badgeColor=${item.badgeColor}
+              .badgeAction=${!!item.badgeAction}
               .badgeDisplay=${this.badgeDisplay}
+              @badge-click=${() => this._emitAction(index, "badge")}
               .accent=${item.accent}
               .color=${item.color}
               .disabled=${!!item.disabled}

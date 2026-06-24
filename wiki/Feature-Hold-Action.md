@@ -21,6 +21,23 @@ tabs:
     card: { ... }
 ```
 
+## Clickable badge: `badge_action`
+
+Give the tab's [badge](Badges) its own action — tapping the badge runs it **without** selecting the tab.
+
+```yaml
+tabs:
+  - name: Inbox
+    icon: mdi:email
+    badge: sensor.unread
+    badge_action:
+      action: navigate
+      navigation_path: /lovelace/inbox
+    card: { ... }
+```
+
+The badge shows a pointer cursor when it has an action. Configured via the **Badge tap action** picker in the editor.
+
 ## Supported actions
 
 All the usual HA actions: `more-info`, `navigate`, `url`, `toggle`, `call-service`, `fire-dom-event`, `none`.

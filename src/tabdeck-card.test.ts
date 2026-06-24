@@ -233,6 +233,24 @@ describe("tabdeck-card", () => {
     expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(1);
   });
 
+  it("fires badge_action (not select) when a badge is clicked", async () => {
+    const events: any[] = [];
+    const hass = { states: { "sun.sun": { state: "above_horizon" } } };
+    const el = await mountWith(
+      {
+        tabs: [
+          { name: "A", badge: "3", badge_action: { action: "more-info", entity: "sun.sun" }, card: { type: "markdown" } },
+          { name: "B", card: { type: "light" } },
+        ],
+      },
+      hass,
+    );
+    document.addEventListener("hass-more-info", (e: any) => events.push(e.detail?.entityId), true);
+    const bar = el.shadowRoot.querySelector("tabdeck-tabbar");
+    bar.dispatchEvent(new CustomEvent("tabdeck-action", { detail: { index: 0, kind: "badge" }, bubbles: true, composed: true }));
+    expect(events.at(-1)).toBe("sun.sun");
+  });
+
   it("getStubConfig returns a valid one-tab config", async () => {
     const mod: any = await import("./tabdeck-card");
     const stub = mod.TabdeckCard.getStubConfig();

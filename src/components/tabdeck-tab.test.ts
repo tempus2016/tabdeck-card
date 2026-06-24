@@ -63,6 +63,24 @@ describe("tabdeck-tab", () => {
     expect(isActiveBadge(undefined)).toBe(false);
   });
 
+  it("emits badge-click (and stops propagation) when badgeAction is set", async () => {
+    const el = await mount({ label: "A", badge: "3", badgeAction: true });
+    let badgeClicks = 0;
+    el.addEventListener("badge-click", () => badgeClicks++);
+    const badge = el.shadowRoot.querySelector(".badge") as HTMLElement;
+    expect(badge.classList.contains("clickable")).toBe(true);
+    badge.click();
+    expect(badgeClicks).toBe(1);
+  });
+
+  it("does not emit badge-click without badgeAction", async () => {
+    const el = await mount({ label: "A", badge: "3" });
+    let badgeClicks = 0;
+    el.addEventListener("badge-click", () => badgeClicks++);
+    (el.shadowRoot.querySelector(".badge") as HTMLElement).click();
+    expect(badgeClicks).toBe(0);
+  });
+
   it("applies a custom badge_color to the badge", async () => {
     const el = await mount({ label: "A", badge: "3", badgeColor: "rgb(200, 0, 0)" });
     expect((el.shadowRoot.querySelector(".badge") as HTMLElement).style.background).toBe("rgb(200, 0, 0)");
