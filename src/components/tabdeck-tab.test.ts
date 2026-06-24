@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import "./tabdeck-tab";
+import { isActiveBadge } from "./tabdeck-tab";
 
 async function mount(props: Record<string, any>) {
   const el = document.createElement("tabdeck-tab") as any;
@@ -53,6 +54,21 @@ describe("tabdeck-tab", () => {
     const el = await mount({ label: "Lights", icon: "mdi:lightbulb", display: "label" });
     expect(el.shadowRoot.querySelector("ha-icon")).toBeNull();
     expect(el.shadowRoot.querySelector(".label")?.textContent).toContain("Lights");
+  });
+
+  it("isActiveBadge treats empty/zero/off-like values as inactive", () => {
+    for (const v of ["", "0", "off", "false", "no", "none", "unavailable", "unknown", "OFF"])
+      expect(isActiveBadge(v)).toBe(false);
+    for (const v of ["1", "3", "on", "open", "hi"]) expect(isActiveBadge(v)).toBe(true);
+    expect(isActiveBadge(undefined)).toBe(false);
+  });
+
+  it("badgeDisplay=dot shows a dot for active values and nothing otherwise", async () => {
+    const on = await mount({ label: "A", badge: "3", badgeDisplay: "dot" });
+    expect(on.shadowRoot.querySelector(".badge-dot")).toBeTruthy();
+    expect(on.shadowRoot.querySelector(".badge")).toBeNull();
+    const off = await mount({ label: "B", badge: "0", badgeDisplay: "dot" });
+    expect(off.shadowRoot.querySelector(".badge-dot")).toBeNull();
   });
 
   it("applies a per-tab color to the host (overriding accent state)", async () => {
