@@ -22,7 +22,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Panel transitions](Feature-Panel-Transition)** — fade or slide when switching tabs (`transition`).
 
 ## Dynamic behaviour
-- _(pages added as features land)_
+- **[Visibility and/or/not groups](Tab-Visibility#logical-groups-and--or--not)** — nestable logical conditions for tab visibility.
 
 ## Editor
 - _(pages added as features land)_

@@ -106,11 +106,17 @@ export class TabdeckCard extends LitElement {
   private _collectTemplates(): string[] {
     if (!this._config) return [];
     const out: string[] = [];
+    // Walk a condition tree, gathering template value_templates (including those
+    // nested inside and/or/not groups) so they all get subscribed.
+    const walk = (conds: any[] | undefined) => {
+      for (const c of conds ?? []) {
+        if (c?.condition === "template" && c.value_template) out.push(c.value_template);
+        if (Array.isArray(c?.conditions)) walk(c.conditions);
+      }
+    };
     for (const t of this._config.tabs) {
       if (isTemplate(t.badge)) out.push(t.badge!);
-      for (const c of t.visibility ?? []) {
-        if (c?.condition === "template" && c.value_template) out.push(c.value_template);
-      }
+      walk(t.visibility);
     }
     return out;
   }
