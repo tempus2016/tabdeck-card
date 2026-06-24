@@ -15,19 +15,19 @@ A nested map card rendering correctly the moment its tab is selected — no
 
 ![Keep-alive map rendering](images/map-keepalive.png)
 
+> 📖 **Full documentation, every option, and screenshots are on the [Wiki](https://github.com/tempus2016/tabdeck-card/wiki).** This README is a quick overview.
+
 ## Features
 
-- **Visual GUI editor** — add, remove, reorder and name tabs without YAML.
-- **Keep-alive content** — every tab's card stays mounted, so maps, camera /
-  picture-glance and graph cards render correctly without navigating away first.
-- **Styling & positioning** — `top` / `bottom` / `left` / `right` tab bars in
-  `underline`, `pill`, or `segmented` styles, with optional per-tab accent.
-- **Conditional tabs** — show or hide a tab based on entity state.
-- **Badges** — show an entity's state as a badge on a tab.
-- **Persistence & deep-linking** — remember the last tab per browser, or sync the
-  active tab to a `#tab=` URL hash so tabs are linkable.
-- **Accessible** — proper `tablist` semantics and full keyboard navigation
-  (Arrow keys, Home / End).
+- **Visual GUI editor** — add, remove, **drag-to-reorder**, duplicate and name tabs without YAML; collapsible tab blocks, native HA card editor, duplicate-name warnings.
+- **Keep-alive content** (or opt-in `unmount_hidden`) — maps/cameras/graphs render correctly without navigating away.
+- **Tab bar styling** — `top`/`bottom`/`left`/`right` positions; `underline`/`pill`/`segmented`/`boxed`/`text` styles; `tab_display` (icon/label/both); `align`; `indicator_size`; `sticky`; `elevation`; `bar_background`; per-tab `accent`/`color`.
+- **Per-tab** — `subtitle`, `badge` (text or `dot`, `badge_color`, hide-inactive), `disabled`, multiple `cards`/`columns`, long-press `hold_action`.
+- **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`.
+- **Persistence** — remember the active tab per `browser`, `url` (`#tab=`), or across devices via an `entity`.
+- **Transitions** — optional `fade`/`slide` panel animations (respects reduced-motion).
+- **Theming** — CSS variables via `styles`, no card-mod needed.
+- **Accessible** — `tablist` semantics, full keyboard navigation (Arrows, Home/End, skips disabled).
 
 ## Installation (HACS)
 
@@ -77,7 +77,14 @@ tabs:
         - light.guest_room
 ```
 
+## Demo
+
+A ready-to-paste dashboard showcasing many features lives in
+[`examples/demo.yaml`](examples/demo.yaml).
+
 ## Options
+
+> The tables below cover the essentials. See the **[Configuration](https://github.com/tempus2016/tabdeck-card/wiki/Configuration)** wiki page for the complete, always-current reference (every option links to a feature page).
 
 ### Card options
 
@@ -87,9 +94,21 @@ tabs:
 | `tabs`        | list              | —            | One or more tab objects (required). |
 | `default_tab` | number \| string  | `0`          | Index or tab `name` shown first. Overridden by persistence. |
 | `position`    | string            | `top`        | `top` \| `bottom` \| `left` \| `right`. |
-| `style`       | string            | `underline`  | `underline` \| `pill` \| `segmented`. |
+| `style`       | string            | `underline`  | `underline` \| `pill` \| `segmented` \| `boxed` \| `text`. |
+| `tab_display` | string            | `both`       | `both` \| `icon` \| `label`. |
+| `align`       | string            | `start`      | `start` \| `center` \| `end` \| `justify`. |
+| `indicator_size` | number         | `3`          | Underline thickness (1–16 px). |
+| `accent_indicator` | boolean      | `true`       | Colour the indicator by the selected tab's accent. |
+| `badge_display` | string          | `text`       | `text` \| `dot`. |
+| `hide_inactive_badge` | boolean   | `false`      | Hide 0/off badges. |
+| `transition`  | string            | `none`       | Panel switch animation: `none` \| `fade` \| `slide`. |
+| `sticky` / `elevation` | boolean  | `false`      | Pin the bar / raise it with a shadow. |
+| `bar_background` | string         | —            | Custom tab-bar background colour. |
+| `header`      | boolean           | `false`      | Show the active tab's title above the content. |
+| `unmount_hidden` | boolean        | `false`      | Keep only the active tab's card in the DOM. |
 | `scrollable`  | `auto` \| boolean | `auto`       | Scroll the tab bar when tabs overflow. |
-| `remember`    | string            | `none`       | `none` \| `browser` \| `url`. |
+| `remember`    | string            | `none`       | `none` \| `browser` \| `url` \| `entity` (+ `remember_entity`, `storage_key`). |
+| `swipe_wrap`  | boolean           | `false`      | Swipe wraps around the ends. |
 | `lazy`        | boolean           | `false`      | Create inactive tab cards on first visit instead of up front. |
 | `animated`    | boolean           | `true`       | Slide the active-tab indicator between tabs. Snaps instantly when `false` or under reduced-motion. |
 | `swipe`       | boolean           | `false`      | Change tabs by swiping left/right on the card body (touch devices). Off by default so it never hijacks gestures of interactive cards (maps, sliders). |
@@ -100,15 +119,21 @@ tabs:
 | Option       | Type   | Default | Description |
 |--------------|--------|---------|-------------|
 | `name`       | string | —       | Tab label; also the id used by `default_tab` and `#tab=`. |
+| `subtitle`   | string | —       | Secondary text under the label. |
 | `icon`       | string | —       | Optional `mdi:` icon. |
-| `accent`     | string | —       | Optional per-tab accent color (any CSS color). |
-| `badge`      | string | —       | Entity id whose state is shown as a badge, or a Jinja template (e.g. `{{ states('sensor.unread') }}`). |
+| `accent`     | string | —       | Per-tab accent (indicator + selected state). |
+| `color`      | string | —       | Fixed label/icon colour for the tab. |
+| `badge` / `badge_color` | string | — | Entity id or Jinja template; optional badge colour. |
+| `disabled`   | boolean | `false` | Show greyed-out and non-selectable. |
+| `hold_action` | action | —      | HA action fired on long-press (tap still selects). |
+| `auto_select` | string \| object | — | Switch to this tab when an entity becomes active. |
+| `default_if` | list   | —       | Conditions that make this the default tab on load. |
 | `visibility` | list   | —       | Conditions (see below); the tab is hidden when unmet. |
-| `card`       | object | —       | Any Lovelace card config (required). |
+| `card` / `cards` / `columns` | object/list/number | — | A single card, or multiple `cards` (optionally in a `columns` grid). |
 
 ### Visibility conditions
 
-Supported condition types: `state`, `numeric_state`, `screen`, and `template`.
+Supported condition types: `state`, `numeric_state`, `screen`, `time`, `user`, `template`, and `and`/`or`/`not` groups (nestable). See the [Tab Visibility](https://github.com/tempus2016/tabdeck-card/wiki/Tab-Visibility) wiki page.
 
 ```yaml
 visibility:
@@ -143,11 +168,12 @@ variables (set globally in your theme, or per-card under `styles`):
 
 ## Editor
 
-The visual editor lets you manage tabs (add / delete / reorder), set each tab's
-name, icon, accent colour and badge, and edit the tab's nested **card** as JSON.
-Global controls cover position, style, persistence (`remember`), default tab,
-scrollable, and lazy mounting. Native integration with Home Assistant's built-in
-card editor (and a YAML mode for the nested card) is planned for a later release.
+The visual editor lets you manage tabs (add / delete / **drag-to-reorder** /
+duplicate), with collapsible per-tab blocks and a card-type chooser that drills
+into Home Assistant's **native card editor**. Each tab exposes name, subtitle,
+icon, accent, colour, badge and long-press action; global controls cover every
+top-level option. It warns about footguns like duplicate tab names. See the
+[Editor](https://github.com/tempus2016/tabdeck-card/wiki/Editor) wiki page.
 
 ## Migrating from `tabbed-card`
 
