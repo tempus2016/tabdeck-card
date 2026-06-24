@@ -81,6 +81,7 @@ function globalsData() {
     scroll_buttons: false,
     bar_background: "",
     swipe: false,
+    swipe_mouse: false,
   };
 }
 

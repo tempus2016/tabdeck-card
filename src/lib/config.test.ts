@@ -96,6 +96,7 @@ describe("normalizeConfig", () => {
     expect(d.unmount_hidden).toBe(false);
     expect(d.swipe_wrap).toBe(false);
     expect(normalizeConfig({ unmount_hidden: true, swipe_wrap: true, tabs: [{ card: {} }] }).unmount_hidden).toBe(true);
+    expect(normalizeConfig({ swipe_mouse: true, tabs: [{ card: {} }] }).swipe_mouse).toBe(true);
   });
 
   it("defaults animated to true and respects explicit false", () => {

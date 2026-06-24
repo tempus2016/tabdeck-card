@@ -4,7 +4,7 @@
 
 - **Click / tap** a tab.
 - **Keyboard** (when the bar is focused): <kbd>←</kbd>/<kbd>→</kbd> (or <kbd>↑</kbd>/<kbd>↓</kbd> for left/right bars) move between tabs and wrap around; <kbd>Home</kbd>/<kbd>End</kbd> jump to first/last.
-- **Swipe** (optional): set `swipe: true` to change tabs with a left/right swipe on touch devices.
+- **Swipe** (optional): set `swipe: true` to change tabs with a left/right swipe on touch devices, or `swipe_mouse: true` to do the same with a left/right **mouse drag** on desktop. Both honour [`swipe_wrap`](Feature-Performance).
 
 ## Remembering the selected tab
 

@@ -104,6 +104,7 @@ const GLOBAL_LABELS: Record<string, string> = {
   scroll_buttons: "Scroll buttons when bar overflows",
   bar_background: "Tab bar background colour",
   swipe: "Swipe to change tabs (mobile)",
+  swipe_mouse: "Mouse drag to change tabs (desktop)",
 };
 
 export type CardEditorTag =
@@ -364,6 +365,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "scroll_buttons", selector: { boolean: {} } },
       { name: "bar_background", selector: { text: {} } },
       { name: "swipe", selector: { boolean: {} } },
+      { name: "swipe_mouse", selector: { boolean: {} } },
     ];
   }
 
@@ -395,6 +397,7 @@ export class TabdeckCardEditor extends LitElement {
       scroll_buttons: cfg.scroll_buttons,
       bar_background: cfg.bar_background ?? "",
       swipe: cfg.swipe,
+      swipe_mouse: cfg.swipe_mouse,
     };
   }
 
@@ -429,6 +432,7 @@ export class TabdeckCardEditor extends LitElement {
       scroll_buttons: !!v.scroll_buttons,
       bar_background: v.bar_background || undefined,
       swipe: !!v.swipe,
+      swipe_mouse: !!v.swipe_mouse,
     });
   }
 
