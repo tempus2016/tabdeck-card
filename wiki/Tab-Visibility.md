@@ -41,6 +41,27 @@ tabs:
 
 Matches a CSS media query — handy for mobile-only or desktop-only tabs.
 
+### `time`
+
+```yaml
+- condition: time
+  after: "08:00"          # HH:MM
+  before: "22:00"         # overnight ranges (after > before) wrap midnight
+  weekday: [mon, tue, wed, thu, fri]   # optional weekday filter
+```
+
+At least one of `after` / `before` / `weekday` is required.
+
+### `user`
+
+```yaml
+- condition: user
+  users:
+    - 1234567890abcdef      # Home Assistant user id(s)
+```
+
+Shows the tab only for the listed users.
+
 ### `template`
 
 ```yaml
