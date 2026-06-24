@@ -13,7 +13,10 @@ interface TabItem {
   badge?: string;
   badgeColor?: string;
   disabled?: boolean;
+  holdAction?: boolean;
 }
+
+const HOLD_MS = 500;
 
 @customElement("tabdeck-tabbar")
 export class TabdeckTabbar extends LitElement {
@@ -66,6 +69,40 @@ export class TabdeckTabbar extends LitElement {
         composed: true,
       }),
     );
+  }
+
+  // Long-press support: when a tab has a hold action, a press held for HOLD_MS
+  // fires "tabdeck-action" and suppresses the click so it doesn't also select.
+  private _holdTimer?: ReturnType<typeof setTimeout>;
+  private _suppressClick = false;
+
+  private _onPointerDown(index: number): void {
+    this._suppressClick = false;
+    if (!this.items[index]?.holdAction) return;
+    this._holdTimer = setTimeout(() => {
+      this._suppressClick = true;
+      this.dispatchEvent(
+        new CustomEvent("tabdeck-action", {
+          detail: { index },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }, HOLD_MS);
+  }
+
+  private _cancelHold(): void {
+    if (this._holdTimer) clearTimeout(this._holdTimer);
+    this._holdTimer = undefined;
+  }
+
+  private _onTabClick(index: number): void {
+    this._cancelHold();
+    if (this._suppressClick) {
+      this._suppressClick = false;
+      return;
+    }
+    this._select(index);
   }
 
   // Step from `from` in `dir` (+1/-1), wrapping, skipping disabled tabs. Returns
@@ -216,7 +253,11 @@ export class TabdeckTabbar extends LitElement {
               .display=${this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"
-              @click=${() => this._select(index)}
+              @click=${() => this._onTabClick(index)}
+              @pointerdown=${() => this._onPointerDown(index)}
+              @pointerup=${() => this._cancelHold()}
+              @pointerleave=${() => this._cancelHold()}
+              @pointercancel=${() => this._cancelHold()}
             ></tabdeck-tab>
           `,
         )}

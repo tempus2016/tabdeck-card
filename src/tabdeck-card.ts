@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing, PropertyValues } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { handleAction } from "custom-card-helpers";
 import type { HomeAssistant } from "./types";
 import {
   normalizeConfig,
@@ -222,6 +223,16 @@ export class TabdeckCard extends LitElement {
     this._selectIndex(e.detail.index);
   }
 
+  // Long-press on a tab → fire its hold_action via HA's action handler.
+  // handleAction reads `entity` from the top-level config (for more-info/toggle),
+  // so surface the action's entity there.
+  private _onTabAction(e: CustomEvent<{ index: number }>): void {
+    const tab = this._visibleTabs()[e.detail.index];
+    if (!tab?.hold_action || !this._hass) return;
+    const cfg = { entity: tab.hold_action?.entity, hold_action: tab.hold_action };
+    handleAction(this, this._hass as any, cfg as any, "hold");
+  }
+
   private _selectIndex(index: number): void {
     this._selected = index;
     const visible = this._visibleTabs();
@@ -331,9 +342,11 @@ export class TabdeckCard extends LitElement {
           color: t.color,
           disabled: t.disabled,
           badgeColor: t.badge_color,
+          holdAction: !!t.hold_action,
           badge: this._resolveBadgeFinal(t.badge),
         }))}
         .selected=${this._selected}
+        @tabdeck-action=${this._onTabAction}
         .position=${cfg.position}
         .tabStyle=${cfg.style}
         .display=${cfg.tab_display}

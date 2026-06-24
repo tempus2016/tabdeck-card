@@ -45,6 +45,45 @@ describe("tabdeck-tabbar", () => {
     expect(events[events.length - 1]).toBe(0);
   });
 
+  it("long-press fires tabdeck-action and suppresses the select click", async () => {
+    vi.useFakeTimers();
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A", holdAction: true }, { name: "B" }];
+    el.selected = 1;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const actions: number[] = [];
+    const selects: number[] = [];
+    el.addEventListener("tabdeck-action", (e: any) => actions.push(e.detail.index));
+    el.addEventListener("tabdeck-select", (e: any) => selects.push(e.detail.index));
+    const tab = el.shadowRoot.querySelectorAll("tabdeck-tab")[0];
+    tab.dispatchEvent(new Event("pointerdown"));
+    vi.advanceTimersByTime(600);
+    tab.dispatchEvent(new Event("pointerup"));
+    tab.click();
+    expect(actions).toEqual([0]);
+    expect(selects).toEqual([]); // click suppressed after a hold
+    vi.useRealTimers();
+  });
+
+  it("a quick tap (no hold) still selects when holdAction is set", async () => {
+    vi.useFakeTimers();
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A", holdAction: true }, { name: "B" }];
+    el.selected = 1;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const selects: number[] = [];
+    el.addEventListener("tabdeck-select", (e: any) => selects.push(e.detail.index));
+    const tab = el.shadowRoot.querySelectorAll("tabdeck-tab")[0];
+    tab.dispatchEvent(new Event("pointerdown"));
+    vi.advanceTimersByTime(100);
+    tab.dispatchEvent(new Event("pointerup"));
+    tab.click();
+    expect(selects).toEqual([0]);
+    vi.useRealTimers();
+  });
+
   it("keyboard navigation skips disabled tabs", async () => {
     const el = document.createElement("tabdeck-tabbar") as any;
     el.items = [{ name: "A" }, { name: "B", disabled: true }, { name: "C" }];
