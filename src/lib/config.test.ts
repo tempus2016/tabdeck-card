@@ -54,6 +54,12 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ style: "nope", tabs: [{ card: {} }] }).style).toBe("underline");
   });
 
+  it("defaults elevation off and keeps bar_background", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).elevation).toBe(false);
+    expect(normalizeConfig({ elevation: true, tabs: [{ card: {} }] }).elevation).toBe(true);
+    expect(normalizeConfig({ bar_background: "#222", tabs: [{ card: {} }] }).bar_background).toBe("#222");
+  });
+
   it("defaults accent_indicator to true and respects explicit false", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).accent_indicator).toBe(true);
     expect(normalizeConfig({ accent_indicator: false, tabs: [{ card: {} }] }).accent_indicator).toBe(false);

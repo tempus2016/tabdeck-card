@@ -31,6 +31,10 @@ export class TabdeckTabbar extends LitElement {
   @property({ type: Number }) indicatorSize = 3;
   // When true, the bar stays pinned (position: sticky) while content scrolls.
   @property({ type: Boolean }) sticky = false;
+  // Raise the bar with a subtle shadow.
+  @property({ type: Boolean }) elevation = false;
+  // Optional custom bar background colour.
+  @property() barBackground?: string;
 
   // Becomes true one frame after the first paint, so the indicator's initial
   // placement never slides in from the corner; only later moves animate.
@@ -190,7 +194,11 @@ export class TabdeckTabbar extends LitElement {
   render() {
     const animateClass = this._ready && this.animated ? " animate" : "";
     return html`
-      <div class="bar ${this.position} style-${this.tabStyle} align-${this.align}" part="bar">
+      <div
+        class="bar ${this.position} style-${this.tabStyle} align-${this.align} ${this.elevation ? "elevated" : ""}"
+        part="bar"
+        style=${this.barBackground ? `background:${this.barBackground}` : ""}
+      >
         <div class="indicator${animateClass}" part="indicator"></div>
         ${this.items.map(
           (item, index) => html`
@@ -276,6 +284,10 @@ export class TabdeckTabbar extends LitElement {
     .bar.style-text {
       gap: 4px;
       border: none;
+    }
+    .bar.elevated {
+      box-shadow: var(--tabdeck-bar-shadow, 0 2px 6px rgba(0, 0, 0, 0.18));
+      z-index: 1;
     }
     /* Alignment of the tabs within the bar. */
     .bar.align-center {
