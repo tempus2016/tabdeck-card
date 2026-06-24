@@ -310,8 +310,29 @@ export class TabdeckCard extends LitElement {
     if (!start || !this._config?.swipe) return;
     const t = e.changedTouches[0];
     if (!t) return;
-    const dir = detectSwipe(start, { x: t.clientX, y: t.clientY, t: e.timeStamp });
-    if (!dir) return;
+    this._applySwipe(start, { x: t.clientX, y: t.clientY, t: e.timeStamp });
+  };
+
+  // Mouse (pointer) drag swiping — opt-in via swipe_mouse, ignores touch
+  // pointers (handled by the touch listeners).
+  private _onPointerDown = (e: PointerEvent): void => {
+    if (!this._config?.swipe_mouse || e.pointerType === "touch") {
+      this._touchStart = undefined;
+      return;
+    }
+    this._touchStart = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+  };
+
+  private _onPointerUp = (e: PointerEvent): void => {
+    const start = this._touchStart;
+    this._touchStart = undefined;
+    if (!start || !this._config?.swipe_mouse || e.pointerType === "touch") return;
+    this._applySwipe(start, { x: e.clientX, y: e.clientY, t: e.timeStamp });
+  };
+
+  private _applySwipe(start: SwipePoint, end: SwipePoint): void {
+    const dir = detectSwipe(start, end);
+    if (!dir || !this._config) return;
     const len = this._visibleTabs().length;
     const last = len - 1;
     const raw = dir === "next" ? this._selected + 1 : this._selected - 1;
@@ -320,7 +341,7 @@ export class TabdeckCard extends LitElement {
       ? (raw + len) % len
       : Math.max(0, Math.min(last, raw));
     if (target !== this._selected) this._selectIndex(target);
-  };
+  }
 
   protected updated(changed: PropertyValues): void {
     super.updated(changed);
@@ -416,6 +437,8 @@ export class TabdeckCard extends LitElement {
         role="tabpanel"
         @touchstart=${this._onTouchStart}
         @touchend=${this._onTouchEnd}
+        @pointerdown=${this._onPointerDown}
+        @pointerup=${this._onPointerUp}
       >
         ${cfg.header && visible[this._selected]
           ? html`<div class="content-header">

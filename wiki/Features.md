@@ -27,7 +27,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 ## Navigation & interaction
 - **[Panel transitions](Feature-Panel-Transition)** — fade or slide when switching tabs (`transition`).
 - **[Tab & badge actions](Feature-Hold-Action)** — long-press tab (`hold_action`) and clickable badge (`badge_action`).
-- **[Performance & swipe options](Feature-Performance)** — `unmount_hidden`, `swipe_wrap`.
+- **[Performance & swipe options](Feature-Performance)** — `unmount_hidden`, `swipe_wrap`, `swipe_mouse` (desktop drag).
 
 ## Dynamic behaviour
 - **[Visibility and/or/not groups](Tab-Visibility#logical-groups-and--or--not)** — nestable logical conditions for tab visibility.

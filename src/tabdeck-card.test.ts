@@ -425,6 +425,36 @@ describe("tabdeck-card swipe", () => {
     expect(selected(el)).toBe(0);
   });
 
+  it("changes tabs on a mouse drag when swipe_mouse is on", async () => {
+    const el = await mount({ ...three(), swipe: false, swipe_mouse: true });
+    const content = el.shadowRoot.querySelector(".content");
+    const down = new Event("pointerdown", { bubbles: true }) as any;
+    Object.assign(down, { clientX: 200, clientY: 100, pointerType: "mouse" });
+    Object.defineProperty(down, "timeStamp", { value: 1000 });
+    content.dispatchEvent(down);
+    const up = new Event("pointerup", { bubbles: true }) as any;
+    Object.assign(up, { clientX: 80, clientY: 105, pointerType: "mouse" });
+    Object.defineProperty(up, "timeStamp", { value: 1200 });
+    content.dispatchEvent(up);
+    await el.updateComplete;
+    expect(selected(el)).toBe(1);
+  });
+
+  it("ignores a touch pointer for mouse swipe (no double-handling)", async () => {
+    const el = await mount({ ...three(), swipe: false, swipe_mouse: true });
+    const content = el.shadowRoot.querySelector(".content");
+    const down = new Event("pointerdown", { bubbles: true }) as any;
+    Object.assign(down, { clientX: 200, clientY: 100, pointerType: "touch" });
+    Object.defineProperty(down, "timeStamp", { value: 1000 });
+    content.dispatchEvent(down);
+    const up = new Event("pointerup", { bubbles: true }) as any;
+    Object.assign(up, { clientX: 80, clientY: 105, pointerType: "touch" });
+    Object.defineProperty(up, "timeStamp", { value: 1200 });
+    content.dispatchEvent(up);
+    await el.updateComplete;
+    expect(selected(el)).toBe(0);
+  });
+
   it("does nothing when swipe is disabled (default)", async () => {
     const el = await mount({
       tabs: [
