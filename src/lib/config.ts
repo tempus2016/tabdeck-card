@@ -14,6 +14,7 @@ export interface TabdeckTabConfig {
   accent?: string;
   color?: string;
   badge?: string;
+  disabled?: boolean;
   visibility?: any[];
   // A single resolved card. When the source config supplies `cards: [...]`,
   // it is collapsed into one `vertical-stack` card here.
@@ -74,6 +75,7 @@ function normalizeTab(raw: any): TabdeckTabConfig {
     accent: raw?.accent ?? undefined,
     color: raw?.color ?? undefined,
     badge: raw?.badge ?? undefined,
+    disabled: raw?.disabled ? true : undefined,
     visibility: raw?.visibility ?? undefined,
     card,
   };
