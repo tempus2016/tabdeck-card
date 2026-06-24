@@ -18,6 +18,12 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `accent_indicator` | boolean | `true` | Colour the indicator by the selected tab's `accent`. See [Accent indicator](Feature-Accent-Indicator). |
 | `scrollable` | `auto` \| `true` \| `false` | `auto` | Whether the bar scrolls horizontally when tabs overflow. `auto` scrolls only when needed. |
 | `sticky` | boolean | `false` | Pin the bar while content scrolls. See [Sticky tab bar](Feature-Sticky-Bar). |
+| `scroll_buttons` / `overflow_menu` | boolean | `false` | Scroll arrows / ⋯ jump-menu when the bar overflows. See [Scroll buttons](Feature-Scroll-Buttons). |
+| `swipe_mouse` | boolean | `false` | Change tabs by mouse drag (desktop). |
+| `unmount_hidden` | boolean | `false` | Keep only the active tab's card mounted. See [Performance](Feature-Performance). |
+| `header` | boolean | `false` | Show the active tab's title above the content. See [Content header](Feature-Header). |
+| `transition` | `none` \| `fade` \| `slide` | `none` | Panel switch animation. See [Panel transitions](Feature-Panel-Transition). |
+| `aria_label` | string | `Tabs` | Accessible name for the tab bar (screen readers). |
 | `remember` | `none` \| `browser` \| `url` | `none` | How the selected tab is remembered. See [Navigation & Persistence](Navigation-and-Persistence). |
 | `lazy` | boolean | `false` | When `true`, a tab's card is only built the first time it becomes visible. |
 | `animated` | boolean | `true` | Animate the selection indicator as it moves between tabs. |
