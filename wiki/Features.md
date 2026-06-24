@@ -24,6 +24,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 
 ## Navigation & interaction
 - **[Panel transitions](Feature-Panel-Transition)** — fade or slide when switching tabs (`transition`).
+- **[Long-press tab action](Feature-Hold-Action)** — run an HA action on long-press (`hold_action`).
 
 ## Dynamic behaviour
 - **[Visibility and/or/not groups](Tab-Visibility#logical-groups-and--or--not)** — nestable logical conditions for tab visibility.

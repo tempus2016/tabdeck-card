@@ -116,6 +116,11 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).tabs[0].disabled).toBeUndefined();
   });
 
+  it("keeps a per-tab hold_action", () => {
+    const c = normalizeConfig({ tabs: [{ hold_action: { action: "more-info", entity: "sun.sun" }, card: {} }] });
+    expect(c.tabs[0].hold_action).toEqual({ action: "more-info", entity: "sun.sun" });
+  });
+
   it("normalizes auto_select from a string or object", () => {
     const a = normalizeConfig({ tabs: [{ auto_select: "binary_sensor.door", card: {} }] });
     expect(a.tabs[0].auto_select).toEqual({ entity: "binary_sensor.door" });
