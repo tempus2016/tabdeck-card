@@ -20,6 +20,7 @@ export interface TabdeckCardConfig {
   position: TabPosition;
   style: TabStyle;
   tab_display: TabDisplay;
+  indicator_size: number;
   scrollable: "auto" | boolean;
   remember: RememberMode;
   lazy: boolean;
@@ -37,6 +38,13 @@ const DISPLAYS: TabDisplay[] = ["both", "icon", "label"];
 
 function pick<T>(value: any, allowed: T[], fallback: T): T {
   return allowed.includes(value) ? value : fallback;
+}
+
+// Coerce to a finite number within [min,max], else fall back.
+function clampNumber(value: any, min: number, max: number, fallback: number): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
 }
 
 function normalizeTab(raw: any): TabdeckTabConfig {
@@ -63,6 +71,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     position: pick(raw?.position, POSITIONS, "top"),
     style: pick(raw?.style, STYLES, "underline"),
     tab_display: pick(raw?.tab_display, DISPLAYS, "both"),
+    indicator_size: clampNumber(raw?.indicator_size, 1, 16, 3),
     scrollable: raw?.scrollable === undefined ? "auto" : raw.scrollable,
     remember: pick(raw?.remember, REMEMBER, "none"),
     lazy: Boolean(raw?.lazy),

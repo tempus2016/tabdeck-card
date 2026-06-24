@@ -22,6 +22,8 @@ export class TabdeckTabbar extends LitElement {
   @property({ type: Boolean }) animated = true;
   // When true, the moving indicator (and bar) adopt the selected tab's accent.
   @property({ type: Boolean }) accentIndicator = true;
+  // Underline indicator thickness in px.
+  @property({ type: Number }) indicatorSize = 3;
 
   // Becomes true one frame after the first paint, so the indicator's initial
   // placement never slides in from the corner; only later moves animate.
@@ -93,6 +95,7 @@ export class TabdeckTabbar extends LitElement {
           },
           this.position,
           this.tabStyle,
+          this.indicatorSize,
         )
       : null;
     if (!rect) {

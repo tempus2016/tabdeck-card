@@ -54,4 +54,12 @@ describe("computeIndicatorRect", () => {
   it("text: no indicator (null)", () => {
     expect(computeIndicatorRect(tab, "top", "text")).toBeNull();
   });
+
+  it("underline thickness is configurable", () => {
+    expect(computeIndicatorRect(tab, "top", "underline", 6)).toEqual({
+      left: 10, top: 62, width: 100, height: 6,
+    });
+    // non-positive thickness falls back to the 3px default
+    expect(computeIndicatorRect(tab, "top", "underline", 0)?.height).toBe(3);
+  });
 });

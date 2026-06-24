@@ -252,6 +252,7 @@ export class TabdeckCard extends LitElement {
         .scrollable=${cfg.scrollable}
         .animated=${cfg.animated}
         .accentIndicator=${cfg.accent_indicator}
+        .indicatorSize=${cfg.indicator_size}
         @tabdeck-select=${this._onSelect}
       ></tabdeck-tabbar>
     `;
