@@ -292,10 +292,14 @@ export class TabdeckCard extends LitElement {
     if (!t) return;
     const dir = detectSwipe(start, { x: t.clientX, y: t.clientY, t: e.timeStamp });
     if (!dir) return;
-    const last = this._visibleTabs().length - 1;
-    const target = dir === "next" ? this._selected + 1 : this._selected - 1;
-    const clamped = Math.max(0, Math.min(last, target));
-    if (clamped !== this._selected) this._selectIndex(clamped);
+    const len = this._visibleTabs().length;
+    const last = len - 1;
+    const raw = dir === "next" ? this._selected + 1 : this._selected - 1;
+    // Wrap around the ends when swipe_wrap is on; otherwise clamp.
+    const target = this._config.swipe_wrap
+      ? (raw + len) % len
+      : Math.max(0, Math.min(last, raw));
+    if (target !== this._selected) this._selectIndex(target);
   };
 
   protected updated(changed: PropertyValues): void {
@@ -392,9 +396,12 @@ export class TabdeckCard extends LitElement {
       >
         ${visible.map((tab, i) => {
           const original = cfg.tabs.indexOf(tab);
+          const active = i === this._selected;
+          // With unmount_hidden, only the active panel's card is in the DOM
+          // (others stay retained in the manager but detached) to save memory.
           return html`
-            <div class="panel" ?hidden=${i !== this._selected}>
-              ${this._manager?.get(original)}
+            <div class="panel" ?hidden=${!active}>
+              ${!cfg.unmount_hidden || active ? this._manager?.get(original) : nothing}
             </div>
           `;
         })}

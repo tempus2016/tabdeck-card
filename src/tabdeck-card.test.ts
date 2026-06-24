@@ -45,6 +45,19 @@ describe("tabdeck-card", () => {
     expect(cards).toHaveLength(2);
   });
 
+  it("unmount_hidden renders only the active panel's card", async () => {
+    const el = await mount({
+      unmount_hidden: true,
+      tabs: [
+        { name: "A", card: { type: "markdown" } },
+        { name: "B", card: { type: "light" } },
+      ],
+    });
+    // only one card element in the DOM (the active one)
+    expect(el.shadowRoot.querySelectorAll("[data-type]")).toHaveLength(1);
+    expect(el.shadowRoot.querySelector("[data-type]").getAttribute("data-type")).toBe("markdown");
+  });
+
   it("switches the active panel on tabdeck-select", async () => {
     const el = await mount({
       tabs: [
@@ -327,6 +340,17 @@ describe("tabdeck-card swipe", () => {
     swipe(el, -120); // try to go past the last
     await el.updateComplete;
     expect(selected(el)).toBe(2);
+  });
+
+  it("wraps from first to last on a rightward swipe when swipe_wrap is on", async () => {
+    const el = await mount({ ...three(), swipe_wrap: true });
+    expect(selected(el)).toBe(0);
+    swipe(el, 120); // rightward at first -> prev -> wraps to last
+    await el.updateComplete;
+    expect(selected(el)).toBe(2);
+    swipe(el, -120); // leftward at last -> next -> wraps to first
+    await el.updateComplete;
+    expect(selected(el)).toBe(0);
   });
 
   it("does nothing when swipe is disabled (default)", async () => {

@@ -45,13 +45,21 @@ export class TabdeckTabbar extends LitElement {
   @state() private _ready = false;
 
   private _resizeObserver?: ResizeObserver;
+  private _resizeRaf = 0;
 
   connectedCallback(): void {
     super.connectedCallback();
     this.setAttribute("role", "tablist");
     this.addEventListener("keydown", this._onKeydown);
     if (typeof ResizeObserver !== "undefined") {
-      this._resizeObserver = new ResizeObserver(() => this._position());
+      // Debounce resize work to one reposition per animation frame.
+      this._resizeObserver = new ResizeObserver(() => {
+        if (this._resizeRaf) return;
+        this._resizeRaf = requestAnimationFrame(() => {
+          this._resizeRaf = 0;
+          this._position();
+        });
+      });
     }
   }
 
