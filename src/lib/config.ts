@@ -4,6 +4,7 @@ export type TabPosition = "top" | "bottom" | "left" | "right";
 export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text";
 export type RememberMode = "none" | "browser" | "url";
 export type TabDisplay = "both" | "icon" | "label";
+export type TabAlign = "start" | "center" | "end" | "justify";
 
 export interface TabdeckTabConfig {
   name?: string;
@@ -21,6 +22,7 @@ export interface TabdeckCardConfig {
   position: TabPosition;
   style: TabStyle;
   tab_display: TabDisplay;
+  align: TabAlign;
   indicator_size: number;
   scrollable: "auto" | boolean;
   remember: RememberMode;
@@ -37,6 +39,7 @@ const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
 const STYLES: TabStyle[] = ["underline", "pill", "segmented", "boxed", "text"];
 const REMEMBER: RememberMode[] = ["none", "browser", "url"];
 const DISPLAYS: TabDisplay[] = ["both", "icon", "label"];
+const ALIGNS: TabAlign[] = ["start", "center", "end", "justify"];
 
 function pick<T>(value: any, allowed: T[], fallback: T): T {
   return allowed.includes(value) ? value : fallback;
@@ -74,6 +77,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     position: pick(raw?.position, POSITIONS, "top"),
     style: pick(raw?.style, STYLES, "underline"),
     tab_display: pick(raw?.tab_display, DISPLAYS, "both"),
+    align: pick(raw?.align, ALIGNS, "start"),
     indicator_size: clampNumber(raw?.indicator_size, 1, 16, 3),
     scrollable: raw?.scrollable === undefined ? "auto" : raw.scrollable,
     remember: pick(raw?.remember, REMEMBER, "none"),

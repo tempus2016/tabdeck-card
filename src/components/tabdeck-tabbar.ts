@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { TabDisplay, TabPosition, TabStyle } from "../lib/config";
+import type { TabAlign, TabDisplay, TabPosition, TabStyle } from "../lib/config";
 import { computeIndicatorRect } from "../lib/indicator";
 import "./tabdeck-tab";
 
@@ -19,6 +19,7 @@ export class TabdeckTabbar extends LitElement {
   @property() position: TabPosition = "top";
   @property() tabStyle: TabStyle = "underline";
   @property() display: TabDisplay = "both";
+  @property() align: TabAlign = "start";
   @property() scrollable: "auto" | boolean = "auto";
   @property({ type: Boolean }) animated = true;
   // When true, the moving indicator (and bar) adopt the selected tab's accent.
@@ -167,7 +168,7 @@ export class TabdeckTabbar extends LitElement {
   render() {
     const animateClass = this._ready && this.animated ? " animate" : "";
     return html`
-      <div class="bar ${this.position} style-${this.tabStyle}" part="bar">
+      <div class="bar ${this.position} style-${this.tabStyle} align-${this.align}" part="bar">
         <div class="indicator${animateClass}" part="indicator"></div>
         ${this.items.map(
           (item, index) => html`
@@ -250,6 +251,20 @@ export class TabdeckTabbar extends LitElement {
     .bar.style-text {
       gap: 4px;
       border: none;
+    }
+    /* Alignment of the tabs within the bar. */
+    .bar.align-center {
+      justify-content: center;
+    }
+    .bar.align-end {
+      justify-content: flex-end;
+    }
+    .bar.align-justify tabdeck-tab {
+      flex: 1 1 0;
+      justify-content: center;
+    }
+    .bar.align-justify {
+      justify-content: stretch;
     }
 
     /* The single moving indicator. Sits behind tab content. */

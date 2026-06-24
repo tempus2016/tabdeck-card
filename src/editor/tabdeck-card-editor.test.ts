@@ -59,6 +59,7 @@ function globalsData() {
     position: "top",
     style: "underline",
     tab_display: "both",
+    align: "start",
     indicator_size: 3,
     remember: "none",
     default_tab: "A",
