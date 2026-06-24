@@ -61,6 +61,7 @@ function globalsData() {
     tab_display: "both",
     align: "start",
     badge_display: "text",
+    transition: "none",
     indicator_size: 3,
     remember: "none",
     default_tab: "A",

@@ -23,6 +23,13 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ indicator_size: "x", tabs: [{ card: {} }] }).indicator_size).toBe(3);
   });
 
+  it("defaults transition to none and picks fade/slide", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).transition).toBe("none");
+    expect(normalizeConfig({ transition: "fade", tabs: [{ card: {} }] }).transition).toBe("fade");
+    expect(normalizeConfig({ transition: "slide", tabs: [{ card: {} }] }).transition).toBe("slide");
+    expect(normalizeConfig({ transition: "zoom", tabs: [{ card: {} }] }).transition).toBe("none");
+  });
+
   it("defaults badge_display to text and picks dot", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).badge_display).toBe("text");
     expect(normalizeConfig({ badge_display: "dot", tabs: [{ card: {} }] }).badge_display).toBe("dot");

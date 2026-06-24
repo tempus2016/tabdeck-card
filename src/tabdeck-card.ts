@@ -231,6 +231,34 @@ export class TabdeckCard extends LitElement {
     super.updated(changed);
     const visible = this._visibleTabs();
     if (this._selected > visible.length - 1) this._selected = 0;
+    if (changed.has("_selected") && changed.get("_selected") !== undefined) {
+      this._animatePanel();
+    }
+  }
+
+  // Play a short enter animation on the newly-active panel when a transition is
+  // configured. Uses the Web Animations API so it replays on every switch;
+  // skipped for `none`, in jsdom, and under prefers-reduced-motion.
+  private _animatePanel(): void {
+    const mode = this._config?.transition;
+    if (!mode || mode === "none") return;
+    if (
+      typeof matchMedia === "function" &&
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    const panel = this.renderRoot?.querySelector?.(
+      ".panel:not([hidden])",
+    ) as HTMLElement | null;
+    if (!panel || typeof panel.animate !== "function") return;
+    const frames =
+      mode === "slide"
+        ? [
+            { opacity: 0, transform: "translateX(12px)" },
+            { opacity: 1, transform: "translateX(0)" },
+          ]
+        : [{ opacity: 0 }, { opacity: 1 }];
+    panel.animate(frames, { duration: 180, easing: "ease" });
   }
 
   render() {
