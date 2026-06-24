@@ -397,6 +397,7 @@ export class TabdeckCard extends LitElement {
         .animated=${cfg.animated}
         .accentIndicator=${cfg.accent_indicator}
         .indicatorSize=${cfg.indicator_size}
+        .indicatorRadius=${cfg.indicator_radius}
         .sticky=${cfg.sticky}
         .elevation=${cfg.elevation}
         .scrollButtons=${cfg.scroll_buttons}

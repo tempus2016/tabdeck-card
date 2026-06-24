@@ -48,10 +48,17 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ align: "nope", tabs: [{ card: {} }] }).align).toBe("start");
   });
 
-  it("accepts the boxed and text styles", () => {
+  it("accepts the boxed, text and rail styles", () => {
     expect(normalizeConfig({ style: "boxed", tabs: [{ card: {} }] }).style).toBe("boxed");
     expect(normalizeConfig({ style: "text", tabs: [{ card: {} }] }).style).toBe("text");
+    expect(normalizeConfig({ style: "rail", tabs: [{ card: {} }] }).style).toBe("rail");
     expect(normalizeConfig({ style: "nope", tabs: [{ card: {} }] }).style).toBe("underline");
+  });
+
+  it("indicator_radius is optional and clamped when set", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).indicator_radius).toBeUndefined();
+    expect(normalizeConfig({ indicator_radius: 8, tabs: [{ card: {} }] }).indicator_radius).toBe(8);
+    expect(normalizeConfig({ indicator_radius: -5, tabs: [{ card: {} }] }).indicator_radius).toBe(0);
   });
 
   it("defaults header to false", () => {

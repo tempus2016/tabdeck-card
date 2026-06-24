@@ -1,7 +1,7 @@
 import type { LovelaceCardConfig } from "../types";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
-export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text";
+export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text" | "rail";
 export type RememberMode = "none" | "browser" | "url" | "entity";
 export type TabDisplay = "both" | "icon" | "label";
 export type TabAlign = "start" | "center" | "end" | "justify";
@@ -42,6 +42,7 @@ export interface TabdeckCardConfig {
   hide_inactive_badge: boolean;
   transition: PanelTransition;
   indicator_size: number;
+  indicator_radius?: number;
   scrollable: "auto" | boolean;
   remember: RememberMode;
   remember_entity?: string;
@@ -62,7 +63,7 @@ export interface TabdeckCardConfig {
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
-const STYLES: TabStyle[] = ["underline", "pill", "segmented", "boxed", "text"];
+const STYLES: TabStyle[] = ["underline", "pill", "segmented", "boxed", "text", "rail"];
 const REMEMBER: RememberMode[] = ["none", "browser", "url", "entity"];
 const DISPLAYS: TabDisplay[] = ["both", "icon", "label"];
 const ALIGNS: TabAlign[] = ["start", "center", "end", "justify"];
@@ -139,6 +140,10 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     hide_inactive_badge: Boolean(raw?.hide_inactive_badge),
     transition: pick(raw?.transition, TRANSITIONS, "none"),
     indicator_size: clampNumber(raw?.indicator_size, 1, 16, 3),
+    indicator_radius:
+      raw?.indicator_radius === undefined
+        ? undefined
+        : clampNumber(raw?.indicator_radius, 0, 999, 0),
     scrollable: raw?.scrollable === undefined ? "auto" : raw.scrollable,
     remember: pick(raw?.remember, REMEMBER, "none"),
     remember_entity: raw?.remember_entity ?? undefined,

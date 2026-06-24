@@ -32,7 +32,7 @@ export function computeIndicatorRect(
   // The `text` style has no moving indicator at all.
   if (style === "text") return null;
 
-  if (style === "pill" || style === "segmented" || style === "boxed") {
+  if (style === "pill" || style === "segmented" || style === "boxed" || style === "rail") {
     return {
       left: tab.offsetLeft,
       top: tab.offsetTop,

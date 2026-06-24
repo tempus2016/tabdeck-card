@@ -31,7 +31,26 @@ tabs: [ ... ]
 
 ![Text style](images/feature-style-text.png)
 
+## `rail`
+
+A compact **icon rail** — centred tabs with a rounded selection highlight. Designed to pair with `position: left`/`right` and `tab_display: icon` (often with [`header`](Feature-Header) for the active title).
+
+```yaml
+type: custom:tabdeck-card
+position: left
+style: rail
+tab_display: icon
+header: true
+tabs: [ ... ]
+```
+
+![Rail style](images/feature-rail.png)
+
+## Indicator corner radius
+
+`indicator_radius` (px) overrides the corner radius of the `pill`/`segmented`/`boxed`/`rail` indicator — e.g. `indicator_radius: 4` for a squarer highlight, `0` for sharp corners.
+
 ## Notes
 
-- Both styles respect [`accent_indicator`](Feature-Accent-Indicator) and per-tab `accent`.
+- All styles respect [`accent_indicator`](Feature-Accent-Indicator) and per-tab `accent`.
 - Pick the style from the **Style** dropdown in the [visual editor](Editor).

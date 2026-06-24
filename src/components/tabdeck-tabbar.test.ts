@@ -170,6 +170,16 @@ describe("tabdeck-tabbar", () => {
     expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("");
   });
 
+  it("sets --tabdeck-indicator-radius when indicatorRadius is provided", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }];
+    el.selected = 0;
+    el.indicatorRadius = 4;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.style.getPropertyValue("--tabdeck-indicator-radius")).toBe("4px");
+  });
+
   it("applies elevation class and a custom bar background", async () => {
     const el = document.createElement("tabdeck-tabbar") as any;
     el.items = [{ name: "A" }];

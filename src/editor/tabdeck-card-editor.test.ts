@@ -64,6 +64,7 @@ function globalsData() {
     hide_inactive_badge: false,
     transition: "none",
     indicator_size: 3,
+    indicator_radius: undefined,
     remember: "none",
     remember_entity: "",
     storage_key: "",
