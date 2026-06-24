@@ -66,6 +66,7 @@ function globalsData() {
     lazy: false,
     animated: true,
     accent_indicator: true,
+    sticky: false,
     swipe: false,
   };
 }

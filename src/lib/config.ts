@@ -26,6 +26,7 @@ export interface TabdeckCardConfig {
   lazy: boolean;
   animated: boolean;
   accent_indicator: boolean;
+  sticky: boolean;
   swipe: boolean;
   styles: Record<string, string>;
   tabs: TabdeckTabConfig[];
@@ -77,6 +78,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     lazy: Boolean(raw?.lazy),
     animated: raw?.animated === undefined ? true : Boolean(raw.animated),
     accent_indicator: raw?.accent_indicator === undefined ? true : Boolean(raw.accent_indicator),
+    sticky: Boolean(raw?.sticky),
     swipe: Boolean(raw?.swipe),
     styles: raw?.styles ?? {},
     tabs: tabs.map(normalizeTab),

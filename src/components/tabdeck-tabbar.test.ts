@@ -108,6 +108,32 @@ describe("tabdeck-tabbar", () => {
     expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("");
   });
 
+  it("applies position:sticky to the host when sticky is on (top edge)", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }];
+    el.selected = 0;
+    el.sticky = true;
+    el.position = "top";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.style.position).toBe("sticky");
+    expect(el.style.top).toBe("0px");
+  });
+
+  it("pins to the bottom edge for a bottom bar, and clears when sticky is off", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }];
+    el.selected = 0;
+    el.sticky = true;
+    el.position = "bottom";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.style.bottom).toBe("0px");
+    el.sticky = false;
+    await el.updateComplete;
+    expect(el.style.position).toBe("");
+  });
+
   it("adds the animate class after first paint when animated (default)", async () => {
     const el = await mount();
     await nextFrame();

@@ -9,6 +9,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Accent-coloured indicator](Feature-Accent-Indicator)** — indicator adopts the selected tab's accent (`accent_indicator`).
 - **[Extra bar styles](Feature-Bar-Styles)** — `boxed` (bordered chips) and `text` (no indicator) styles.
 - **[Indicator thickness](Feature-Indicator-Size)** — set the underline bar thickness (`indicator_size`).
+- **[Sticky tab bar](Feature-Sticky-Bar)** — keep the bar pinned while content scrolls (`sticky`).
 
 ## Per-tab content
 - _(pages added as features land)_
