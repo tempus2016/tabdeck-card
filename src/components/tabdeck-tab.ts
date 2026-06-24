@@ -80,7 +80,13 @@ export class TabdeckTab extends LitElement {
         : nothing;
     }
     return this.badge
-      ? html`<span class="badge${cls}" part="badge" style=${bg} @click=${this._onBadgeClick}>${this.badge}</span>`
+      ? html`<span
+          class="badge${cls}"
+          part="badge"
+          style=${bg}
+          aria-label=${`badge: ${this.badge}`}
+          @click=${this._onBadgeClick}
+          >${this.badge}</span>`
       : nothing;
   }
 

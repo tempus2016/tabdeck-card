@@ -26,6 +26,14 @@ describe("tabdeck-tabbar", () => {
     expect(el.shadowRoot.querySelectorAll("tabdeck-tab")).toHaveLength(3);
   });
 
+  it("sets an accessible name on the tablist (default + custom)", async () => {
+    const el = await mount();
+    expect(el.getAttribute("aria-label")).toBe("Tabs");
+    el.barLabel = "Rooms";
+    await el.updateComplete;
+    expect(el.getAttribute("aria-label")).toBe("Rooms");
+  });
+
   it("emits tabdeck-select on tab click", async () => {
     const el = await mount();
     const handler = vi.fn();

@@ -42,6 +42,8 @@ export class TabdeckTabbar extends LitElement {
   @property({ type: Boolean }) elevation = false;
   // Show ‹ › buttons to scroll an overflowing horizontal bar.
   @property({ type: Boolean }) scrollButtons = false;
+  // Accessible name for the tablist.
+  @property() barLabel = "Tabs";
   // Optional custom bar background colour.
   @property() barBackground?: string;
 
@@ -57,6 +59,7 @@ export class TabdeckTabbar extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.setAttribute("role", "tablist");
+    this.setAttribute("aria-label", this.barLabel || "Tabs");
     this.addEventListener("keydown", this._onKeydown);
     if (typeof ResizeObserver !== "undefined") {
       // Debounce resize work to one reposition per animation frame.
@@ -243,6 +246,7 @@ export class TabdeckTabbar extends LitElement {
   }
 
   protected updated(): void {
+    this.setAttribute("aria-label", this.barLabel || "Tabs");
     this._applyAccent();
     this._applySticky();
     this._position();
