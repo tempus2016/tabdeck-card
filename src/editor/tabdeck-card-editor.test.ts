@@ -58,6 +58,7 @@ function globalsData() {
   return {
     position: "top",
     style: "underline",
+    tab_display: "both",
     remember: "none",
     default_tab: "A",
     scrollable: "auto",

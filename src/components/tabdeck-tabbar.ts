@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { TabPosition, TabStyle } from "../lib/config";
+import type { TabDisplay, TabPosition, TabStyle } from "../lib/config";
 import { computeIndicatorRect } from "../lib/indicator";
 import "./tabdeck-tab";
 
@@ -17,6 +17,7 @@ export class TabdeckTabbar extends LitElement {
   @property({ type: Number }) selected = 0;
   @property() position: TabPosition = "top";
   @property() tabStyle: TabStyle = "underline";
+  @property() display: TabDisplay = "both";
   @property() scrollable: "auto" | boolean = "auto";
   @property({ type: Boolean }) animated = true;
 
@@ -129,6 +130,7 @@ export class TabdeckTabbar extends LitElement {
               .icon=${item.icon}
               .badge=${item.badge}
               .accent=${item.accent}
+              .display=${this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"
               @click=${() => this._select(index)}

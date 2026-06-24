@@ -3,6 +3,7 @@ import type { LovelaceCardConfig } from "../types";
 export type TabPosition = "top" | "bottom" | "left" | "right";
 export type TabStyle = "underline" | "pill" | "segmented";
 export type RememberMode = "none" | "browser" | "url";
+export type TabDisplay = "both" | "icon" | "label";
 
 export interface TabdeckTabConfig {
   name?: string;
@@ -18,6 +19,7 @@ export interface TabdeckCardConfig {
   default_tab: number | string;
   position: TabPosition;
   style: TabStyle;
+  tab_display: TabDisplay;
   scrollable: "auto" | boolean;
   remember: RememberMode;
   lazy: boolean;
@@ -30,6 +32,7 @@ export interface TabdeckCardConfig {
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
 const STYLES: TabStyle[] = ["underline", "pill", "segmented"];
 const REMEMBER: RememberMode[] = ["none", "browser", "url"];
+const DISPLAYS: TabDisplay[] = ["both", "icon", "label"];
 
 function pick<T>(value: any, allowed: T[], fallback: T): T {
   return allowed.includes(value) ? value : fallback;
@@ -58,6 +61,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     default_tab: defaultTab,
     position: pick(raw?.position, POSITIONS, "top"),
     style: pick(raw?.style, STYLES, "underline"),
+    tab_display: pick(raw?.tab_display, DISPLAYS, "both"),
     scrollable: raw?.scrollable === undefined ? "auto" : raw.scrollable,
     remember: pick(raw?.remember, REMEMBER, "none"),
     lazy: Boolean(raw?.lazy),

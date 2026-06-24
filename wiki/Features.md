@@ -5,7 +5,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 > This list grows over time. Each feature below has its own page with a description, config key, examples, and screenshots.
 
 ## Tab bar appearance
-- _(pages added as features land)_
+- **[Tab display mode](Feature-Tab-Display)** — show icons, labels, or both (`tab_display`).
 
 ## Per-tab content
 - _(pages added as features land)_

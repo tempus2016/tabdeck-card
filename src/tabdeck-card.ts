@@ -248,6 +248,7 @@ export class TabdeckCard extends LitElement {
         .selected=${this._selected}
         .position=${cfg.position}
         .tabStyle=${cfg.style}
+        .display=${cfg.tab_display}
         .scrollable=${cfg.scrollable}
         .animated=${cfg.animated}
         @tabdeck-select=${this._onSelect}

@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import type { TabDisplay } from "../lib/config";
 
 @customElement("tabdeck-tab")
 export class TabdeckTab extends LitElement {
@@ -7,6 +8,7 @@ export class TabdeckTab extends LitElement {
   @property() icon?: string;
   @property() badge?: string;
   @property() accent?: string;
+  @property() display: TabDisplay = "both";
   @property({ type: Boolean, reflect: true }) selected = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
 
@@ -22,10 +24,17 @@ export class TabdeckTab extends LitElement {
   }
 
   render() {
+    // Honour the display mode, but never render an empty tab: fall back to the
+    // label when icon-only is requested on a tab that has no icon.
+    const hasIcon = !!this.icon;
+    const showIcon = this.display !== "label" && hasIcon;
+    const showLabel = this.display !== "icon" || !hasIcon;
     return html`
       <div class="inner">
-        ${this.icon ? html`<ha-icon icon=${this.icon}></ha-icon>` : nothing}
-        ${this.label ? html`<span class="label">${this.label}</span>` : nothing}
+        ${showIcon ? html`<ha-icon icon=${this.icon}></ha-icon>` : nothing}
+        ${showLabel && this.label
+          ? html`<span class="label">${this.label}</span>`
+          : nothing}
         ${this.badge ? html`<span class="badge">${this.badge}</span>` : nothing}
       </div>
     `;
