@@ -55,6 +55,16 @@ describe("tabdeck-tab", () => {
     expect(el.shadowRoot.querySelector(".label")?.textContent).toContain("Lights");
   });
 
+  it("applies a per-tab color to the host (overriding accent state)", async () => {
+    const el = await mount({ label: "Danger", color: "rgb(200, 0, 0)", selected: true });
+    expect(el.style.color).toBe("rgb(200, 0, 0)");
+  });
+
+  it("clears the host color when color is unset", async () => {
+    const el = await mount({ label: "A" });
+    expect(el.style.color).toBe("");
+  });
+
   it("display=both shows icon and label", async () => {
     const el = await mount({ label: "Lights", icon: "mdi:lightbulb", display: "both" });
     expect(el.shadowRoot.querySelector("ha-icon")).toBeTruthy();

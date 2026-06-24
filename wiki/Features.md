@@ -12,7 +12,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Sticky tab bar](Feature-Sticky-Bar)** — keep the bar pinned while content scrolls (`sticky`).
 
 ## Per-tab content
-- _(pages added as features land)_
+- **[Per-tab text/icon colour](Feature-Tab-Color)** — fixed label/icon colour for a tab (`color`).
 
 ## Navigation & interaction
 - _(pages added as features land)_

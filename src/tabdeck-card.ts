@@ -243,6 +243,7 @@ export class TabdeckCard extends LitElement {
           name: t.name,
           icon: t.icon,
           accent: t.accent,
+          color: t.color,
           badge: this._resolveBadge(t.badge),
         }))}
         .selected=${this._selected}
