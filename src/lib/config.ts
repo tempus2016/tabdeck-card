@@ -10,6 +10,7 @@ export type PanelTransition = "none" | "fade" | "slide";
 
 export interface TabdeckTabConfig {
   name?: string;
+  subtitle?: string;
   icon?: string;
   accent?: string;
   color?: string;
@@ -71,6 +72,7 @@ function normalizeTab(raw: any): TabdeckTabConfig {
   }
   return {
     name: raw?.name ?? attrs.label ?? undefined,
+    subtitle: raw?.subtitle ?? undefined,
     icon: raw?.icon ?? attrs.icon ?? undefined,
     accent: raw?.accent ?? undefined,
     color: raw?.color ?? undefined,

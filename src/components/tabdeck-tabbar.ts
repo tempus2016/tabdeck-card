@@ -6,6 +6,7 @@ import "./tabdeck-tab";
 
 interface TabItem {
   name?: string;
+  subtitle?: string;
   icon?: string;
   accent?: string;
   color?: string;
@@ -195,6 +196,7 @@ export class TabdeckTabbar extends LitElement {
           (item, index) => html`
             <tabdeck-tab
               .label=${item.name}
+              .subtitle=${item.subtitle}
               .icon=${item.icon}
               .badge=${item.badge}
               .badgeDisplay=${this.badgeDisplay}

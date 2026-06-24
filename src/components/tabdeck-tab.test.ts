@@ -71,6 +71,17 @@ describe("tabdeck-tab", () => {
     expect(off.shadowRoot.querySelector(".badge-dot")).toBeNull();
   });
 
+  it("renders a subtitle under the label when set", async () => {
+    const el = await mount({ label: "Climate", subtitle: "3 zones" });
+    expect(el.shadowRoot.querySelector(".subtitle")?.textContent).toContain("3 zones");
+    expect(el.shadowRoot.querySelector(".label")?.textContent).toContain("Climate");
+  });
+
+  it("renders no subtitle element when unset", async () => {
+    const el = await mount({ label: "Climate" });
+    expect(el.shadowRoot.querySelector(".subtitle")).toBeNull();
+  });
+
   it("applies a per-tab color to the host (overriding accent state)", async () => {
     const el = await mount({ label: "Danger", color: "rgb(200, 0, 0)", selected: true });
     expect(el.style.color).toBe("rgb(200, 0, 0)");
