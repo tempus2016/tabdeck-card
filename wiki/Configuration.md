@@ -41,6 +41,8 @@ Each item in `tabs`:
 | `color` | string (CSS colour) | — | Fixed label/icon colour for the tab. See [Per-tab colour](Feature-Tab-Color). |
 | `badge` | string | — | An entity id (shows its state) or a Jinja template. See [Badges](Badges). |
 | `disabled` | boolean | `false` | Show the tab greyed-out and non-selectable. See [Disabled tabs](Feature-Disabled-Tabs). |
+| `card_size` | number | — | `getCardSize()` hint (rows) for this tab, so masonry sizing is stable across tab switches. |
+| `hold_action` / `badge_action` | action | — | HA action on tab long-press / badge click. See [Tab & badge actions](Feature-Hold-Action). |
 | `visibility` | list of conditions | — | Conditions for showing the tab (supports and/or/not). See [Tab Visibility](Tab-Visibility). |
 
 ## Full example

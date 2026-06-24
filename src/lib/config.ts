@@ -17,6 +17,8 @@ export interface TabdeckTabConfig {
   badge?: string;
   badge_color?: string;
   disabled?: boolean;
+  // Optional getCardSize() hint for this tab (masonry layout sizing).
+  card_size?: number;
   // Home Assistant action fired on a long-press of the tab (tap still selects).
   hold_action?: any;
   // HA action fired when the tab's badge is clicked (does not select the tab).
@@ -118,6 +120,7 @@ function normalizeTab(raw: any): TabdeckTabConfig {
     badge: raw?.badge ?? undefined,
     badge_color: raw?.badge_color ?? undefined,
     disabled: raw?.disabled ? true : undefined,
+    card_size: typeof raw?.card_size === "number" ? raw.card_size : undefined,
     hold_action: raw?.hold_action ?? undefined,
     badge_action: raw?.badge_action ?? undefined,
     auto_select: normalizeAutoSelect(raw?.auto_select),
