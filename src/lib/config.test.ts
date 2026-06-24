@@ -148,6 +148,13 @@ describe("normalizeConfig", () => {
     expect(c.tabs[0].card.type).toBe("vertical-stack");
   });
 
+  it("passes through a nested tabdeck-card as a tab's card", () => {
+    const inner = { type: "custom:tabdeck-card", tabs: [{ name: "X", card: { type: "markdown" } }] };
+    const c = normalizeConfig({ tabs: [{ name: "Outer", card: inner }] });
+    expect(c.tabs[0].card.type).toBe("custom:tabdeck-card");
+    expect(c.tabs[0].card.tabs).toHaveLength(1);
+  });
+
   it("keeps a single `card` when no `cards` array is present", () => {
     const c = normalizeConfig({ tabs: [{ name: "A", card: { type: "light" } }] });
     expect(c.tabs[0].card.type).toBe("light");
