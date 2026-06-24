@@ -25,6 +25,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 
 ## Dynamic behaviour
 - **[Visibility and/or/not groups](Tab-Visibility#logical-groups-and--or--not)** — nestable logical conditions for tab visibility.
+- **[Auto-select a tab](Feature-Auto-Select)** — switch tab when an entity becomes active (`auto_select`).
 
 ## Editor
 - **[Duplicate tab](Feature-Duplicate-Tab)** — one-click deep copy of a tab in the editor.

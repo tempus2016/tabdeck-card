@@ -110,6 +110,15 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).tabs[0].disabled).toBeUndefined();
   });
 
+  it("normalizes auto_select from a string or object", () => {
+    const a = normalizeConfig({ tabs: [{ auto_select: "binary_sensor.door", card: {} }] });
+    expect(a.tabs[0].auto_select).toEqual({ entity: "binary_sensor.door" });
+    const b = normalizeConfig({ tabs: [{ auto_select: { entity: "sensor.x", state: "alarm" }, card: {} }] });
+    expect(b.tabs[0].auto_select).toEqual({ entity: "sensor.x", state: "alarm" });
+    const c = normalizeConfig({ tabs: [{ auto_select: { nope: 1 }, card: {} }] });
+    expect(c.tabs[0].auto_select).toBeUndefined();
+  });
+
   it("keeps a per-tab subtitle", () => {
     const c = normalizeConfig({ tabs: [{ name: "A", subtitle: "3 zones", card: {} }] });
     expect(c.tabs[0].subtitle).toBe("3 zones");
