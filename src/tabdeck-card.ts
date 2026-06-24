@@ -399,6 +399,7 @@ export class TabdeckCard extends LitElement {
         .indicatorSize=${cfg.indicator_size}
         .sticky=${cfg.sticky}
         .elevation=${cfg.elevation}
+        .scrollButtons=${cfg.scroll_buttons}
         .barBackground=${cfg.bar_background}
         @tabdeck-select=${this._onSelect}
       ></tabdeck-tabbar>

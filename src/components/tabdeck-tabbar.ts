@@ -37,12 +37,16 @@ export class TabdeckTabbar extends LitElement {
   @property({ type: Boolean }) sticky = false;
   // Raise the bar with a subtle shadow.
   @property({ type: Boolean }) elevation = false;
+  // Show ‹ › buttons to scroll an overflowing horizontal bar.
+  @property({ type: Boolean }) scrollButtons = false;
   // Optional custom bar background colour.
   @property() barBackground?: string;
 
   // Becomes true one frame after the first paint, so the indicator's initial
   // placement never slides in from the corner; only later moves animate.
   @state() private _ready = false;
+  // True when a horizontal bar overflows and scroll buttons should show.
+  @state() private _overflow = false;
 
   private _resizeObserver?: ResizeObserver;
   private _resizeRaf = 0;
@@ -230,6 +234,7 @@ export class TabdeckTabbar extends LitElement {
     this._applyAccent();
     this._applySticky();
     this._position();
+    this._updateOverflow();
     if (!this._ready) {
       requestAnimationFrame(() => {
         this._ready = true;
@@ -237,9 +242,34 @@ export class TabdeckTabbar extends LitElement {
     }
   }
 
+  private get _horizontal(): boolean {
+    return this.position === "top" || this.position === "bottom";
+  }
+
+  private _updateOverflow(): void {
+    if (!this.scrollButtons || !this._horizontal) {
+      if (this._overflow) this._overflow = false;
+      return;
+    }
+    const bar = (this.renderRoot as ParentNode).querySelector(".bar") as HTMLElement | null;
+    const next = !!bar && bar.scrollWidth - bar.clientWidth > 1;
+    if (next !== this._overflow) this._overflow = next;
+  }
+
+  private _scrollBy(dir: number): void {
+    const bar = (this.renderRoot as ParentNode).querySelector(".bar") as HTMLElement | null;
+    if (!bar) return;
+    bar.scrollBy({ left: dir * bar.clientWidth * 0.8, behavior: "smooth" });
+  }
+
   render() {
     const animateClass = this._ready && this.animated ? " animate" : "";
+    const arrows = this.scrollButtons && this._horizontal && this._overflow;
     return html`
+      <div class="bar-wrap ${arrows ? "has-arrows" : ""}">
+      ${arrows
+        ? html`<button class="scroll-btn left" aria-label="Scroll left" @click=${() => this._scrollBy(-1)}>‹</button>`
+        : ""}
       <div
         class="bar ${this.position} style-${this.tabStyle} align-${this.align} ${this.elevation ? "elevated" : ""}"
         part="bar"
@@ -270,12 +300,34 @@ export class TabdeckTabbar extends LitElement {
           `,
         )}
       </div>
+      ${arrows
+        ? html`<button class="scroll-btn right" aria-label="Scroll right" @click=${() => this._scrollBy(1)}>›</button>`
+        : ""}
+      </div>
     `;
   }
 
   static styles = css`
     :host {
       display: block;
+    }
+    .bar-wrap.has-arrows {
+      display: flex;
+      align-items: center;
+    }
+    .bar-wrap.has-arrows .bar {
+      flex: 1;
+      min-width: 0;
+    }
+    .scroll-btn {
+      flex-shrink: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 22px;
+      line-height: 1;
+      padding: 0 6px;
+      color: var(--secondary-text-color);
     }
     .bar {
       display: flex;
