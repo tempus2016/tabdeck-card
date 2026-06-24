@@ -45,6 +45,29 @@ describe("tabdeck-tabbar", () => {
     expect(events[events.length - 1]).toBe(0);
   });
 
+  it("keyboard navigation skips disabled tabs", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }, { name: "B", disabled: true }, { name: "C" }];
+    el.selected = 0;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const events: number[] = [];
+    el.addEventListener("tabdeck-select", (e: any) => events.push(e.detail.index));
+    el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    expect(events[events.length - 1]).toBe(2); // skipped disabled B
+  });
+
+  it("reflects disabled onto the disabled tab element", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }, { name: "B", disabled: true }];
+    el.selected = 0;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const tabs = el.shadowRoot.querySelectorAll("tabdeck-tab");
+    await tabs[1].updateComplete;
+    expect(tabs[1].hasAttribute("disabled")).toBe(true);
+  });
+
   it("Home selects the first, End the last", async () => {
     const el = await mount();
     const events: number[] = [];

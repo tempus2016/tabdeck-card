@@ -26,6 +26,7 @@ const TAB_SCHEMA = [
   { name: "accent", selector: { text: {} } },
   { name: "color", selector: { text: {} } },
   { name: "badge", selector: { text: {} } },
+  { name: "disabled", selector: { boolean: {} } },
 ];
 
 // Common built-in Lovelace card types offered when choosing/changing a tab's
@@ -57,6 +58,7 @@ const TAB_LABELS: Record<string, string> = {
   accent: "Accent colour",
   color: "Text/icon colour",
   badge: "Badge (entity id or template)",
+  disabled: "Disable tab (greyed, not selectable)",
 };
 
 const GLOBAL_LABELS: Record<string, string> = {
@@ -323,6 +325,7 @@ export class TabdeckCardEditor extends LitElement {
       accent: v.accent || undefined,
       color: v.color || undefined,
       badge: v.badge || undefined,
+      disabled: v.disabled ? true : undefined,
     });
   }
 
@@ -497,6 +500,7 @@ export class TabdeckCardEditor extends LitElement {
                           accent: tab.accent ?? "",
                           color: tab.color ?? "",
                           badge: tab.badge ?? "",
+                          disabled: !!tab.disabled,
                         }}
                         .schema=${TAB_SCHEMA}
                         .computeLabel=${this._computeTabLabel}

@@ -10,6 +10,7 @@ interface TabItem {
   accent?: string;
   color?: string;
   badge?: string;
+  disabled?: boolean;
 }
 
 @customElement("tabdeck-tabbar")
@@ -61,16 +62,35 @@ export class TabdeckTabbar extends LitElement {
     );
   }
 
+  // Step from `from` in `dir` (+1/-1), wrapping, skipping disabled tabs. Returns
+  // the original index if every other tab is disabled.
+  private _step(from: number, dir: number): number {
+    const n = this.items.length;
+    for (let i = 1; i <= n; i++) {
+      const idx = (from + dir * i + n * i) % n;
+      if (!this.items[idx]?.disabled) return idx;
+    }
+    return from;
+  }
+
+  private _firstEnabled(fromEnd = false): number {
+    const n = this.items.length;
+    for (let i = 0; i < n; i++) {
+      const idx = fromEnd ? n - 1 - i : i;
+      if (!this.items[idx]?.disabled) return idx;
+    }
+    return 0;
+  }
+
   private _onKeydown = (e: KeyboardEvent): void => {
-    const last = this.items.length - 1;
     const vertical = this.position === "left" || this.position === "right";
     const next = vertical ? "ArrowDown" : "ArrowRight";
     const prev = vertical ? "ArrowUp" : "ArrowLeft";
     let target: number | null = null;
-    if (e.key === next) target = this.selected >= last ? 0 : this.selected + 1;
-    else if (e.key === prev) target = this.selected <= 0 ? last : this.selected - 1;
-    else if (e.key === "Home") target = 0;
-    else if (e.key === "End") target = last;
+    if (e.key === next) target = this._step(this.selected, 1);
+    else if (e.key === prev) target = this._step(this.selected, -1);
+    else if (e.key === "Home") target = this._firstEnabled();
+    else if (e.key === "End") target = this._firstEnabled(true);
     if (target !== null) {
       e.preventDefault();
       this._select(target);
@@ -180,6 +200,7 @@ export class TabdeckTabbar extends LitElement {
               .badgeDisplay=${this.badgeDisplay}
               .accent=${item.accent}
               .color=${item.color}
+              .disabled=${!!item.disabled}
               .display=${this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"

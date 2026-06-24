@@ -100,6 +100,11 @@ describe("normalizeConfig", () => {
     expect(c.tabs[0].card.type).toBe("light");
   });
 
+  it("normalizes per-tab disabled to true/undefined", () => {
+    expect(normalizeConfig({ tabs: [{ disabled: true, card: {} }] }).tabs[0].disabled).toBe(true);
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).tabs[0].disabled).toBeUndefined();
+  });
+
   it("keeps a per-tab color override", () => {
     const c = normalizeConfig({ tabs: [{ name: "A", color: "#c00", card: {} }] });
     expect(c.tabs[0].color).toBe("#c00");
