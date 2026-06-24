@@ -88,6 +88,19 @@ describe("tabdeck-card", () => {
     expect(el.style.getPropertyValue("--tabdeck-tab-height")).toBe("60px");
   });
 
+  it("hides inactive badges when hide_inactive_badge is on", async () => {
+    const el = await mount({
+      hide_inactive_badge: true,
+      tabs: [
+        { name: "A", badge: "0", card: { type: "markdown" } },
+        { name: "B", badge: "3", card: { type: "light" } },
+      ],
+    });
+    const bar = el.shadowRoot.querySelector("tabdeck-tabbar");
+    expect(bar.items[0].badge).toBeUndefined(); // "0" is inactive -> hidden
+    expect(bar.items[1].badge).toBe("3");
+  });
+
   it("getCardSize delegates to the active card", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
     expect(el.getCardSize()).toBe(3);

@@ -23,6 +23,11 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ indicator_size: "x", tabs: [{ card: {} }] }).indicator_size).toBe(3);
   });
 
+  it("defaults hide_inactive_badge to false", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).hide_inactive_badge).toBe(false);
+    expect(normalizeConfig({ hide_inactive_badge: true, tabs: [{ card: {} }] }).hide_inactive_badge).toBe(true);
+  });
+
   it("defaults transition to none and picks fade/slide", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).transition).toBe("none");
     expect(normalizeConfig({ transition: "fade", tabs: [{ card: {} }] }).transition).toBe("fade");

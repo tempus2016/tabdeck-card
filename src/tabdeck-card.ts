@@ -12,6 +12,7 @@ import { CardManager, getCreateCardElement } from "./lib/card-lifecycle";
 import { isTemplate, TemplateRenderer, type SubscribeFn } from "./lib/templates";
 import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import "./components/tabdeck-tabbar";
+import { isActiveBadge } from "./components/tabdeck-tab";
 
 @customElement("tabdeck-card")
 export class TabdeckCard extends LitElement {
@@ -296,7 +297,7 @@ export class TabdeckCard extends LitElement {
           accent: t.accent,
           color: t.color,
           disabled: t.disabled,
-          badge: this._resolveBadge(t.badge),
+          badge: this._resolveBadgeFinal(t.badge),
         }))}
         .selected=${this._selected}
         .position=${cfg.position}
@@ -335,6 +336,14 @@ export class TabdeckCard extends LitElement {
         ${cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
       </div>
     `;
+  }
+
+  // Resolve a badge, then drop it if hide_inactive_badge is on and the value is
+  // inactive (0/off/etc) — so e.g. a count badge only shows when > 0.
+  private _resolveBadgeFinal(badge?: string): string | undefined {
+    const value = this._resolveBadge(badge);
+    if (this._config?.hide_inactive_badge && !isActiveBadge(value)) return undefined;
+    return value;
   }
 
   private _resolveBadge(badge?: string): string | undefined {
