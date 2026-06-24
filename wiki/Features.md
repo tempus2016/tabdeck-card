@@ -17,6 +17,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Per-tab text/icon colour](Feature-Tab-Color)** — fixed label/icon colour for a tab (`color`).
 - **[Badge display mode](Feature-Badge-Display)** — text or dot badges (`badge_display`).
 - **[Hide inactive badges](Feature-Hide-Inactive-Badge)** — hide 0/off badges (`hide_inactive_badge`).
+- **[Per-tab badge colour](Feature-Badge-Color)** — colour a tab's badge (`badge_color`).
 - **[Multiple cards per tab](Feature-Multiple-Cards)** — stack several cards in one tab (`cards`).
 - **[Disabled tabs](Feature-Disabled-Tabs)** — show a tab greyed-out and non-selectable (`disabled`).
 - **[Tab subtitles](Feature-Subtitle)** — secondary text under a tab label (`subtitle`).

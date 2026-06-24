@@ -29,6 +29,7 @@ const TAB_SCHEMA = [
   { name: "accent", selector: { text: {} } },
   { name: "color", selector: { text: {} } },
   { name: "badge", selector: { text: {} } },
+  { name: "badge_color", selector: { text: {} } },
   { name: "disabled", selector: { boolean: {} } },
 ];
 
@@ -62,6 +63,7 @@ const TAB_LABELS: Record<string, string> = {
   accent: "Accent colour",
   color: "Text/icon colour",
   badge: "Badge (entity id or template)",
+  badge_color: "Badge colour",
   disabled: "Disable tab (greyed, not selectable)",
 };
 
@@ -365,6 +367,7 @@ export class TabdeckCardEditor extends LitElement {
       accent: v.accent || undefined,
       color: v.color || undefined,
       badge: v.badge || undefined,
+      badge_color: v.badge_color || undefined,
       disabled: v.disabled ? true : undefined,
     });
   }
@@ -557,6 +560,7 @@ export class TabdeckCardEditor extends LitElement {
                           accent: tab.accent ?? "",
                           color: tab.color ?? "",
                           badge: tab.badge ?? "",
+                          badge_color: tab.badge_color ?? "",
                           disabled: !!tab.disabled,
                         }}
                         .schema=${TAB_SCHEMA}

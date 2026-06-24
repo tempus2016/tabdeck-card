@@ -11,6 +11,7 @@ interface TabItem {
   accent?: string;
   color?: string;
   badge?: string;
+  badgeColor?: string;
   disabled?: boolean;
 }
 
@@ -207,6 +208,7 @@ export class TabdeckTabbar extends LitElement {
               .subtitle=${item.subtitle}
               .icon=${item.icon}
               .badge=${item.badge}
+              .badgeColor=${item.badgeColor}
               .badgeDisplay=${this.badgeDisplay}
               .accent=${item.accent}
               .color=${item.color}
