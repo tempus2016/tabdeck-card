@@ -15,6 +15,7 @@ export function isActiveBadge(value?: string): boolean {
 @customElement("tabdeck-tab")
 export class TabdeckTab extends LitElement {
   @property() label?: string;
+  @property() subtitle?: string;
   @property() icon?: string;
   @property() badge?: string;
   @property() badgeDisplay: BadgeDisplay = "text";
@@ -49,7 +50,12 @@ export class TabdeckTab extends LitElement {
       <div class="inner">
         ${showIcon ? html`<ha-icon icon=${this.icon}></ha-icon>` : nothing}
         ${showLabel && this.label
-          ? html`<span class="label">${this.label}</span>`
+          ? html`<span class="text">
+              <span class="label">${this.label}</span>
+              ${this.subtitle
+                ? html`<span class="subtitle">${this.subtitle}</span>`
+                : nothing}
+            </span>`
           : nothing}
         ${this._renderBadge()}
       </div>
@@ -98,6 +104,18 @@ export class TabdeckTab extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 8px;
+    }
+    .text {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1.15;
+    }
+    .subtitle {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--secondary-text-color);
+      opacity: 0.9;
     }
     ha-icon {
       --mdc-icon-size: 22px;

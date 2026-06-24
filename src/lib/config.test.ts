@@ -105,6 +105,11 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).tabs[0].disabled).toBeUndefined();
   });
 
+  it("keeps a per-tab subtitle", () => {
+    const c = normalizeConfig({ tabs: [{ name: "A", subtitle: "3 zones", card: {} }] });
+    expect(c.tabs[0].subtitle).toBe("3 zones");
+  });
+
   it("keeps a per-tab color override", () => {
     const c = normalizeConfig({ tabs: [{ name: "A", color: "#c00", card: {} }] });
     expect(c.tabs[0].color).toBe("#c00");

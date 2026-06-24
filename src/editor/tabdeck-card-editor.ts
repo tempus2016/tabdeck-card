@@ -24,6 +24,7 @@ const DEFAULT_TAB_ICON = "mdi:tab";
 // version is running, so we never hard-code version-specific element names.
 const TAB_SCHEMA = [
   { name: "name", selector: { text: {} } },
+  { name: "subtitle", selector: { text: {} } },
   { name: "icon", selector: { icon: {} } },
   { name: "accent", selector: { text: {} } },
   { name: "color", selector: { text: {} } },
@@ -56,6 +57,7 @@ const CARD_TYPE_SCHEMA = [
 
 const TAB_LABELS: Record<string, string> = {
   name: "Tab name",
+  subtitle: "Subtitle",
   icon: "Icon",
   accent: "Accent colour",
   color: "Text/icon colour",
@@ -346,6 +348,7 @@ export class TabdeckCardEditor extends LitElement {
     const v = (e.detail as any).value ?? {};
     this._patchTab(index, {
       name: v.name ?? "",
+      subtitle: v.subtitle || undefined,
       icon: v.icon || undefined,
       accent: v.accent || undefined,
       color: v.color || undefined,
@@ -537,6 +540,7 @@ export class TabdeckCardEditor extends LitElement {
                         .hass=${this.hass}
                         .data=${{
                           name: tab.name ?? "",
+                          subtitle: tab.subtitle ?? "",
                           icon: tab.icon ?? "",
                           accent: tab.accent ?? "",
                           color: tab.color ?? "",

@@ -291,6 +291,7 @@ export class TabdeckCard extends LitElement {
       <tabdeck-tabbar
         .items=${visible.map((t) => ({
           name: t.name,
+          subtitle: t.subtitle,
           icon: t.icon,
           accent: t.accent,
           color: t.color,
