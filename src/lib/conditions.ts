@@ -38,6 +38,10 @@ function checkTemplate(c: any, resolver?: TemplateResolver): boolean {
   return resolver(c.value_template) === true;
 }
 
+function subConditions(c: any): any[] {
+  return Array.isArray(c?.conditions) ? c.conditions : [];
+}
+
 function checkOne(c: any, hass: HomeAssistant, resolver?: TemplateResolver): boolean {
   switch (c?.condition) {
     case "state":
@@ -48,6 +52,13 @@ function checkOne(c: any, hass: HomeAssistant, resolver?: TemplateResolver): boo
       return checkScreen(c);
     case "template":
       return checkTemplate(c, resolver);
+    // Logical groups (match Home Assistant's condition system) — nestable.
+    case "and":
+      return subConditions(c).every((s) => checkOne(s, hass, resolver));
+    case "or":
+      return subConditions(c).some((s) => checkOne(s, hass, resolver));
+    case "not":
+      return !subConditions(c).some((s) => checkOne(s, hass, resolver));
     default:
       return false;
   }

@@ -77,6 +77,38 @@ describe("isTabVisible", () => {
     ).toBe(false);
   });
 
+  it("evaluates or/and/not logical groups", () => {
+    const hass = hassWith({
+      "input_boolean.a": { state: "on" },
+      "input_boolean.b": { state: "off" },
+    });
+    const a = { condition: "state", entity: "input_boolean.a", state: "on" };
+    const b = { condition: "state", entity: "input_boolean.b", state: "on" };
+    // or: a passes -> true
+    expect(isTabVisible([{ condition: "or", conditions: [a, b] }], hass)).toBe(true);
+    // and: b fails -> false
+    expect(isTabVisible([{ condition: "and", conditions: [a, b] }], hass)).toBe(false);
+    // not: neither b nor (b) passes -> not(false)=true
+    expect(isTabVisible([{ condition: "not", conditions: [b] }], hass)).toBe(true);
+    // not with a passing inner -> false
+    expect(isTabVisible([{ condition: "not", conditions: [a] }], hass)).toBe(false);
+  });
+
+  it("nests logical groups", () => {
+    const hass = hassWith({
+      "input_boolean.a": { state: "on" },
+      "input_boolean.b": { state: "off" },
+      "input_boolean.c": { state: "on" },
+    });
+    const a = { condition: "state", entity: "input_boolean.a", state: "on" };
+    const b = { condition: "state", entity: "input_boolean.b", state: "on" };
+    const c = { condition: "state", entity: "input_boolean.c", state: "on" };
+    // a AND (b OR c) -> on AND (off? no OR on? yes) -> true
+    expect(
+      isTabVisible([{ condition: "and", conditions: [a, { condition: "or", conditions: [b, c] }] }], hass),
+    ).toBe(true);
+  });
+
   it("evaluates a screen condition via matchMedia", () => {
     vi.stubGlobal("matchMedia", (q: string) => ({ matches: q.includes("min-width: 700px") }) as any);
     const hass = hassWith({});
