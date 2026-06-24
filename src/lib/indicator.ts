@@ -26,7 +26,10 @@ export function computeIndicatorRect(
 ): IndicatorRect | null {
   if (!tab || tab.offsetWidth <= 0) return null;
 
-  if (style === "pill" || style === "segmented") {
+  // The `text` style has no moving indicator at all.
+  if (style === "text") return null;
+
+  if (style === "pill" || style === "segmented" || style === "boxed") {
     return {
       left: tab.offsetLeft,
       top: tab.offsetTop,
