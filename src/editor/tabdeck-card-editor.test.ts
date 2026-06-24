@@ -70,6 +70,8 @@ function globalsData() {
     default_tab: "A",
     scrollable: "auto",
     lazy: false,
+    unmount_hidden: false,
+    swipe_wrap: false,
     animated: true,
     accent_indicator: true,
     sticky: false,

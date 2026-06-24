@@ -44,6 +44,8 @@ export interface TabdeckCardConfig {
   remember_entity?: string;
   storage_key?: string;
   lazy: boolean;
+  unmount_hidden: boolean;
+  swipe_wrap: boolean;
   animated: boolean;
   accent_indicator: boolean;
   sticky: boolean;
@@ -136,6 +138,8 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     remember_entity: raw?.remember_entity ?? undefined,
     storage_key: raw?.storage_key ?? undefined,
     lazy: Boolean(raw?.lazy),
+    unmount_hidden: Boolean(raw?.unmount_hidden),
+    swipe_wrap: Boolean(raw?.swipe_wrap),
     animated: raw?.animated === undefined ? true : Boolean(raw.animated),
     accent_indicator: raw?.accent_indicator === undefined ? true : Boolean(raw.accent_indicator),
     sticky: Boolean(raw?.sticky),

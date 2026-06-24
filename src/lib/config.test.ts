@@ -78,6 +78,13 @@ describe("normalizeConfig", () => {
     expect(c.storage_key).toBe("deck1");
   });
 
+  it("defaults unmount_hidden and swipe_wrap to false", () => {
+    const d = normalizeConfig({ tabs: [{ card: {} }] });
+    expect(d.unmount_hidden).toBe(false);
+    expect(d.swipe_wrap).toBe(false);
+    expect(normalizeConfig({ unmount_hidden: true, swipe_wrap: true, tabs: [{ card: {} }] }).unmount_hidden).toBe(true);
+  });
+
   it("defaults animated to true and respects explicit false", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).animated).toBe(true);
     expect(normalizeConfig({ animated: false, tabs: [{ card: {} }] }).animated).toBe(false);
