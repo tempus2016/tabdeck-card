@@ -30,6 +30,7 @@ export interface TabdeckCardConfig {
   tab_display: TabDisplay;
   align: TabAlign;
   badge_display: BadgeDisplay;
+  hide_inactive_badge: boolean;
   transition: PanelTransition;
   indicator_size: number;
   scrollable: "auto" | boolean;
@@ -97,6 +98,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     tab_display: pick(raw?.tab_display, DISPLAYS, "both"),
     align: pick(raw?.align, ALIGNS, "start"),
     badge_display: pick(raw?.badge_display, BADGE_DISPLAYS, "text"),
+    hide_inactive_badge: Boolean(raw?.hide_inactive_badge),
     transition: pick(raw?.transition, TRANSITIONS, "none"),
     indicator_size: clampNumber(raw?.indicator_size, 1, 16, 3),
     scrollable: raw?.scrollable === undefined ? "auto" : raw.scrollable,
