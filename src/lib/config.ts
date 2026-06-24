@@ -15,6 +15,7 @@ export interface TabdeckTabConfig {
   accent?: string;
   color?: string;
   badge?: string;
+  badge_color?: string;
   disabled?: boolean;
   // Switch to this tab when the entity enters the given state (or becomes
   // active when no state is given). Edge-triggered.
@@ -95,6 +96,7 @@ function normalizeTab(raw: any): TabdeckTabConfig {
     accent: raw?.accent ?? undefined,
     color: raw?.color ?? undefined,
     badge: raw?.badge ?? undefined,
+    badge_color: raw?.badge_color ?? undefined,
     disabled: raw?.disabled ? true : undefined,
     auto_select: normalizeAutoSelect(raw?.auto_select),
     visibility: raw?.visibility ?? undefined,

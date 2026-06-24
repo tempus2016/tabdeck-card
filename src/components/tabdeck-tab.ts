@@ -18,6 +18,7 @@ export class TabdeckTab extends LitElement {
   @property() subtitle?: string;
   @property() icon?: string;
   @property() badge?: string;
+  @property() badgeColor?: string;
   @property() badgeDisplay: BadgeDisplay = "text";
   @property() accent?: string;
   @property() color?: string;
@@ -63,13 +64,14 @@ export class TabdeckTab extends LitElement {
   }
 
   private _renderBadge() {
+    const bg = this.badgeColor ? `background:${this.badgeColor}` : "";
     if (this.badgeDisplay === "dot") {
       return isActiveBadge(this.badge)
-        ? html`<span class="badge-dot" part="badge-dot"></span>`
+        ? html`<span class="badge-dot" part="badge-dot" style=${bg}></span>`
         : nothing;
     }
     return this.badge
-      ? html`<span class="badge" part="badge">${this.badge}</span>`
+      ? html`<span class="badge" part="badge" style=${bg}>${this.badge}</span>`
       : nothing;
   }
 

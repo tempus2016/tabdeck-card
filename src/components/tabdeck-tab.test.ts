@@ -63,6 +63,11 @@ describe("tabdeck-tab", () => {
     expect(isActiveBadge(undefined)).toBe(false);
   });
 
+  it("applies a custom badge_color to the badge", async () => {
+    const el = await mount({ label: "A", badge: "3", badgeColor: "rgb(200, 0, 0)" });
+    expect((el.shadowRoot.querySelector(".badge") as HTMLElement).style.background).toBe("rgb(200, 0, 0)");
+  });
+
   it("badgeDisplay=dot shows a dot for active values and nothing otherwise", async () => {
     const on = await mount({ label: "A", badge: "3", badgeDisplay: "dot" });
     expect(on.shadowRoot.querySelector(".badge-dot")).toBeTruthy();
