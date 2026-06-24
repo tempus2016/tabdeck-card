@@ -72,6 +72,27 @@ describe("normalizeConfig", () => {
     expect(c.default_tab).toBe(2);
   });
 
+  it("collapses a per-tab `cards` array into a vertical-stack card", () => {
+    const c = normalizeConfig({
+      tabs: [{ name: "A", cards: [{ type: "markdown", content: "x" }, { type: "light" }] }],
+    });
+    expect(c.tabs[0].card.type).toBe("vertical-stack");
+    expect(c.tabs[0].card.cards).toHaveLength(2);
+    expect(c.tabs[0].card.cards[1].type).toBe("light");
+  });
+
+  it("prefers `cards` over a single `card` when both are given", () => {
+    const c = normalizeConfig({
+      tabs: [{ name: "A", card: { type: "light" }, cards: [{ type: "markdown" }] }],
+    });
+    expect(c.tabs[0].card.type).toBe("vertical-stack");
+  });
+
+  it("keeps a single `card` when no `cards` array is present", () => {
+    const c = normalizeConfig({ tabs: [{ name: "A", card: { type: "light" } }] });
+    expect(c.tabs[0].card.type).toBe("light");
+  });
+
   it("keeps a per-tab color override", () => {
     const c = normalizeConfig({ tabs: [{ name: "A", color: "#c00", card: {} }] });
     expect(c.tabs[0].color).toBe("#c00");
