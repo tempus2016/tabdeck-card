@@ -25,7 +25,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Visibility and/or/not groups](Tab-Visibility#logical-groups-and--or--not)** — nestable logical conditions for tab visibility.
 
 ## Editor
-- _(pages added as features land)_
+- **[Duplicate tab](Feature-Duplicate-Tab)** — one-click deep copy of a tab in the editor.
 
 ## Theming
 - _(pages added as features land)_

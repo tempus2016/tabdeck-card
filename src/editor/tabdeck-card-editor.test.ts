@@ -160,6 +160,20 @@ describe("tabdeck-card-editor", () => {
     expect(handler.mock.calls[0][0].detail.config.tabs[0].name).toBe("B");
   });
 
+  it("duplicates a tab right after the original with a renamed copy", async () => {
+    const el = await mount({
+      tabs: [{ name: "A", card: { type: "markdown", content: "hi" } }, { name: "B", card: {} }],
+    });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    el.shadowRoot.querySelectorAll(".duplicate-tab")[0].click();
+    const tabs = handler.mock.calls.at(-1)![0].detail.config.tabs;
+    expect(tabs).toHaveLength(3);
+    expect(tabs[1].name).toBe("A copy");
+    expect(tabs[1].card).toEqual({ type: "markdown", content: "hi" });
+    expect(tabs[2].name).toBe("B");
+  });
+
   it("moves a tab down", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }, { name: "B", card: {} }] });
     const handler = vi.fn();

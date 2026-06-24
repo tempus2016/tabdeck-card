@@ -11,6 +11,8 @@ const MDI_ARROW_DOWN = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.
 const MDI_DELETE =
   "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
 const MDI_PLUS = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
+const MDI_COPY =
+  "M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z";
 const MDI_CHEVRON_DOWN = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z";
 
 // Fallback icon shown in a collapsed tab header when the tab has no icon set.
@@ -150,6 +152,19 @@ export class TabdeckCardEditor extends LitElement {
   private _deleteTab(index: number): void {
     if (!this._config) return;
     const tabs = this._config.tabs.filter((_, i) => i !== index);
+    this._expanded = new Set();
+    this._emit({ ...this._config, tabs });
+  }
+
+  private _duplicateTab(index: number): void {
+    if (!this._config) return;
+    const src = this._config.tabs[index];
+    if (!src) return;
+    // Deep clone so the copy doesn't share nested card/visibility objects.
+    const copy = JSON.parse(JSON.stringify(src));
+    copy.name = `${src.name ?? `Tab ${index + 1}`} copy`;
+    const tabs = this._config.tabs.slice();
+    tabs.splice(index + 1, 0, copy);
     this._expanded = new Set();
     this._emit({ ...this._config, tabs });
   }
@@ -476,6 +491,15 @@ export class TabdeckCardEditor extends LitElement {
                       @click=${(e: Event) => {
                         e.stopPropagation();
                         this._move(index, 1);
+                      }}
+                    ></ha-icon-button>
+                    <ha-icon-button
+                      class="duplicate-tab"
+                      label="Duplicate tab"
+                      .path=${MDI_COPY}
+                      @click=${(e: Event) => {
+                        e.stopPropagation();
+                        this._duplicateTab(index);
                       }}
                     ></ha-icon-button>
                     <ha-icon-button
