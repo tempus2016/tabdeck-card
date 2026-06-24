@@ -63,6 +63,7 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).elevation).toBe(false);
     expect(normalizeConfig({ elevation: true, tabs: [{ card: {} }] }).elevation).toBe(true);
     expect(normalizeConfig({ bar_background: "#222", tabs: [{ card: {} }] }).bar_background).toBe("#222");
+    expect(normalizeConfig({ scroll_buttons: true, tabs: [{ card: {} }] }).scroll_buttons).toBe(true);
   });
 
   it("defaults accent_indicator to true and respects explicit false", () => {

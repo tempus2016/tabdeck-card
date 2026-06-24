@@ -183,6 +183,27 @@ describe("tabdeck-tabbar", () => {
     expect(bar.style.background).toBe("rgb(34, 34, 34)");
   });
 
+  it("shows scroll buttons when a horizontal bar overflows and scroll_buttons is on", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }, { name: "B" }, { name: "C" }];
+    el.selected = 0;
+    el.scrollButtons = true;
+    el.position = "top";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const bar = el.shadowRoot.querySelector(".bar");
+    Object.defineProperty(bar, "scrollWidth", { value: 500, configurable: true });
+    Object.defineProperty(bar, "clientWidth", { value: 100, configurable: true });
+    el._updateOverflow();
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelectorAll(".scroll-btn")).toHaveLength(2);
+  });
+
+  it("shows no scroll buttons by default", async () => {
+    const el = await mount();
+    expect(el.shadowRoot.querySelector(".scroll-btn")).toBeNull();
+  });
+
   it("applies the alignment class to the bar", async () => {
     const el = document.createElement("tabdeck-tabbar") as any;
     el.items = [{ name: "A" }, { name: "B" }];

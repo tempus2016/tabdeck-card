@@ -93,6 +93,7 @@ const GLOBAL_LABELS: Record<string, string> = {
   header: "Show header (active tab title above content)",
   sticky: "Sticky tab bar",
   elevation: "Raise bar with shadow",
+  scroll_buttons: "Scroll buttons when bar overflows",
   bar_background: "Tab bar background colour",
   swipe: "Swipe to change tabs (mobile)",
 };
@@ -351,6 +352,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "header", selector: { boolean: {} } },
       { name: "sticky", selector: { boolean: {} } },
       { name: "elevation", selector: { boolean: {} } },
+      { name: "scroll_buttons", selector: { boolean: {} } },
       { name: "bar_background", selector: { text: {} } },
       { name: "swipe", selector: { boolean: {} } },
     ];
@@ -380,6 +382,7 @@ export class TabdeckCardEditor extends LitElement {
       header: cfg.header,
       sticky: cfg.sticky,
       elevation: cfg.elevation,
+      scroll_buttons: cfg.scroll_buttons,
       bar_background: cfg.bar_background ?? "",
       swipe: cfg.swipe,
     };
@@ -412,6 +415,7 @@ export class TabdeckCardEditor extends LitElement {
       header: !!v.header,
       sticky: !!v.sticky,
       elevation: !!v.elevation,
+      scroll_buttons: !!v.scroll_buttons,
       bar_background: v.bar_background || undefined,
       swipe: !!v.swipe,
     });

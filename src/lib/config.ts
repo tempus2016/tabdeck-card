@@ -54,6 +54,7 @@ export interface TabdeckCardConfig {
   header: boolean;
   sticky: boolean;
   elevation: boolean;
+  scroll_buttons: boolean;
   bar_background?: string;
   swipe: boolean;
   styles: Record<string, string>;
@@ -150,6 +151,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     header: Boolean(raw?.header),
     sticky: Boolean(raw?.sticky),
     elevation: Boolean(raw?.elevation),
+    scroll_buttons: Boolean(raw?.scroll_buttons),
     bar_background: raw?.bar_background ?? undefined,
     swipe: Boolean(raw?.swipe),
     styles: raw?.styles ?? {},

@@ -12,6 +12,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Sticky tab bar](Feature-Sticky-Bar)** — keep the bar pinned while content scrolls (`sticky`).
 - **[Tab alignment](Feature-Tab-Alignment)** — start / center / end / justify the tabs (`align`).
 - **[Bar background & elevation](Feature-Bar-Surface)** — custom bar colour + shadow (`bar_background`, `elevation`).
+- **[Scroll buttons](Feature-Scroll-Buttons)** — arrows to scroll an overflowing bar (`scroll_buttons`).
 
 ## Per-tab content
 - **[Per-tab text/icon colour](Feature-Tab-Color)** — fixed label/icon colour for a tab (`color`).
