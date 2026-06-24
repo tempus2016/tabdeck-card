@@ -27,8 +27,16 @@ export function loadInitialIndex(opts: {
   hash?: string;
   tabNames?: string[];
   storage?: Storage;
+  entityValue?: string;
 }): number {
   const { mode, cardKey, defaultIndex, tabCount } = opts;
+  if (mode === "entity") {
+    const n = Number(opts.entityValue);
+    if (opts.entityValue !== undefined && Number.isFinite(n)) {
+      return clamp(Math.trunc(n), tabCount, defaultIndex);
+    }
+    return clamp(defaultIndex, tabCount, 0);
+  }
   if (mode === "url") {
     const idx = parseHashIndex(opts.hash ?? "", opts.tabNames ?? []);
     if (idx !== null) return clamp(idx, tabCount, defaultIndex);

@@ -2,7 +2,7 @@ import type { LovelaceCardConfig } from "../types";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
 export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text";
-export type RememberMode = "none" | "browser" | "url";
+export type RememberMode = "none" | "browser" | "url" | "entity";
 export type TabDisplay = "both" | "icon" | "label";
 export type TabAlign = "start" | "center" | "end" | "justify";
 export type BadgeDisplay = "text" | "dot";
@@ -41,6 +41,8 @@ export interface TabdeckCardConfig {
   indicator_size: number;
   scrollable: "auto" | boolean;
   remember: RememberMode;
+  remember_entity?: string;
+  storage_key?: string;
   lazy: boolean;
   animated: boolean;
   accent_indicator: boolean;
@@ -54,7 +56,7 @@ export interface TabdeckCardConfig {
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
 const STYLES: TabStyle[] = ["underline", "pill", "segmented", "boxed", "text"];
-const REMEMBER: RememberMode[] = ["none", "browser", "url"];
+const REMEMBER: RememberMode[] = ["none", "browser", "url", "entity"];
 const DISPLAYS: TabDisplay[] = ["both", "icon", "label"];
 const ALIGNS: TabAlign[] = ["start", "center", "end", "justify"];
 const BADGE_DISPLAYS: BadgeDisplay[] = ["text", "dot"];
@@ -126,6 +128,8 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     indicator_size: clampNumber(raw?.indicator_size, 1, 16, 3),
     scrollable: raw?.scrollable === undefined ? "auto" : raw.scrollable,
     remember: pick(raw?.remember, REMEMBER, "none"),
+    remember_entity: raw?.remember_entity ?? undefined,
+    storage_key: raw?.storage_key ?? undefined,
     lazy: Boolean(raw?.lazy),
     animated: raw?.animated === undefined ? true : Boolean(raw.animated),
     accent_indicator: raw?.accent_indicator === undefined ? true : Boolean(raw.accent_indicator),

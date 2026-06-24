@@ -65,6 +65,8 @@ function globalsData() {
     transition: "none",
     indicator_size: 3,
     remember: "none",
+    remember_entity: "",
+    storage_key: "",
     default_tab: "A",
     scrollable: "auto",
     lazy: false,

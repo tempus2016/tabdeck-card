@@ -132,6 +132,40 @@ describe("tabdeck-card", () => {
     expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(0);
   });
 
+  it("remember:entity writes the selected index via a service call", async () => {
+    const calls: any[] = [];
+    const hass = {
+      states: { "input_number.tab": { state: "0" } },
+      callService: (d: string, s: string, data: any) => calls.push({ d, s, data }),
+    };
+    const el = await mountWith(
+      {
+        remember: "entity",
+        remember_entity: "input_number.tab",
+        tabs: [{ name: "A", card: { type: "markdown" } }, { name: "B", card: { type: "light" } }],
+      },
+      hass,
+    );
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 }, bubbles: true, composed: true }));
+    await el.updateComplete;
+    expect(calls.at(-1)).toEqual({ d: "input_number", s: "set_value", data: { entity_id: "input_number.tab", value: 1 } });
+  });
+
+  it("remember:entity restores the initial tab from the entity state", async () => {
+    const hass = { states: { "input_number.tab": { state: "1" } }, callService: () => {} };
+    const el = await mountWith(
+      {
+        remember: "entity",
+        remember_entity: "input_number.tab",
+        tabs: [{ name: "A", card: { type: "markdown" } }, { name: "B", card: { type: "light" } }],
+      },
+      hass,
+    );
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(1);
+  });
+
   it("getStubConfig returns a valid one-tab config", async () => {
     const mod: any = await import("./tabdeck-card");
     const stub = mod.TabdeckCard.getStubConfig();

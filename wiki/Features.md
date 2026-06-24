@@ -41,3 +41,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 ---
 
 See **[Configuration](Configuration)** for the complete option reference.
+
+## Persistence
+- **[Remember across devices](Navigation-and-Persistence#cross-device-with-remember-entity)** — store the active tab in an entity (`remember: entity`).
+- **[Custom storage key](Navigation-and-Persistence#storage_key-browser-mode)** — independent browser persistence (`storage_key`).
