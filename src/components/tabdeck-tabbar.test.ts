@@ -131,6 +131,19 @@ describe("tabdeck-tabbar", () => {
     expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("");
   });
 
+  it("applies elevation class and a custom bar background", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }];
+    el.selected = 0;
+    el.elevation = true;
+    el.barBackground = "rgb(34, 34, 34)";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const bar = el.shadowRoot.querySelector(".bar");
+    expect(bar.classList.contains("elevated")).toBe(true);
+    expect(bar.style.background).toBe("rgb(34, 34, 34)");
+  });
+
   it("applies the alignment class to the bar", async () => {
     const el = document.createElement("tabdeck-tabbar") as any;
     el.items = [{ name: "A" }, { name: "B" }];

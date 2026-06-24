@@ -81,6 +81,8 @@ const GLOBAL_LABELS: Record<string, string> = {
   animated: "Animate indicator",
   accent_indicator: "Colour indicator by tab accent",
   sticky: "Sticky tab bar",
+  elevation: "Raise bar with shadow",
+  bar_background: "Tab bar background colour",
   swipe: "Swipe to change tabs (mobile)",
 };
 
@@ -296,6 +298,8 @@ export class TabdeckCardEditor extends LitElement {
       { name: "animated", selector: { boolean: {} } },
       { name: "accent_indicator", selector: { boolean: {} } },
       { name: "sticky", selector: { boolean: {} } },
+      { name: "elevation", selector: { boolean: {} } },
+      { name: "bar_background", selector: { text: {} } },
       { name: "swipe", selector: { boolean: {} } },
     ];
   }
@@ -318,6 +322,8 @@ export class TabdeckCardEditor extends LitElement {
       animated: cfg.animated,
       accent_indicator: cfg.accent_indicator,
       sticky: cfg.sticky,
+      elevation: cfg.elevation,
+      bar_background: cfg.bar_background ?? "",
       swipe: cfg.swipe,
     };
   }
@@ -343,6 +349,8 @@ export class TabdeckCardEditor extends LitElement {
       animated: !!v.animated,
       accent_indicator: !!v.accent_indicator,
       sticky: !!v.sticky,
+      elevation: !!v.elevation,
+      bar_background: v.bar_background || undefined,
       swipe: !!v.swipe,
     });
   }
