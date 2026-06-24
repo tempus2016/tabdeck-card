@@ -201,6 +201,27 @@ describe("tabdeck-card-editor", () => {
     expect(tabs[2].name).toBe("B");
   });
 
+  it("reorders tabs on ha-sortable item-moved", async () => {
+    const el = await mount({
+      tabs: [{ name: "A", card: {} }, { name: "B", card: {} }, { name: "C", card: {} }],
+    });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    el.shadowRoot
+      .querySelector("ha-sortable")
+      .dispatchEvent(new CustomEvent("item-moved", { detail: { oldIndex: 0, newIndex: 2 } }));
+    const names = handler.mock.calls.at(-1)![0].detail.config.tabs.map((t: any) => t.name);
+    expect(names).toEqual(["B", "C", "A"]);
+  });
+
+  it("warns about duplicate tab names", async () => {
+    const el = await mount({ tabs: [{ name: "Dup", card: {} }, { name: "Dup", card: {} }] });
+    const warn = el.shadowRoot.querySelector(".editor-warning");
+    expect(warn?.textContent).toContain("Duplicate tab names");
+    const ok = await mount({ tabs: [{ name: "A", card: {} }, { name: "B", card: {} }] });
+    expect(ok.shadowRoot.querySelector(".editor-warning")).toBeNull();
+  });
+
   it("moves a tab down", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }, { name: "B", card: {} }] });
     const handler = vi.fn();

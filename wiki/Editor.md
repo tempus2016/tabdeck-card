@@ -22,7 +22,13 @@ Each tab is a collapsible block. By default every block is **collapsed** to save
 
 ### Reordering, deleting, adding
 
-Each header has **move up / move down / delete** buttons. The **Add tab** button at the bottom appends a new, typeless tab — its drill-in shows a **card-type chooser** so you can pick (or type) any card type, including `custom:` cards.
+Each header has a **drag handle** (the grip icon) — drag a tab to reorder it — plus **move up / move down / duplicate / delete** buttons.
+
+![Drag handle and duplicate-name warning](images/feature-editor-drag-warn.png)
+
+### Warnings
+
+The editor shows a warning when it spots a footgun, e.g. **duplicate tab names** (which make `remember: url` and default-tab-by-name ambiguous). The **Add tab** button at the bottom appends a new, typeless tab — its drill-in shows a **card-type chooser** so you can pick (or type) any card type, including `custom:` cards.
 
 ## Notes
 
