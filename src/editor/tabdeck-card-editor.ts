@@ -13,6 +13,8 @@ const MDI_DELETE =
 const MDI_PLUS = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
 const MDI_COPY =
   "M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z";
+const MDI_DRAG =
+  "M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z";
 const MDI_CHEVRON_DOWN = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z";
 
 // Fallback icon shown in a collapsed tab header when the tab has no icon set.
@@ -216,6 +218,42 @@ export class TabdeckCardEditor extends LitElement {
     }
     this._cardError = null;
     this._patchTab(index, { card: parsed });
+  }
+
+  // Drag-to-reorder via ha-sortable (fires item-moved with old/new indices).
+  private _onItemMoved(e: CustomEvent): void {
+    if (!this._config) return;
+    const { oldIndex, newIndex } = (e.detail ?? {}) as { oldIndex: number; newIndex: number };
+    if (
+      oldIndex == null ||
+      newIndex == null ||
+      oldIndex === newIndex ||
+      oldIndex < 0 ||
+      newIndex < 0 ||
+      oldIndex >= this._config.tabs.length ||
+      newIndex >= this._config.tabs.length
+    )
+      return;
+    const tabs = this._config.tabs.slice();
+    const [moved] = tabs.splice(oldIndex, 1);
+    tabs.splice(newIndex, 0, moved);
+    this._expanded = new Set();
+    this._emit({ ...this._config, tabs });
+  }
+
+  // Editor warnings for footguns the user can't see at a glance.
+  private _warnings(): string[] {
+    const cfg = this._config;
+    if (!cfg) return [];
+    const out: string[] = [];
+    const names = cfg.tabs.map((t) => t.name ?? "").filter((n) => n);
+    const dupes = names.filter((n, i) => names.indexOf(n) !== i);
+    if (dupes.length > 0) {
+      out.push(
+        `Duplicate tab names (${[...new Set(dupes)].join(", ")}). "Remember: url" and default-tab-by-name may be ambiguous.`,
+      );
+    }
+    return out;
   }
 
   private _move(index: number, delta: number): void {
@@ -494,6 +532,10 @@ export class TabdeckCardEditor extends LitElement {
           @value-changed=${this._onGlobalChanged}
         ></ha-form>
 
+        ${this._warnings().map(
+          (w) => html`<div class="editor-warning" role="alert">⚠️ ${w}</div>`,
+        )}
+
         ${cfg.tabs.length > 1
           ? html`<div class="bulk-controls">
               <button class="expand-all" @click=${this._expandAll}>Expand all</button>
@@ -501,6 +543,10 @@ export class TabdeckCardEditor extends LitElement {
             </div>`
           : nothing}
 
+        <ha-sortable
+          handle-selector=".drag-handle"
+          @item-moved=${this._onItemMoved}
+        >
         <div class="tabs">
           ${cfg.tabs.map((tab, index) => {
             const expanded = this._expanded.has(index);
@@ -515,6 +561,12 @@ export class TabdeckCardEditor extends LitElement {
                   @keydown=${(e: KeyboardEvent) => this._onHeaderKeydown(index, e)}
                 >
                   <div class="tab-summary">
+                    <ha-svg-icon
+                      class="drag-handle"
+                      .path=${MDI_DRAG}
+                      title="Drag to reorder"
+                      @click=${(e: Event) => e.stopPropagation()}
+                    ></ha-svg-icon>
                     <ha-svg-icon
                       class="expand-chevron"
                       .path=${MDI_CHEVRON_DOWN}
@@ -598,11 +650,12 @@ export class TabdeckCardEditor extends LitElement {
               </div>
             `;
           })}
-          <ha-button class="add-tab" @click=${this._addTab}>
-            <ha-svg-icon slot="icon" .path=${MDI_PLUS}></ha-svg-icon>
-            Add tab
-          </ha-button>
         </div>
+        </ha-sortable>
+        <ha-button class="add-tab" @click=${this._addTab}>
+          <ha-svg-icon slot="icon" .path=${MDI_PLUS}></ha-svg-icon>
+          Add tab
+        </ha-button>
       </div>
     `;
   }
@@ -654,6 +707,21 @@ export class TabdeckCardEditor extends LitElement {
       gap: 8px;
       min-width: 0;
       flex: 1;
+    }
+    .drag-handle {
+      flex-shrink: 0;
+      color: var(--secondary-text-color);
+      cursor: grab;
+    }
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+    .editor-warning {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--warning-color, #ffa600) 18%, transparent);
+      color: var(--primary-text-color);
+      font-size: 13px;
     }
     .expand-chevron {
       flex-shrink: 0;
