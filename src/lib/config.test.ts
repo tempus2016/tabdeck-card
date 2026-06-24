@@ -54,6 +54,11 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ style: "nope", tabs: [{ card: {} }] }).style).toBe("underline");
   });
 
+  it("defaults header to false", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).header).toBe(false);
+    expect(normalizeConfig({ header: true, tabs: [{ card: {} }] }).header).toBe(true);
+  });
+
   it("defaults elevation off and keeps bar_background", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).elevation).toBe(false);
     expect(normalizeConfig({ elevation: true, tabs: [{ card: {} }] }).elevation).toBe(true);

@@ -58,6 +58,23 @@ describe("tabdeck-card", () => {
     expect(el.shadowRoot.querySelector("[data-type]").getAttribute("data-type")).toBe("markdown");
   });
 
+  it("renders a content header with the active tab title when header is on", async () => {
+    const el = await mount({
+      header: true,
+      tabs: [
+        { name: "Climate", subtitle: "3 zones", card: { type: "markdown" } },
+        { name: "Lights", card: { type: "light" } },
+      ],
+    });
+    expect(el.shadowRoot.querySelector(".content-title")?.textContent).toContain("Climate");
+    expect(el.shadowRoot.querySelector(".content-subtitle")?.textContent).toContain("3 zones");
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 }, bubbles: true, composed: true }));
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".content-title")?.textContent).toContain("Lights");
+  });
+
   it("switches the active panel on tabdeck-select", async () => {
     const el = await mount({
       tabs: [

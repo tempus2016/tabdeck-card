@@ -21,6 +21,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Multiple cards per tab](Feature-Multiple-Cards)** — stack several cards in one tab (`cards`).
 - **[Disabled tabs](Feature-Disabled-Tabs)** — show a tab greyed-out and non-selectable (`disabled`).
 - **[Tab subtitles](Feature-Subtitle)** — secondary text under a tab label (`subtitle`).
+- **[Content header](Feature-Header)** — show the active tab's title above the content (`header`); icon-rail recipe.
 
 ## Navigation & interaction
 - **[Panel transitions](Feature-Panel-Transition)** — fade or slide when switching tabs (`transition`).

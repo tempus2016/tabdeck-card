@@ -74,6 +74,7 @@ function globalsData() {
     swipe_wrap: false,
     animated: true,
     accent_indicator: true,
+    header: false,
     sticky: false,
     elevation: false,
     bar_background: "",
