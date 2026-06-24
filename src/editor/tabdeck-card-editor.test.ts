@@ -133,6 +133,26 @@ describe("tabdeck-card-editor", () => {
     expect(el.shadowRoot.querySelector(".tab-title").textContent).toContain("Weather");
   });
 
+  it("auto-expands a newly added tab", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    el.shadowRoot.querySelector(".add-tab").click();
+    await el.updateComplete;
+    // two tabs now; the new (second) one should be expanded -> its form visible
+    expect(el.shadowRoot.querySelectorAll(".tab.expanded")).toHaveLength(1);
+    expect(el.shadowRoot.querySelectorAll(".tab")[1].classList.contains("expanded")).toBe(true);
+  });
+
+  it("expand all / collapse all toggles every tab", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }, { name: "B", card: {} }, { name: "C", card: {} }] });
+    expect(el.shadowRoot.querySelectorAll(".tab.expanded")).toHaveLength(0);
+    el.shadowRoot.querySelector(".expand-all").click();
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelectorAll(".tab.expanded")).toHaveLength(3);
+    el.shadowRoot.querySelector(".collapse-all").click();
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelectorAll(".tab.expanded")).toHaveLength(0);
+  });
+
   it("collapses all tabs after a reorder so no stale index is expanded", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }, { name: "B", card: {} }] });
     await expand(el, 0);

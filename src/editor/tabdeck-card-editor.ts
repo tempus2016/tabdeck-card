@@ -143,10 +143,20 @@ export class TabdeckCardEditor extends LitElement {
       ...this._config.tabs,
       { name: `Tab ${this._config.tabs.length + 1}`, card: {} as any },
     ];
-    // Reindexing tabs invalidates the expanded set; collapse all so a stale
-    // index never reveals the wrong tab.
-    this._expanded = new Set();
+    // Appending doesn't shift existing indices, so keep what's open and also
+    // expand the new tab so the user can configure it immediately.
+    const newIndex = this._config.tabs.length;
+    this._expanded = new Set(this._expanded).add(newIndex);
     this._emit({ ...this._config, tabs });
+  }
+
+  private _expandAll(): void {
+    if (!this._config) return;
+    this._expanded = new Set(this._config.tabs.map((_, i) => i));
+  }
+
+  private _collapseAll(): void {
+    this._expanded = new Set();
   }
 
   private _deleteTab(index: number): void {
@@ -447,6 +457,13 @@ export class TabdeckCardEditor extends LitElement {
           @value-changed=${this._onGlobalChanged}
         ></ha-form>
 
+        ${cfg.tabs.length > 1
+          ? html`<div class="bulk-controls">
+              <button class="expand-all" @click=${this._expandAll}>Expand all</button>
+              <button class="collapse-all" @click=${this._collapseAll}>Collapse all</button>
+            </div>`
+          : nothing}
+
         <div class="tabs">
           ${cfg.tabs.map((tab, index) => {
             const expanded = this._expanded.has(index);
@@ -661,6 +678,18 @@ export class TabdeckCardEditor extends LitElement {
     }
     .add-tab {
       align-self: flex-start;
+    }
+    .bulk-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .bulk-controls button {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      font-size: 13px;
+      padding: 4px 6px;
     }
     .card-editor-view {
       display: flex;

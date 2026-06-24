@@ -26,6 +26,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 
 ## Editor
 - **[Duplicate tab](Feature-Duplicate-Tab)** — one-click deep copy of a tab in the editor.
+- **[Expand all / Collapse all](Feature-Editor-Expand-Collapse)** — bulk-toggle tab blocks; new tabs auto-expand.
 
 ## Theming
 - **[Theming & styles passthrough](Feature-Theming)** — set CSS variables from config (`styles`).
