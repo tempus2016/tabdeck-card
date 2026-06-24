@@ -1,12 +1,23 @@
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import type { TabDisplay } from "../lib/config";
+import type { BadgeDisplay, TabDisplay } from "../lib/config";
+
+// A badge value counts as "active" (worth a dot) when it isn't an empty/zero/
+// off-like state. Used by dot badge mode.
+const INACTIVE_BADGE = new Set([
+  "", "0", "off", "false", "no", "none", "unavailable", "unknown", "closed",
+]);
+export function isActiveBadge(value?: string): boolean {
+  if (value === undefined || value === null) return false;
+  return !INACTIVE_BADGE.has(String(value).trim().toLowerCase());
+}
 
 @customElement("tabdeck-tab")
 export class TabdeckTab extends LitElement {
   @property() label?: string;
   @property() icon?: string;
   @property() badge?: string;
+  @property() badgeDisplay: BadgeDisplay = "text";
   @property() accent?: string;
   @property() color?: string;
   @property() display: TabDisplay = "both";
@@ -40,9 +51,20 @@ export class TabdeckTab extends LitElement {
         ${showLabel && this.label
           ? html`<span class="label">${this.label}</span>`
           : nothing}
-        ${this.badge ? html`<span class="badge">${this.badge}</span>` : nothing}
+        ${this._renderBadge()}
       </div>
     `;
+  }
+
+  private _renderBadge() {
+    if (this.badgeDisplay === "dot") {
+      return isActiveBadge(this.badge)
+        ? html`<span class="badge-dot" part="badge-dot"></span>`
+        : nothing;
+    }
+    return this.badge
+      ? html`<span class="badge" part="badge">${this.badge}</span>`
+      : nothing;
   }
 
   static styles = css`
@@ -90,6 +112,13 @@ export class TabdeckTab extends LitElement {
       font-size: 11px;
       line-height: 18px;
       text-align: center;
+    }
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--tabdeck-accent, var(--primary-color));
+      flex-shrink: 0;
     }
   `;
 }

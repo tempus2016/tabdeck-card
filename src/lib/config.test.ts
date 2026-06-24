@@ -23,6 +23,12 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ indicator_size: "x", tabs: [{ card: {} }] }).indicator_size).toBe(3);
   });
 
+  it("defaults badge_display to text and picks dot", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).badge_display).toBe("text");
+    expect(normalizeConfig({ badge_display: "dot", tabs: [{ card: {} }] }).badge_display).toBe("dot");
+    expect(normalizeConfig({ badge_display: "x", tabs: [{ card: {} }] }).badge_display).toBe("text");
+  });
+
   it("defaults align to start and picks valid values", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).align).toBe("start");
     expect(normalizeConfig({ align: "center", tabs: [{ card: {} }] }).align).toBe("center");
