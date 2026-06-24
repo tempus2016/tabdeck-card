@@ -173,6 +173,11 @@ describe("tabdeck-card", () => {
     expect(el.getCardSize()).toBe(3);
   });
 
+  it("getCardSize uses a per-tab card_size hint when set", async () => {
+    const el = await mount({ tabs: [{ name: "A", card_size: 8, card: { type: "markdown" } }] });
+    expect(el.getCardSize()).toBe(8);
+  });
+
   it("auto-selects a tab when its entity enters the target state", async () => {
     const el = await mount({
       tabs: [

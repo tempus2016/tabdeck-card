@@ -33,6 +33,7 @@ const TAB_SCHEMA = [
   { name: "badge", selector: { text: {} } },
   { name: "badge_color", selector: { text: {} } },
   { name: "disabled", selector: { boolean: {} } },
+  { name: "card_size", selector: { number: { min: 1, max: 20, step: 1, mode: "box" } } },
   { name: "hold_action", selector: { ui_action: {} } },
   { name: "badge_action", selector: { ui_action: {} } },
 ];
@@ -74,6 +75,7 @@ const TAB_LABELS: Record<string, string> = {
   badge: "Badge (entity id or template)",
   badge_color: "Badge colour",
   disabled: "Disable tab (greyed, not selectable)",
+  card_size: "Card size hint (rows)",
   hold_action: "Long-press action",
   badge_action: "Badge tap action",
 };
@@ -448,6 +450,7 @@ export class TabdeckCardEditor extends LitElement {
       badge: v.badge || undefined,
       badge_color: v.badge_color || undefined,
       disabled: v.disabled ? true : undefined,
+      card_size: typeof v.card_size === "number" ? v.card_size : undefined,
       hold_action: v.hold_action ?? undefined,
       badge_action: v.badge_action ?? undefined,
     });
@@ -657,6 +660,7 @@ export class TabdeckCardEditor extends LitElement {
                           badge: tab.badge ?? "",
                           badge_color: tab.badge_color ?? "",
                           disabled: !!tab.disabled,
+                          card_size: tab.card_size,
                           hold_action: tab.hold_action,
                           badge_action: tab.badge_action,
                         }}

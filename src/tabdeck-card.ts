@@ -210,6 +210,10 @@ export class TabdeckCard extends LitElement {
   }
 
   getCardSize(): number {
+    // A per-tab card_size hint wins, so masonry sizing doesn't jump around as
+    // tabs change (and works even before the nested card reports a size).
+    const tab = this._visibleTabs()[this._selected];
+    if (tab && typeof tab.card_size === "number") return tab.card_size;
     const card = this._manager?.get(this._activeOriginalIndex());
     if (card && typeof card.getCardSize === "function") return card.getCardSize();
     return 1;
