@@ -108,6 +108,16 @@ describe("tabdeck-tabbar", () => {
     expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("");
   });
 
+  it("applies the alignment class to the bar", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }, { name: "B" }];
+    el.selected = 0;
+    el.align = "center";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".bar").classList.contains("align-center")).toBe(true);
+  });
+
   it("applies position:sticky to the host when sticky is on (top edge)", async () => {
     const el = document.createElement("tabdeck-tabbar") as any;
     el.items = [{ name: "A" }];

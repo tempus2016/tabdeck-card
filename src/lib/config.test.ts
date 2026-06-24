@@ -23,6 +23,13 @@ describe("normalizeConfig", () => {
     expect(normalizeConfig({ indicator_size: "x", tabs: [{ card: {} }] }).indicator_size).toBe(3);
   });
 
+  it("defaults align to start and picks valid values", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).align).toBe("start");
+    expect(normalizeConfig({ align: "center", tabs: [{ card: {} }] }).align).toBe("center");
+    expect(normalizeConfig({ align: "justify", tabs: [{ card: {} }] }).align).toBe("justify");
+    expect(normalizeConfig({ align: "nope", tabs: [{ card: {} }] }).align).toBe("start");
+  });
+
   it("accepts the boxed and text styles", () => {
     expect(normalizeConfig({ style: "boxed", tabs: [{ card: {} }] }).style).toBe("boxed");
     expect(normalizeConfig({ style: "text", tabs: [{ card: {} }] }).style).toBe("text");
