@@ -20,6 +20,8 @@ export class TabdeckTabbar extends LitElement {
   @property() display: TabDisplay = "both";
   @property() scrollable: "auto" | boolean = "auto";
   @property({ type: Boolean }) animated = true;
+  // When true, the moving indicator (and bar) adopt the selected tab's accent.
+  @property({ type: Boolean }) accentIndicator = true;
 
   // Becomes true one frame after the first paint, so the indicator's initial
   // placement never slides in from the corner; only later moves animate.
@@ -104,12 +106,24 @@ export class TabdeckTabbar extends LitElement {
     indicator.style.opacity = "1";
   }
 
+  // Push the selected tab's accent onto the host as --tabdeck-accent so the
+  // moving indicator (a sibling of the tabs) takes that colour. Off → fall back
+  // to the theme primary colour.
+  private _applyAccent(): void {
+    const accent = this.accentIndicator
+      ? this.items[this.selected]?.accent
+      : undefined;
+    if (accent) this.style.setProperty("--tabdeck-accent", accent);
+    else this.style.removeProperty("--tabdeck-accent");
+  }
+
   protected firstUpdated(): void {
     const bar = (this.renderRoot as ParentNode).querySelector(".bar");
     if (bar && this._resizeObserver) this._resizeObserver.observe(bar);
   }
 
   protected updated(): void {
+    this._applyAccent();
     this._position();
     if (!this._ready) {
       requestAnimationFrame(() => {

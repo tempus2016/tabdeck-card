@@ -86,6 +86,28 @@ describe("tabdeck-tabbar", () => {
     expect(el.shadowRoot.querySelector(".indicator").style.left).toBe("200px");
   });
 
+  it("adopts the selected tab's accent as --tabdeck-accent when accentIndicator is on", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A", accent: "#ff0000" }, { name: "B", accent: "#00ff00" }];
+    el.selected = 0;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("#ff0000");
+    el.selected = 1;
+    await el.updateComplete;
+    expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("#00ff00");
+  });
+
+  it("does not set --tabdeck-accent when accentIndicator is off", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A", accent: "#ff0000" }];
+    el.selected = 0;
+    el.accentIndicator = false;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("");
+  });
+
   it("adds the animate class after first paint when animated (default)", async () => {
     const el = await mount();
     await nextFrame();
