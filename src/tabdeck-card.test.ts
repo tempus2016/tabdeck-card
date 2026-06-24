@@ -106,6 +106,32 @@ describe("tabdeck-card", () => {
     expect(el.getCardSize()).toBe(3);
   });
 
+  it("auto-selects a tab when its entity enters the target state", async () => {
+    const el = await mount({
+      tabs: [
+        { name: "A", card: { type: "markdown" } },
+        { name: "B", card: { type: "light" }, auto_select: { entity: "input_boolean.x", state: "on" } },
+      ],
+    });
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(0);
+    el.hass = { states: { "input_boolean.x": { state: "on" } } };
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(1);
+  });
+
+  it("does not auto-select on initial load (seed only)", async () => {
+    const el = await mountWith(
+      {
+        tabs: [
+          { name: "A", card: { type: "markdown" } },
+          { name: "B", card: { type: "light" }, auto_select: { entity: "input_boolean.x", state: "on" } },
+        ],
+      },
+      { states: { "input_boolean.x": { state: "on" } } },
+    );
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(0);
+  });
+
   it("getStubConfig returns a valid one-tab config", async () => {
     const mod: any = await import("./tabdeck-card");
     const stub = mod.TabdeckCard.getStubConfig();

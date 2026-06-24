@@ -23,6 +23,8 @@ export class TabdeckCard extends LitElement {
   private _manager?: CardManager;
   private _cardKey = "";
   private _templates?: TemplateRenderer;
+  // Per-tab (original index) previous auto_select match, for edge detection.
+  private _autoPrev?: boolean[];
 
   static getStubConfig() {
     return {
@@ -43,6 +45,7 @@ export class TabdeckCard extends LitElement {
     this._cardKey = this._computeCardKey(this._config);
     this._built = false;
     this._selected = resolveDefaultIndex(this._config);
+    this._autoPrev = undefined;
     // Drop any subscriptions from a previous config; they re-sync on next hass.
     this._templates?.destroy();
     this._templates = undefined;
@@ -85,7 +88,37 @@ export class TabdeckCard extends LitElement {
     this._hass = hass;
     this._manager?.setHass(hass);
     this._syncTemplates();
+    this._runAutoSelect();
     this.requestUpdate();
+  }
+
+  // Edge-triggered tab switching: when a tab's auto_select entity enters its
+  // target state (or becomes active), switch to that tab. The first hass only
+  // seeds the baseline so the card never jumps on initial load, and the user can
+  // still navigate away afterwards (it only fires on a fresh transition).
+  private _runAutoSelect(): void {
+    const cfg = this._config;
+    if (!cfg) return;
+    if (!cfg.tabs.some((t) => t.auto_select)) return;
+    const match = (a: { entity: string; state?: string }): boolean => {
+      const st = this._hass?.states?.[a.entity]?.state;
+      if (st === undefined) return false;
+      return a.state !== undefined ? st === a.state : isActiveBadge(st);
+    };
+    const now = cfg.tabs.map((t) => (t.auto_select ? match(t.auto_select) : false));
+    const prev = this._autoPrev;
+    this._autoPrev = now;
+    if (!prev) return; // seed only
+    for (let i = 0; i < cfg.tabs.length; i++) {
+      if (now[i] && !prev[i]) {
+        const visible = this._visibleTabs();
+        const vIdx = visible.indexOf(cfg.tabs[i]);
+        if (vIdx >= 0) {
+          this._selectIndex(vIdx);
+          break;
+        }
+      }
+    }
   }
 
   get hass(): HomeAssistant | undefined {

@@ -16,6 +16,9 @@ export interface TabdeckTabConfig {
   color?: string;
   badge?: string;
   disabled?: boolean;
+  // Switch to this tab when the entity enters the given state (or becomes
+  // active when no state is given). Edge-triggered.
+  auto_select?: { entity: string; state?: string };
   visibility?: any[];
   // A single resolved card. When the source config supplies `cards: [...]`,
   // it is collapsed into one `vertical-stack` card here.
@@ -63,6 +66,18 @@ function clampNumber(value: any, min: number, max: number, fallback: number): nu
   return Math.min(max, Math.max(min, n));
 }
 
+// Accept `auto_select: entity_id` (string) or `{ entity, state }`.
+function normalizeAutoSelect(raw: any): { entity: string; state?: string } | undefined {
+  if (!raw) return undefined;
+  if (typeof raw === "string") return { entity: raw };
+  if (typeof raw === "object" && typeof raw.entity === "string") {
+    return raw.state === undefined
+      ? { entity: raw.entity }
+      : { entity: raw.entity, state: String(raw.state) };
+  }
+  return undefined;
+}
+
 function normalizeTab(raw: any): TabdeckTabConfig {
   const attrs = raw?.attributes ?? {};
   // `cards: [...]` is a shorthand: wrap multiple cards in a vertical-stack so a
@@ -79,6 +94,7 @@ function normalizeTab(raw: any): TabdeckTabConfig {
     color: raw?.color ?? undefined,
     badge: raw?.badge ?? undefined,
     disabled: raw?.disabled ? true : undefined,
+    auto_select: normalizeAutoSelect(raw?.auto_select),
     visibility: raw?.visibility ?? undefined,
     card,
   };
