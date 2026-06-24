@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { isTabVisible } from "./conditions";
 
 function hassWith(states: Record<string, any>) {
@@ -119,6 +119,46 @@ describe("isTabVisible", () => {
       isTabVisible([{ condition: "screen", media_query: "(min-width: 9999px)" }], hass),
     ).toBe(false);
     vi.unstubAllGlobals();
+  });
+
+  describe("time conditions", () => {
+    afterEach(() => vi.useRealTimers());
+    // 2026-06-24 is a Wednesday.
+    const at = (iso: string) => vi.useFakeTimers({ now: new Date(iso) });
+
+    it("after/before daytime range", () => {
+      at("2026-06-24T10:00:00");
+      expect(isTabVisible([{ condition: "time", after: "08:00", before: "18:00" }], hassWith({}))).toBe(true);
+      at("2026-06-24T20:00:00");
+      expect(isTabVisible([{ condition: "time", after: "08:00", before: "18:00" }], hassWith({}))).toBe(false);
+    });
+
+    it("overnight range wraps midnight", () => {
+      at("2026-06-24T23:30:00");
+      expect(isTabVisible([{ condition: "time", after: "22:00", before: "06:00" }], hassWith({}))).toBe(true);
+      at("2026-06-24T12:00:00");
+      expect(isTabVisible([{ condition: "time", after: "22:00", before: "06:00" }], hassWith({}))).toBe(false);
+    });
+
+    it("weekday filter", () => {
+      at("2026-06-24T10:00:00"); // Wednesday
+      expect(isTabVisible([{ condition: "time", weekday: ["wed"] }], hassWith({}))).toBe(true);
+      expect(isTabVisible([{ condition: "time", weekday: ["sat", "sun"] }], hassWith({}))).toBe(false);
+    });
+
+    it("fails closed with no constraints", () => {
+      at("2026-06-24T10:00:00");
+      expect(isTabVisible([{ condition: "time" }], hassWith({}))).toBe(false);
+    });
+  });
+
+  describe("user condition", () => {
+    it("matches the current user id", () => {
+      const hass = { states: {}, user: { id: "abc" } } as any;
+      expect(isTabVisible([{ condition: "user", users: ["abc", "def"] }], hass)).toBe(true);
+      expect(isTabVisible([{ condition: "user", users: ["def"] }], hass)).toBe(false);
+      expect(isTabVisible([{ condition: "user", users: ["abc"] }], hassWith({}))).toBe(false);
+    });
   });
 
   describe("template conditions", () => {

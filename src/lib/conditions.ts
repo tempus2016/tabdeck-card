@@ -29,6 +29,49 @@ function checkScreen(c: any): boolean {
   return matchMedia(c.media_query).matches;
 }
 
+const WEEKDAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+function toMinutes(s: string): number | null {
+  const m = /^(\d{1,2}):(\d{2})/.exec(String(s));
+  if (!m) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
+}
+
+// `time` condition: after/before "HH:MM" (overnight ranges supported) and/or a
+// weekday list. `now` is injectable for testing.
+function checkTime(c: any, now: Date = new Date()): boolean {
+  const hasAfter = c.after !== undefined;
+  const hasBefore = c.before !== undefined;
+  const hasWeekday = Array.isArray(c.weekday) && c.weekday.length > 0;
+  if (!hasAfter && !hasBefore && !hasWeekday) return false;
+  const cur = now.getHours() * 60 + now.getMinutes();
+  let ok = true;
+  if (hasAfter && hasBefore) {
+    const a = toMinutes(c.after);
+    const b = toMinutes(c.before);
+    if (a === null || b === null) return false;
+    ok = a <= b ? cur >= a && cur < b : cur >= a || cur < b; // overnight wrap
+  } else if (hasAfter) {
+    const a = toMinutes(c.after);
+    if (a === null) return false;
+    ok = cur >= a;
+  } else if (hasBefore) {
+    const b = toMinutes(c.before);
+    if (b === null) return false;
+    ok = cur < b;
+  }
+  if (ok && hasWeekday) {
+    const today = WEEKDAYS[now.getDay()];
+    ok = c.weekday.map((d: string) => String(d).toLowerCase().slice(0, 3)).includes(today);
+  }
+  return ok;
+}
+
+function checkUser(c: any, hass: HomeAssistant): boolean {
+  const uid = (hass as any)?.user?.id;
+  if (!uid || !Array.isArray(c.users)) return false;
+  return c.users.includes(uid);
+}
+
 // Resolves a `template` condition's value_template to a rendered boolean, or
 // undefined while the template is still pending (treated as not met).
 export type TemplateResolver = (valueTemplate: string) => boolean | undefined;
@@ -50,6 +93,10 @@ function checkOne(c: any, hass: HomeAssistant, resolver?: TemplateResolver): boo
       return checkNumeric(c, hass);
     case "screen":
       return checkScreen(c);
+    case "time":
+      return checkTime(c);
+    case "user":
+      return checkUser(c, hass);
     case "template":
       return checkTemplate(c, resolver);
     // Logical groups (match Home Assistant's condition system) — nestable.
