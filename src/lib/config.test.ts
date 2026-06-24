@@ -15,6 +15,12 @@ describe("normalizeConfig", () => {
     expect(c.tabs).toHaveLength(1);
   });
 
+  it("accepts the boxed and text styles", () => {
+    expect(normalizeConfig({ style: "boxed", tabs: [{ card: {} }] }).style).toBe("boxed");
+    expect(normalizeConfig({ style: "text", tabs: [{ card: {} }] }).style).toBe("text");
+    expect(normalizeConfig({ style: "nope", tabs: [{ card: {} }] }).style).toBe("underline");
+  });
+
   it("defaults accent_indicator to true and respects explicit false", () => {
     expect(normalizeConfig({ tabs: [{ card: {} }] }).accent_indicator).toBe(true);
     expect(normalizeConfig({ accent_indicator: false, tabs: [{ card: {} }] }).accent_indicator).toBe(false);

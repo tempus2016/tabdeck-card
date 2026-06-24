@@ -245,7 +245,7 @@ export class TabdeckCardEditor extends LitElement {
     }));
     return [
       { name: "position", selector: { select: { mode: "dropdown", options: opts(["top", "bottom", "left", "right"]) } } },
-      { name: "style", selector: { select: { mode: "dropdown", options: opts(["underline", "pill", "segmented"]) } } },
+      { name: "style", selector: { select: { mode: "dropdown", options: opts(["underline", "pill", "segmented", "boxed", "text"]) } } },
       { name: "tab_display", selector: { select: { mode: "dropdown", options: opts(["both", "icon", "label"]) } } },
       { name: "remember", selector: { select: { mode: "dropdown", options: opts(["none", "browser", "url"]) } } },
       { name: "default_tab", selector: { select: { mode: "dropdown", options: tabOptions } } },

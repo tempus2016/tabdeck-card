@@ -203,6 +203,21 @@ export class TabdeckTabbar extends LitElement {
       border-radius: 10px;
       padding: 4px;
     }
+    /* boxed: each tab is its own bordered chip; selected gets a tinted fill. */
+    .bar.style-boxed {
+      gap: 8px;
+      border: none;
+      padding: 4px 0;
+    }
+    .bar.style-boxed tabdeck-tab {
+      border: 1px solid var(--divider-color);
+      border-radius: 10px;
+    }
+    /* text: no indicator, no borders — just colour the selected label. */
+    .bar.style-text {
+      gap: 4px;
+      border: none;
+    }
 
     /* The single moving indicator. Sits behind tab content. */
     .indicator {
@@ -242,6 +257,14 @@ export class TabdeckTabbar extends LitElement {
     .bar.style-segmented .indicator {
       background: var(--card-background-color);
       border-radius: 7px;
+    }
+    .bar.style-boxed .indicator {
+      background: color-mix(
+        in srgb,
+        var(--tabdeck-accent, var(--primary-color)) 20%,
+        transparent
+      );
+      border-radius: 10px;
     }
   `;
 }

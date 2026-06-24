@@ -44,4 +44,14 @@ describe("computeIndicatorRect", () => {
       left: 10, top: 20, width: 100, height: 48,
     });
   });
+
+  it("boxed: full tab box like pill/segmented", () => {
+    expect(computeIndicatorRect(tab, "top", "boxed")).toEqual({
+      left: 10, top: 20, width: 100, height: 48,
+    });
+  });
+
+  it("text: no indicator (null)", () => {
+    expect(computeIndicatorRect(tab, "top", "text")).toBeNull();
+  });
 });

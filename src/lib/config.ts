@@ -1,7 +1,7 @@
 import type { LovelaceCardConfig } from "../types";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
-export type TabStyle = "underline" | "pill" | "segmented";
+export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text";
 export type RememberMode = "none" | "browser" | "url";
 export type TabDisplay = "both" | "icon" | "label";
 
@@ -31,7 +31,7 @@ export interface TabdeckCardConfig {
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
-const STYLES: TabStyle[] = ["underline", "pill", "segmented"];
+const STYLES: TabStyle[] = ["underline", "pill", "segmented", "boxed", "text"];
 const REMEMBER: RememberMode[] = ["none", "browser", "url"];
 const DISPLAYS: TabDisplay[] = ["both", "icon", "label"];
 
