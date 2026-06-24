@@ -15,6 +15,14 @@ describe("normalizeConfig", () => {
     expect(c.tabs).toHaveLength(1);
   });
 
+  it("defaults indicator_size to 3 and clamps to [1,16]", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).indicator_size).toBe(3);
+    expect(normalizeConfig({ indicator_size: 6, tabs: [{ card: {} }] }).indicator_size).toBe(6);
+    expect(normalizeConfig({ indicator_size: 99, tabs: [{ card: {} }] }).indicator_size).toBe(16);
+    expect(normalizeConfig({ indicator_size: 0, tabs: [{ card: {} }] }).indicator_size).toBe(1);
+    expect(normalizeConfig({ indicator_size: "x", tabs: [{ card: {} }] }).indicator_size).toBe(3);
+  });
+
   it("accepts the boxed and text styles", () => {
     expect(normalizeConfig({ style: "boxed", tabs: [{ card: {} }] }).style).toBe("boxed");
     expect(normalizeConfig({ style: "text", tabs: [{ card: {} }] }).style).toBe("text");

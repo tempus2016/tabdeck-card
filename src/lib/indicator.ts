@@ -14,17 +14,20 @@ export interface IndicatorRect {
   height: number;
 }
 
-// Matches the original static underline thickness.
-const THICKNESS = 3;
+// Default static underline thickness (px).
+const DEFAULT_THICKNESS = 3;
 
 // Geometry of the moving indicator over the selected tab. Pure so the math is
 // testable without a DOM (jsdom reports offset* as 0 → null, never throws).
+// `thickness` controls the underline bar size (px).
 export function computeIndicatorRect(
   tab: TabGeometry,
   position: TabPosition,
   style: TabStyle,
+  thickness: number = DEFAULT_THICKNESS,
 ): IndicatorRect | null {
   if (!tab || tab.offsetWidth <= 0) return null;
+  const THICKNESS = thickness > 0 ? thickness : DEFAULT_THICKNESS;
 
   // The `text` style has no moving indicator at all.
   if (style === "text") return null;
