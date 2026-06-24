@@ -87,11 +87,16 @@ function normalizeAutoSelect(raw: any): { entity: string; state?: string } | und
 
 function normalizeTab(raw: any): TabdeckTabConfig {
   const attrs = raw?.attributes ?? {};
-  // `cards: [...]` is a shorthand: wrap multiple cards in a vertical-stack so a
-  // tab can hold more than one card without hand-writing the stack.
+  // `cards: [...]` is a shorthand: wrap multiple cards in a stack so a tab can
+  // hold more than one card without hand-writing it. With `columns: N` (>1) they
+  // go in a grid instead of a vertical-stack.
   let card = raw?.card ?? {};
   if (Array.isArray(raw?.cards) && raw.cards.length > 0) {
-    card = { type: "vertical-stack", cards: raw.cards };
+    const cols = Number(raw?.columns);
+    card =
+      Number.isFinite(cols) && cols > 1
+        ? { type: "grid", columns: cols, square: false, cards: raw.cards }
+        : { type: "vertical-stack", cards: raw.cards };
   }
   return {
     name: raw?.name ?? attrs.label ?? undefined,

@@ -25,9 +25,27 @@ tabs:
 
 ![Multiple cards in one tab](images/feature-multi-cards.png)
 
+## Grid layout with `columns`
+
+Add `columns: N` (N > 1) alongside `cards` to lay them out in a grid instead of a vertical stack:
+
+```yaml
+tabs:
+  - name: Grid
+    icon: mdi:view-grid
+    columns: 2
+    cards:
+      - { type: markdown, content: A }
+      - { type: markdown, content: B }
+      - { type: markdown, content: C }
+      - { type: markdown, content: D }
+```
+
+![Two-column grid](images/feature-columns.png)
+
 ## Notes
 
-- `cards:` is collapsed into a `vertical-stack` card internally, so it inherits everything (lazy-mount, keep-alive, etc.).
+- `cards:` is collapsed into a `vertical-stack` card internally (or a `grid` card when `columns > 1`), so it inherits everything (lazy-mount, keep-alive, etc.).
 - If both `card` and `cards` are given, **`cards` wins**.
 - In the [visual editor](Editor), a tab built this way shows the native **vertical-stack** card editor, where you can add/remove/re-order the sub-cards.
 - Want columns instead of a stack? Use a single `card:` of `type: grid` or `horizontal-stack`.
