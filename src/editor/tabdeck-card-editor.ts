@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { fireEvent } from "custom-card-helpers";
 import type { HomeAssistant } from "../types";
 import { normalizeConfig, type TabdeckCardConfig } from "../lib/config";
+import "../components/tabdeck-tabbar";
 
 // MDI icon paths for the per-tab reorder/delete buttons. Inlined rather than
 // pulling in @mdi/js so the bundle stays dependency-free.
@@ -558,6 +559,27 @@ export class TabdeckCardEditor extends LitElement {
     const cfg = this._config!;
     return html`
       <div class="editor">
+        <div class="preview" aria-hidden="true">
+          <tabdeck-tabbar
+            class="preview-bar"
+            .items=${cfg.tabs.map((t, i) => ({
+              name: t.name || `Tab ${i + 1}`,
+              icon: t.icon,
+              accent: t.accent,
+              color: t.color,
+              disabled: t.disabled,
+            }))}
+            .selected=${0}
+            .position=${"top"}
+            .tabStyle=${cfg.style}
+            .display=${cfg.tab_display}
+            .align=${cfg.align}
+            .indicatorSize=${cfg.indicator_size}
+            .indicatorRadius=${cfg.indicator_radius}
+            .accentIndicator=${cfg.accent_indicator}
+          ></tabdeck-tabbar>
+        </div>
+
         <ha-form
           class="globals-form"
           .hass=${this.hass}
@@ -705,6 +727,21 @@ export class TabdeckCardEditor extends LitElement {
     }
     .globals-form {
       display: block;
+    }
+    .preview {
+      border: 1px dashed var(--divider-color, #e0e0e0);
+      border-radius: var(--ha-card-border-radius, 12px);
+      padding: 8px;
+      pointer-events: none;
+    }
+    .preview::before {
+      content: "Preview";
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--secondary-text-color);
+      margin-bottom: 6px;
     }
     .tabs {
       display: flex;

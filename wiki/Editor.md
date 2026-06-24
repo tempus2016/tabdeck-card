@@ -4,6 +4,12 @@ Tabdeck ships a full GUI editor built on Home Assistant's own `ha-form`, so it m
 
 ![Editor — collapsed tab blocks](images/editor-collapsed.png)
 
+## Live preview
+
+A non-interactive **Preview** strip at the top of the editor shows the tab bar with your current tabs, icons, accents, style, display mode and alignment — it updates live as you edit.
+
+![Editor live preview](images/feature-editor-preview.png)
+
 ## Global options
 
 The top of the editor exposes every [top-level option](Configuration#top-level-options): position, style, remember mode, default tab, scrollable, lazy, animate, swipe.

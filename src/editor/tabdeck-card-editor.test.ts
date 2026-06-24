@@ -109,6 +109,14 @@ describe("tabdeck-card-editor", () => {
     expect(el.shadowRoot.querySelectorAll(".tab")).toHaveLength(2);
   });
 
+  it("shows a live tab-bar preview reflecting the tabs and style", async () => {
+    const el = await mount({ style: "pill", tabs: [{ name: "A", card: {} }, { name: "B", card: {} }] });
+    const preview = el.shadowRoot.querySelector(".preview tabdeck-tabbar") as any;
+    expect(preview).toBeTruthy();
+    expect(preview.items.map((i: any) => i.name)).toEqual(["A", "B"]);
+    expect(preview.tabStyle).toBe("pill");
+  });
+
   it("collapses every tab by default, hiding its fields and Edit card", async () => {
     const el = await mount({
       tabs: [{ name: "A", card: { type: "markdown" } }, { name: "B", card: { type: "light" } }],
