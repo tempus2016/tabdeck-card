@@ -60,6 +60,7 @@ const TAB_LABELS: Record<string, string> = {
 const GLOBAL_LABELS: Record<string, string> = {
   position: "Position",
   style: "Style",
+  tab_display: "Tab display",
   remember: "Remember selected tab",
   default_tab: "Default tab",
   scrollable: "Scrollable",
@@ -244,6 +245,7 @@ export class TabdeckCardEditor extends LitElement {
     return [
       { name: "position", selector: { select: { mode: "dropdown", options: opts(["top", "bottom", "left", "right"]) } } },
       { name: "style", selector: { select: { mode: "dropdown", options: opts(["underline", "pill", "segmented"]) } } },
+      { name: "tab_display", selector: { select: { mode: "dropdown", options: opts(["both", "icon", "label"]) } } },
       { name: "remember", selector: { select: { mode: "dropdown", options: opts(["none", "browser", "url"]) } } },
       { name: "default_tab", selector: { select: { mode: "dropdown", options: tabOptions } } },
       { name: "scrollable", selector: { select: { mode: "dropdown", options: opts(["auto", "true", "false"]) } } },
@@ -258,6 +260,7 @@ export class TabdeckCardEditor extends LitElement {
     return {
       position: cfg.position,
       style: cfg.style,
+      tab_display: cfg.tab_display,
       remember: cfg.remember,
       default_tab: this._currentDefaultTab,
       scrollable: String(cfg.scrollable),
@@ -275,6 +278,7 @@ export class TabdeckCardEditor extends LitElement {
     this._patch({
       position: v.position,
       style: v.style,
+      tab_display: v.tab_display,
       remember: v.remember,
       default_tab: v.default_tab,
       scrollable,

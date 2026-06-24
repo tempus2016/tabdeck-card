@@ -37,4 +37,27 @@ describe("tabdeck-tab", () => {
     const badge = el.shadowRoot.querySelector(".badge");
     expect(badge?.textContent).toContain("3");
   });
+
+  it("display=icon hides the label when an icon is present", async () => {
+    const el = await mount({ label: "Lights", icon: "mdi:lightbulb", display: "icon" });
+    expect(el.shadowRoot.querySelector("ha-icon")).toBeTruthy();
+    expect(el.shadowRoot.querySelector(".label")).toBeNull();
+  });
+
+  it("display=icon still shows the label when the tab has no icon", async () => {
+    const el = await mount({ label: "Lights", display: "icon" });
+    expect(el.shadowRoot.querySelector(".label")?.textContent).toContain("Lights");
+  });
+
+  it("display=label hides the icon", async () => {
+    const el = await mount({ label: "Lights", icon: "mdi:lightbulb", display: "label" });
+    expect(el.shadowRoot.querySelector("ha-icon")).toBeNull();
+    expect(el.shadowRoot.querySelector(".label")?.textContent).toContain("Lights");
+  });
+
+  it("display=both shows icon and label", async () => {
+    const el = await mount({ label: "Lights", icon: "mdi:lightbulb", display: "both" });
+    expect(el.shadowRoot.querySelector("ha-icon")).toBeTruthy();
+    expect(el.shadowRoot.querySelector(".label")).toBeTruthy();
+  });
 });

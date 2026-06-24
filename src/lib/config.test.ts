@@ -11,7 +11,14 @@ describe("normalizeConfig", () => {
     expect(c.lazy).toBe(false);
     expect(c.swipe).toBe(false);
     expect(c.default_tab).toBe(0);
+    expect(c.tab_display).toBe("both");
     expect(c.tabs).toHaveLength(1);
+  });
+
+  it("picks a valid tab_display and falls back to both", () => {
+    expect(normalizeConfig({ tab_display: "icon", tabs: [{ card: {} }] }).tab_display).toBe("icon");
+    expect(normalizeConfig({ tab_display: "label", tabs: [{ card: {} }] }).tab_display).toBe("label");
+    expect(normalizeConfig({ tab_display: "bogus", tabs: [{ card: {} }] }).tab_display).toBe("both");
   });
 
   it("defaults animated to true and respects explicit false", () => {
