@@ -38,6 +38,12 @@ async function mount(config: any) {
   return el;
 }
 
+// Tab cards are collapsed by default; click a tab's header to reveal its fields.
+async function expand(el: any, index = 0) {
+  el.shadowRoot.querySelectorAll(".tab-header")[index].click();
+  await el.updateComplete;
+}
+
 // ha-form is not registered in jsdom, so we drive it the way HA does: by firing
 // a value-changed carrying the full (merged) data object.
 function formChange(form: any, value: any) {
@@ -83,6 +89,52 @@ describe("tabdeck-card-editor", () => {
     expect(el.shadowRoot.querySelectorAll(".tab")).toHaveLength(2);
   });
 
+  it("collapses every tab by default, hiding its fields and Edit card", async () => {
+    const el = await mount({
+      tabs: [{ name: "A", card: { type: "markdown" } }, { name: "B", card: { type: "light" } }],
+    });
+    // headers (with controls) are always present...
+    expect(el.shadowRoot.querySelectorAll(".tab-header")).toHaveLength(2);
+    expect(el.shadowRoot.querySelectorAll(".tab.collapsed")).toHaveLength(2);
+    // ...but the fields and Edit card are not rendered while collapsed.
+    expect(el.shadowRoot.querySelector(".tab-form")).toBeNull();
+    expect(el.shadowRoot.querySelector(".edit-card")).toBeNull();
+  });
+
+  it("expanding a tab via its header reveals the fields and Edit card", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    expect(el.shadowRoot.querySelector(".tab-form")).toBeNull();
+    await expand(el, 0);
+    expect(el.shadowRoot.querySelector(".tab.expanded")).toBeTruthy();
+    expect(el.shadowRoot.querySelector(".tab-form")).toBeTruthy();
+    expect(el.shadowRoot.querySelector(".edit-card")).toBeTruthy();
+    expect(el.shadowRoot.querySelector(".tab-header").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("toggling the header again collapses the tab", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    await expand(el, 0);
+    expect(el.shadowRoot.querySelector(".tab-form")).toBeTruthy();
+    await expand(el, 0);
+    expect(el.shadowRoot.querySelector(".tab-form")).toBeNull();
+    expect(el.shadowRoot.querySelector(".tab-header").getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("shows the tab's card type in the collapsed header summary", async () => {
+    const el = await mount({ tabs: [{ name: "Weather", card: { type: "weather-forecast" } }] });
+    expect(el.shadowRoot.querySelector(".tab-type").textContent).toContain("weather-forecast");
+    expect(el.shadowRoot.querySelector(".tab-title").textContent).toContain("Weather");
+  });
+
+  it("collapses all tabs after a reorder so no stale index is expanded", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }, { name: "B", card: {} }] });
+    await expand(el, 0);
+    expect(el.shadowRoot.querySelector(".tab.expanded")).toBeTruthy();
+    el.shadowRoot.querySelectorAll(".move-down")[0].click();
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".tab.expanded")).toBeNull();
+  });
+
   it("fires config-changed when adding a tab", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }] });
     const handler = vi.fn();
@@ -114,6 +166,7 @@ describe("tabdeck-card-editor", () => {
     const handler = vi.fn();
     el.addEventListener("config-changed", handler);
 
+    await expand(el, 0);
     const form = el.shadowRoot.querySelector(".tab-form");
     formChange(form, { name: "A", icon: "", accent: "#ff0000", badge: "" });
     expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].accent).toBe("#ff0000");
@@ -126,6 +179,8 @@ describe("tabdeck-card-editor", () => {
     const el = await mount({
       tabs: [{ name: "A", card: { type: "markdown" } }, { name: "B", card: { type: "light" } }],
     });
+    await expand(el, 0);
+    await expand(el, 1);
     expect(el.shadowRoot.querySelectorAll(".edit-card")).toHaveLength(2);
     expect(el.shadowRoot.querySelector(".tab-card-json")).toBeNull();
     expect(el.shadowRoot.querySelector("hui-card-element-editor")).toBeNull();
@@ -133,6 +188,7 @@ describe("tabdeck-card-editor", () => {
 
   it("drills into the native card editor with the tab's card as its value", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown", content: "hi" } }] });
+    await expand(el, 0);
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     // tab list is hidden while editing a card
@@ -146,6 +202,7 @@ describe("tabdeck-card-editor", () => {
 
   it("patches the tab card and re-emits the full config on the inner editor's config-changed", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    await expand(el, 0);
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     const handler = vi.fn();
@@ -176,6 +233,7 @@ describe("tabdeck-card-editor", () => {
 
   it("shows a card-type chooser for a typeless card and sets the chosen type", async () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    await expand(el, 0);
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     const chooser = el.shadowRoot.querySelector(".card-type-form");
@@ -196,6 +254,7 @@ describe("tabdeck-card-editor", () => {
 
   it("'Change card type' resets the card so the chooser reappears", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown", content: "hi" } }] });
+    await expand(el, 0);
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     expect(el.shadowRoot.querySelector("hui-card-element-editor")).toBeTruthy();
@@ -213,6 +272,7 @@ describe("tabdeck-card-editor", () => {
 
   it("returns to the tab list when Back is pressed", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    await expand(el, 0);
     el.shadowRoot.querySelector(".edit-card").click();
     await el.updateComplete;
     expect(el.shadowRoot.querySelector(".back-to-list")).toBeTruthy();
