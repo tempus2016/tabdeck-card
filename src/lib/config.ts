@@ -9,6 +9,7 @@ export interface TabdeckTabConfig {
   name?: string;
   icon?: string;
   accent?: string;
+  color?: string;
   badge?: string;
   visibility?: any[];
   card: LovelaceCardConfig;
@@ -54,6 +55,7 @@ function normalizeTab(raw: any): TabdeckTabConfig {
     name: raw?.name ?? attrs.label ?? undefined,
     icon: raw?.icon ?? attrs.icon ?? undefined,
     accent: raw?.accent ?? undefined,
+    color: raw?.color ?? undefined,
     badge: raw?.badge ?? undefined,
     visibility: raw?.visibility ?? undefined,
     card: raw?.card ?? {},

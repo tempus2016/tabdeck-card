@@ -8,6 +8,7 @@ export class TabdeckTab extends LitElement {
   @property() icon?: string;
   @property() badge?: string;
   @property() accent?: string;
+  @property() color?: string;
   @property() display: TabDisplay = "both";
   @property({ type: Boolean, reflect: true }) selected = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
@@ -21,6 +22,10 @@ export class TabdeckTab extends LitElement {
     this.setAttribute("aria-selected", this.selected ? "true" : "false");
     this.tabIndex = this.selected ? 0 : -1;
     if (this.accent) this.style.setProperty("--tabdeck-accent", this.accent);
+    // A per-tab `color` overrides the label/icon colour in every state (inline
+    // host colour beats the :host([selected]) accent rule).
+    if (this.color) this.style.color = this.color;
+    else this.style.removeProperty("color");
   }
 
   render() {

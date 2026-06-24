@@ -8,6 +8,7 @@ interface TabItem {
   name?: string;
   icon?: string;
   accent?: string;
+  color?: string;
   badge?: string;
 }
 
@@ -175,6 +176,7 @@ export class TabdeckTabbar extends LitElement {
               .icon=${item.icon}
               .badge=${item.badge}
               .accent=${item.accent}
+              .color=${item.color}
               .display=${this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"

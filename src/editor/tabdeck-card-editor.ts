@@ -24,6 +24,7 @@ const TAB_SCHEMA = [
   { name: "name", selector: { text: {} } },
   { name: "icon", selector: { icon: {} } },
   { name: "accent", selector: { text: {} } },
+  { name: "color", selector: { text: {} } },
   { name: "badge", selector: { text: {} } },
 ];
 
@@ -54,6 +55,7 @@ const TAB_LABELS: Record<string, string> = {
   name: "Tab name",
   icon: "Icon",
   accent: "Accent colour",
+  color: "Text/icon colour",
   badge: "Badge (entity id or template)",
 };
 
@@ -307,6 +309,7 @@ export class TabdeckCardEditor extends LitElement {
       name: v.name ?? "",
       icon: v.icon || undefined,
       accent: v.accent || undefined,
+      color: v.color || undefined,
       badge: v.badge || undefined,
     });
   }
@@ -480,6 +483,7 @@ export class TabdeckCardEditor extends LitElement {
                           name: tab.name ?? "",
                           icon: tab.icon ?? "",
                           accent: tab.accent ?? "",
+                          color: tab.color ?? "",
                           badge: tab.badge ?? "",
                         }}
                         .schema=${TAB_SCHEMA}

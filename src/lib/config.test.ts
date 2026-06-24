@@ -59,6 +59,11 @@ describe("normalizeConfig", () => {
     expect(c.default_tab).toBe(2);
   });
 
+  it("keeps a per-tab color override", () => {
+    const c = normalizeConfig({ tabs: [{ name: "A", color: "#c00", card: {} }] });
+    expect(c.tabs[0].color).toBe("#c00");
+  });
+
   it("maps original per-tab attributes.label/icon to name/icon", () => {
     const c = normalizeConfig({
       tabs: [{ attributes: { label: "Lights", icon: "mdi:lightbulb" }, card: {} }],
