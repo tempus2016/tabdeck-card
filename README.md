@@ -1,4 +1,8 @@
-# Tabdeck Card
+<p align="center">
+  <img src="images/icon.png" alt="Tabdeck Card" width="120" height="120">
+</p>
+
+<h1 align="center">Tabdeck Card</h1>
 
 <p align="center">
   <a href="https://github.com/tempus2016/tabdeck-card/releases"><img src="https://img.shields.io/github/v/release/tempus2016/tabdeck-card" alt="Latest Release"></a>
