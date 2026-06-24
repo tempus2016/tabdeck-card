@@ -14,6 +14,8 @@ export interface TabdeckTabConfig {
   color?: string;
   badge?: string;
   visibility?: any[];
+  // A single resolved card. When the source config supplies `cards: [...]`,
+  // it is collapsed into one `vertical-stack` card here.
   card: LovelaceCardConfig;
 }
 
@@ -57,6 +59,12 @@ function clampNumber(value: any, min: number, max: number, fallback: number): nu
 
 function normalizeTab(raw: any): TabdeckTabConfig {
   const attrs = raw?.attributes ?? {};
+  // `cards: [...]` is a shorthand: wrap multiple cards in a vertical-stack so a
+  // tab can hold more than one card without hand-writing the stack.
+  let card = raw?.card ?? {};
+  if (Array.isArray(raw?.cards) && raw.cards.length > 0) {
+    card = { type: "vertical-stack", cards: raw.cards };
+  }
   return {
     name: raw?.name ?? attrs.label ?? undefined,
     icon: raw?.icon ?? attrs.icon ?? undefined,
@@ -64,7 +72,7 @@ function normalizeTab(raw: any): TabdeckTabConfig {
     color: raw?.color ?? undefined,
     badge: raw?.badge ?? undefined,
     visibility: raw?.visibility ?? undefined,
-    card: raw?.card ?? {},
+    card,
   };
 }
 

@@ -15,6 +15,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 ## Per-tab content
 - **[Per-tab text/icon colour](Feature-Tab-Color)** — fixed label/icon colour for a tab (`color`).
 - **[Badge display mode](Feature-Badge-Display)** — text or dot badges (`badge_display`).
+- **[Multiple cards per tab](Feature-Multiple-Cards)** — stack several cards in one tab (`cards`).
 
 ## Navigation & interaction
 - _(pages added as features land)_
