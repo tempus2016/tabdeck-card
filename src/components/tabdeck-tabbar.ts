@@ -24,6 +24,8 @@ export class TabdeckTabbar extends LitElement {
   @property({ type: Boolean }) accentIndicator = true;
   // Underline indicator thickness in px.
   @property({ type: Number }) indicatorSize = 3;
+  // When true, the bar stays pinned (position: sticky) while content scrolls.
+  @property({ type: Boolean }) sticky = false;
 
   // Becomes true one frame after the first paint, so the indicator's initial
   // placement never slides in from the corner; only later moves animate.
@@ -120,6 +122,31 @@ export class TabdeckTabbar extends LitElement {
     else this.style.removeProperty("--tabdeck-accent");
   }
 
+  // Pin the bar with position: sticky so it stays visible while the panel
+  // scrolls. Pins to the inner edge (top for top/left/right bars, bottom for a
+  // bottom bar) and paints a card background so content doesn't show through.
+  private _applySticky(): void {
+    if (this.sticky) {
+      this.style.position = "sticky";
+      this.style.zIndex = "2";
+      this.style.background =
+        "var(--card-background-color, var(--ha-card-background, inherit))";
+      if (this.position === "bottom") {
+        this.style.bottom = "0";
+        this.style.top = "";
+      } else {
+        this.style.top = "0";
+        this.style.bottom = "";
+      }
+    } else {
+      for (const p of ["position", "zIndex", "background", "top", "bottom"]) {
+        this.style.removeProperty(
+          p.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase()),
+        );
+      }
+    }
+  }
+
   protected firstUpdated(): void {
     const bar = (this.renderRoot as ParentNode).querySelector(".bar");
     if (bar && this._resizeObserver) this._resizeObserver.observe(bar);
@@ -127,6 +154,7 @@ export class TabdeckTabbar extends LitElement {
 
   protected updated(): void {
     this._applyAccent();
+    this._applySticky();
     this._position();
     if (!this._ready) {
       requestAnimationFrame(() => {

@@ -68,6 +68,7 @@ const GLOBAL_LABELS: Record<string, string> = {
   lazy: "Lazy-mount inactive tabs",
   animated: "Animate indicator",
   accent_indicator: "Colour indicator by tab accent",
+  sticky: "Sticky tab bar",
   swipe: "Swipe to change tabs (mobile)",
 };
 
@@ -255,6 +256,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "lazy", selector: { boolean: {} } },
       { name: "animated", selector: { boolean: {} } },
       { name: "accent_indicator", selector: { boolean: {} } },
+      { name: "sticky", selector: { boolean: {} } },
       { name: "swipe", selector: { boolean: {} } },
     ];
   }
@@ -272,6 +274,7 @@ export class TabdeckCardEditor extends LitElement {
       lazy: cfg.lazy,
       animated: cfg.animated,
       accent_indicator: cfg.accent_indicator,
+      sticky: cfg.sticky,
       swipe: cfg.swipe,
     };
   }
@@ -292,6 +295,7 @@ export class TabdeckCardEditor extends LitElement {
       lazy: !!v.lazy,
       animated: !!v.animated,
       accent_indicator: !!v.accent_indicator,
+      sticky: !!v.sticky,
       swipe: !!v.swipe,
     });
   }
