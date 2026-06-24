@@ -323,6 +323,18 @@ describe("tabdeck-card-editor", () => {
     expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].card).toEqual({ type: "light" });
   });
 
+  it("offers popular custom-card presets in the card-type chooser", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    await expand(el, 0);
+    el.shadowRoot.querySelector(".edit-card").click();
+    await el.updateComplete;
+    const form = el.shadowRoot.querySelector(".card-type-form") as any;
+    const values = form.schema[0].selector.select.options.map((o: any) => o.value);
+    expect(values).toContain("custom:button-card");
+    expect(values).toContain("custom:mushroom-template-card");
+    expect(form.schema[0].selector.select.custom_value).toBe(true);
+  });
+
   it("'Change card type' resets the card so the chooser reappears", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown", content: "hi" } }] });
     await expand(el, 0);

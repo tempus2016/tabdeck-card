@@ -44,6 +44,11 @@ const CARD_TYPES = [
   "glance", "gauge", "sensor", "history-graph", "statistics-graph",
   "media-control", "map", "area", "alarm-panel", "calendar", "todo-list",
   "iframe", "entity", "conditional", "vertical-stack", "horizontal-stack", "grid",
+  // Popular custom cards (HACS) — suggestions only; custom_value still allows
+  // any type the user types.
+  "custom:mushroom-template-card", "custom:mushroom-entity-card",
+  "custom:button-card", "custom:mini-graph-card", "custom:apexcharts-card",
+  "custom:auto-entities", "custom:bubble-card", "custom:layout-card",
 ];
 
 const CARD_TYPE_SCHEMA = [
