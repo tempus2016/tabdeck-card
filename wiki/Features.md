@@ -28,7 +28,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Duplicate tab](Feature-Duplicate-Tab)** — one-click deep copy of a tab in the editor.
 
 ## Theming
-- _(pages added as features land)_
+- **[Theming & styles passthrough](Feature-Theming)** — set CSS variables from config (`styles`).
 
 ---
 

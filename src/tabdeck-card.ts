@@ -240,6 +240,22 @@ export class TabdeckCard extends LitElement {
     if (changed.has("_selected") && changed.get("_selected") !== undefined) {
       this._animatePanel();
     }
+    this._applyStyles();
+  }
+
+  // Keys currently applied to the host from `styles`, so they can be removed if
+  // the config changes (otherwise stale custom properties would linger).
+  private _appliedStyleKeys: string[] = [];
+
+  // Apply the `styles` map (CSS property → value, e.g. `--tabdeck-accent`) to the
+  // card host. A simple, dependency-free theming hook without card-mod.
+  private _applyStyles(): void {
+    for (const key of this._appliedStyleKeys) this.style.removeProperty(key);
+    const styles = this._config?.styles ?? {};
+    this._appliedStyleKeys = Object.keys(styles);
+    for (const [key, value] of Object.entries(styles)) {
+      this.style.setProperty(key, String(value));
+    }
   }
 
   // Play a short enter animation on the newly-active panel when a transition is

@@ -79,6 +79,15 @@ describe("tabdeck-card", () => {
     expect(bar.items[0].name).toBe("A");
   });
 
+  it("applies the styles map as custom properties on the host", async () => {
+    const el = await mount({
+      styles: { "--tabdeck-accent": "#9c27b0", "--tabdeck-tab-height": "60px" },
+      tabs: [{ name: "A", card: { type: "markdown" } }],
+    });
+    expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("#9c27b0");
+    expect(el.style.getPropertyValue("--tabdeck-tab-height")).toBe("60px");
+  });
+
   it("getCardSize delegates to the active card", async () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
     expect(el.getCardSize()).toBe(3);
