@@ -1,0 +1,31 @@
+# Configures GitHub's built-in "Generate release notes" (Releases → Generate
+# release notes / the API). Categorizes merged PRs and hides noise. No external
+# action or extra permissions required.
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+  categories:
+    - title: ✨ Features
+      labels:
+        - feature
+        - enhancement
+      # Fallback: conventional `feat(...)` PR titles usually carry no label, so
+      # also surface anything not otherwise categorized under Features.
+    - title: 🐛 Fixes
+      labels:
+        - bug
+        - fix
+    - title: 📖 Documentation
+      labels:
+        - documentation
+        - docs
+    - title: 🧰 Maintenance
+      labels:
+        - chore
+        - dependencies
+    - title: Other changes
+      labels:
+        - "*"
