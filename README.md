@@ -1,5 +1,18 @@
 # Tabdeck Card
 
+<p align="center">
+  <a href="https://github.com/tempus2016/tabdeck-card/releases"><img src="https://img.shields.io/github/v/release/tempus2016/tabdeck-card" alt="Latest Release"></a>
+  <a href="https://github.com/tempus2016/tabdeck-card/releases"><img src="https://img.shields.io/github/downloads/tempus2016/tabdeck-card/total" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/HACS-Custom-41BDF5.svg" alt="HACS Custom">
+  <a href="https://github.com/tempus2016/tabdeck-card/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tempus2016/tabdeck-card" alt="License"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/tempus2016/tabdeck-card/actions/workflows/ci.yml"><img src="https://github.com/tempus2016/tabdeck-card/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/tempus2016/tabdeck-card/actions/workflows/validate.yml"><img src="https://github.com/tempus2016/tabdeck-card/actions/workflows/validate.yml/badge.svg" alt="HACS Validation"></a>
+  <a href="https://github.com/tempus2016/tabdeck-card/wiki"><img src="https://img.shields.io/badge/docs-wiki-blue" alt="Wiki"></a>
+</p>
+
 A modern tabbed card for Home Assistant Lovelace dashboards — organize multiple
 cards into clean, themeable tabs with a visual editor, conditional tabs, badges,
 and persistent / deep-linkable selection.
