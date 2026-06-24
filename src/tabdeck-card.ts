@@ -411,6 +411,14 @@ export class TabdeckCard extends LitElement {
         @touchstart=${this._onTouchStart}
         @touchend=${this._onTouchEnd}
       >
+        ${cfg.header && visible[this._selected]
+          ? html`<div class="content-header">
+              <span class="content-title">${visible[this._selected].name ?? ""}</span>
+              ${visible[this._selected].subtitle
+                ? html`<span class="content-subtitle">${visible[this._selected].subtitle}</span>`
+                : nothing}
+            </div>`
+          : nothing}
         ${visible.map((tab, i) => {
           const original = cfg.tabs.indexOf(tab);
           const active = i === this._selected;
@@ -464,6 +472,20 @@ export class TabdeckCard extends LitElement {
     }
     .content {
       padding-top: 8px;
+    }
+    .content-header {
+      display: flex;
+      flex-direction: column;
+      padding: 4px 4px 10px;
+    }
+    .content-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-text-color);
+    }
+    .content-subtitle {
+      font-size: 13px;
+      color: var(--secondary-text-color);
     }
     .panel[hidden] {
       display: none;

@@ -51,6 +51,7 @@ export interface TabdeckCardConfig {
   swipe_wrap: boolean;
   animated: boolean;
   accent_indicator: boolean;
+  header: boolean;
   sticky: boolean;
   elevation: boolean;
   bar_background?: string;
@@ -146,6 +147,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     swipe_wrap: Boolean(raw?.swipe_wrap),
     animated: raw?.animated === undefined ? true : Boolean(raw.animated),
     accent_indicator: raw?.accent_indicator === undefined ? true : Boolean(raw.accent_indicator),
+    header: Boolean(raw?.header),
     sticky: Boolean(raw?.sticky),
     elevation: Boolean(raw?.elevation),
     bar_background: raw?.bar_background ?? undefined,
