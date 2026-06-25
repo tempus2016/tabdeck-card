@@ -35,6 +35,15 @@ export interface TabdeckTabConfig {
   card: LovelaceCardConfig;
 }
 
+export interface AutoTabsConfig {
+  // HA Jinja template, server-rendered, must yield a JSON list.
+  template: string;
+  // Optional per-item blueprint. When present, each list item fills its
+  // {{ item }} / {{ item.prop }} / {{ index }} placeholders; when absent, each
+  // list element is treated as a complete tab config.
+  tab_template?: Record<string, any>;
+}
+
 export interface TabdeckCardConfig {
   type: string;
   default_tab: number | string;
@@ -67,6 +76,7 @@ export interface TabdeckCardConfig {
   swipe: boolean;
   styles: Record<string, string>;
   tabs: TabdeckTabConfig[];
+  auto_tabs?: AutoTabsConfig;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -100,7 +110,7 @@ function normalizeAutoSelect(raw: any): { entity: string; state?: string } | und
   return undefined;
 }
 
-function normalizeTab(raw: any): TabdeckTabConfig {
+export function normalizeTab(raw: any): TabdeckTabConfig {
   const attrs = raw?.attributes ?? {};
   // `cards: [...]` is a shorthand: wrap multiple cards in a stack so a tab can
   // hold more than one card without hand-writing it. With `columns: N` (>1) they
@@ -132,10 +142,21 @@ function normalizeTab(raw: any): TabdeckTabConfig {
   };
 }
 
+function normalizeAutoTabs(raw: any): AutoTabsConfig | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  if (typeof raw.template !== "string" || raw.template.trim() === "") return undefined;
+  return {
+    template: raw.template,
+    tab_template:
+      raw.tab_template && typeof raw.tab_template === "object" ? raw.tab_template : undefined,
+  };
+}
+
 export function normalizeConfig(raw: any): TabdeckCardConfig {
   const tabs = Array.isArray(raw?.tabs) ? raw.tabs : [];
-  if (tabs.length === 0) {
-    throw new Error("tabdeck-card: you must define at least one tab.");
+  const auto_tabs = normalizeAutoTabs(raw?.auto_tabs);
+  if (tabs.length === 0 && !auto_tabs) {
+    throw new Error("tabdeck-card: you must define at least one tab (or auto_tabs).");
   }
   const defaultTab = raw?.default_tab ?? raw?.options?.defaultTabIndex ?? 0;
   return {
@@ -173,6 +194,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     swipe: Boolean(raw?.swipe),
     styles: raw?.styles ?? {},
     tabs: tabs.map(normalizeTab),
+    auto_tabs,
   };
 }
 
