@@ -6,7 +6,8 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `tabs` | list | **required** | The tabs to show (at least one). See [Per-tab options](#per-tab-options). |
+| `tabs` | list | **required**\* | The tabs to show. See [Per-tab options](#per-tab-options). \*Optional when `auto_tabs` is set. |
+| `auto_tabs` | map | — | Generate a tab per item from a Jinja list (`template` + optional `tab_template`). See [Dynamic tabs](Feature-Dynamic-Tabs). |
 | `default_tab` | number \| string | `0` | Tab shown first. A number is a 0-based index; a string matches a tab `name`. |
 | `position` | `top` \| `bottom` \| `left` \| `right` | `top` | Where the tab bar sits relative to the content. |
 | `style` | `underline` \| `pill` \| `segmented` \| `boxed` \| `text` | `underline` | Visual style of the tab bar. See [Extra bar styles](Feature-Bar-Styles). |

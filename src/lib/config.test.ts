@@ -111,6 +111,35 @@ describe("normalizeConfig", () => {
     expect(() => normalizeConfig({})).toThrow(/at least one tab/i);
   });
 
+  it("parses auto_tabs with a template and optional tab_template", () => {
+    const c = normalizeConfig({
+      auto_tabs: {
+        template: "{{ ['camera.a','camera.b'] }}",
+        tab_template: { name: "{{ item }}", card: { type: "picture-entity", entity: "{{ item }}" } },
+      },
+      tabs: [{ name: "Overview", card: { type: "markdown" } }],
+    });
+    expect(c.auto_tabs?.template).toContain("camera.a");
+    expect(c.auto_tabs?.tab_template?.name).toBe("{{ item }}");
+  });
+
+  it("ignores a malformed auto_tabs (no template string)", () => {
+    expect(normalizeConfig({ auto_tabs: {}, tabs: [{ card: {} }] }).auto_tabs).toBeUndefined();
+    expect(normalizeConfig({ auto_tabs: { template: "" }, tabs: [{ card: {} }] }).auto_tabs).toBeUndefined();
+    expect(normalizeConfig({ auto_tabs: "x", tabs: [{ card: {} }] }).auto_tabs).toBeUndefined();
+  });
+
+  it("allows zero static tabs when auto_tabs is present", () => {
+    const c = normalizeConfig({ auto_tabs: { template: "{{ [] }}" } });
+    expect(c.tabs).toHaveLength(0);
+    expect(c.auto_tabs?.template).toContain("[]");
+  });
+
+  it("still throws when there are neither tabs nor auto_tabs", () => {
+    expect(() => normalizeConfig({ tabs: [] })).toThrow(/at least one tab/i);
+    expect(() => normalizeConfig({})).toThrow(/at least one tab/i);
+  });
+
   it("maps original options.defaultTabIndex to default_tab", () => {
     const c = normalizeConfig({
       options: { defaultTabIndex: 2 },

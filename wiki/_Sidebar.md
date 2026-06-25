@@ -14,6 +14,7 @@
 
 **Features**
 - [All features](Features)
+- [Dynamic tabs](Feature-Dynamic-Tabs)
 - [Tab display mode](Feature-Tab-Display)
 - [Accent indicator](Feature-Accent-Indicator)
 - [Extra bar styles](Feature-Bar-Styles)

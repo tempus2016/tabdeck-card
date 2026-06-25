@@ -31,6 +31,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Performance & swipe options](Feature-Performance)** — `unmount_hidden`, `swipe_wrap`, `swipe_mouse` (desktop drag).
 
 ## Dynamic behaviour
+- **[Dynamic tabs](Feature-Dynamic-Tabs)** — generate a tab per item from a live Jinja list (`auto_tabs`).
 - **[Visibility and/or/not groups](Tab-Visibility#logical-groups-and--or--not)** — nestable logical conditions for tab visibility.
 - **[Auto-select a tab](Feature-Auto-Select)** — switch tab when an entity becomes active (`auto_select`).
 - **[Time & user visibility](Tab-Visibility#time)** — show tabs by time-of-day/weekday or HA user.

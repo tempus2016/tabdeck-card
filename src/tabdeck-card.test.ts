@@ -361,6 +361,82 @@ describe("tabdeck-card templates", () => {
     await el.updateComplete;
     expect(bar().items).toHaveLength(1);
   });
+
+  it("appends generated tabs after static ones once the template resolves", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      {
+        tabs: [{ name: "Overview", card: { type: "markdown" } }],
+        auto_tabs: {
+          template: "{{ states.camera | map(attribute='entity_id') | list }}",
+          tab_template: { name: "{{ item }}", card: { type: "picture-entity", entity: "{{ item }}" } },
+        },
+      },
+      hass,
+    );
+    const bar = () => el.shadowRoot.querySelector("tabdeck-tabbar");
+    expect(bar().items).toHaveLength(1);
+    push("states.camera", { result: ["camera.a", "camera.b"] });
+    await el.updateComplete;
+    expect(bar().items.map((i: any) => i.name)).toEqual(["Overview", "camera.a", "camera.b"]);
+    expect(el.shadowRoot.querySelectorAll("[data-type]")).toHaveLength(3);
+  });
+
+  it("renders generated-only decks (no static tabs) with a placeholder until ready", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      {
+        auto_tabs: {
+          template: "{{ ['light.a','light.b'] }}",
+          tab_template: { name: "{{ item }}", card: { type: "light", entity: "{{ item }}" } },
+        },
+      },
+      hass,
+    );
+    expect(el.shadowRoot.querySelector(".empty")).toBeTruthy();
+    push("light.a", { result: ["light.a", "light.b"] });
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".empty")).toBeFalsy();
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").items).toHaveLength(2);
+  });
+
+  it("preserves the selected generated tab by name across a live re-render", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      {
+        auto_tabs: {
+          template: "{{ x }}",
+          tab_template: { name: "{{ item }}", card: { type: "light", entity: "{{ item }}" } },
+        },
+      },
+      hass,
+    );
+    push("x", { result: ["a", "b", "c"] });
+    await el.updateComplete;
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 2 }, bubbles: true, composed: true }));
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(2);
+    push("x", { result: ["z", "a", "b", "c"] });
+    await el.updateComplete;
+    const bar = el.shadowRoot.querySelector("tabdeck-tabbar");
+    expect(bar.items.map((i: any) => i.name)).toEqual(["z", "a", "b", "c"]);
+    expect(bar.items[bar.selected].name).toBe("c");
+  });
+
+  it("ignores a non-list template result (stays empty)", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      {
+        auto_tabs: { template: "{{ x }}", tab_template: { name: "{{ item }}", card: {} } },
+      },
+      hass,
+    );
+    push("x", { result: "not-a-list" });
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".empty")).toBeTruthy();
+  });
 });
 
 // Fire a synthetic swipe on the content host. dx<0 swipes left (=> next tab).

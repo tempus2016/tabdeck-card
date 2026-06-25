@@ -4,9 +4,12 @@ import { handleAction } from "custom-card-helpers";
 import type { HomeAssistant } from "./types";
 import {
   normalizeConfig,
+  normalizeTab,
   resolveDefaultIndex,
   type TabdeckCardConfig,
+  type TabdeckTabConfig,
 } from "./lib/config";
+import { expandGeneratedTabs } from "./lib/generate";
 import { isTabVisible } from "./lib/conditions";
 import { loadInitialIndex, persistIndex } from "./lib/persistence";
 import { CardManager, getCreateCardElement } from "./lib/card-lifecycle";
@@ -26,6 +29,10 @@ export class TabdeckCard extends LitElement {
   private _templates?: TemplateRenderer;
   // Per-tab (original index) previous auto_select match, for edge detection.
   private _autoPrev?: boolean[];
+  // Normalized generated tabs (from auto_tabs), appended after static tabs.
+  @state() private _genTabs: TabdeckTabConfig[] = [];
+  // JSON signature of the last raw generated set, to skip no-op rebuilds.
+  private _genKey = "";
 
   static getStubConfig() {
     return {
@@ -47,6 +54,8 @@ export class TabdeckCard extends LitElement {
     this._built = false;
     this._selected = resolveDefaultIndex(this._config);
     this._autoPrev = undefined;
+    this._genTabs = [];
+    this._genKey = "";
     // Drop any subscriptions from a previous config; they re-sync on next hass.
     this._templates?.destroy();
     this._templates = undefined;
@@ -72,7 +81,7 @@ export class TabdeckCard extends LitElement {
     const create = await getCreateCardElement();
     this._manager = new CardManager(create);
     this._manager.addEventListener("ll-rebuild-done", () => this.requestUpdate());
-    await this._manager.build(this._config.tabs.map((t) => t.card));
+    await this._manager.build(this._allTabs().map((t) => t.card));
     if (this._hass) this._manager.setHass(this._hass);
     this._syncTemplates();
     this._selected = loadInitialIndex({
@@ -105,20 +114,21 @@ export class TabdeckCard extends LitElement {
   private _runAutoSelect(): void {
     const cfg = this._config;
     if (!cfg) return;
-    if (!cfg.tabs.some((t) => t.auto_select)) return;
+    const tabs = this._allTabs();
+    if (!tabs.some((t) => t.auto_select)) return;
     const match = (a: { entity: string; state?: string }): boolean => {
       const st = this._hass?.states?.[a.entity]?.state;
       if (st === undefined) return false;
       return a.state !== undefined ? st === a.state : isActiveBadge(st);
     };
-    const now = cfg.tabs.map((t) => (t.auto_select ? match(t.auto_select) : false));
+    const now = tabs.map((t) => (t.auto_select ? match(t.auto_select) : false));
     const prev = this._autoPrev;
     this._autoPrev = now;
     if (!prev) return; // seed only
-    for (let i = 0; i < cfg.tabs.length; i++) {
+    for (let i = 0; i < tabs.length; i++) {
       if (now[i] && !prev[i]) {
         const visible = this._visibleTabs();
-        const vIdx = visible.indexOf(cfg.tabs[i]);
+        const vIdx = visible.indexOf(tabs[i]);
         if (vIdx >= 0) {
           this._selectIndex(vIdx);
           break;
@@ -136,9 +146,15 @@ export class TabdeckCard extends LitElement {
   private _templateResolver = (tpl: string): boolean | undefined =>
     this._templates?.boolean(tpl);
 
+  // Effective tab list: static tabs first, generated tabs appended.
+  private _allTabs(): TabdeckTabConfig[] {
+    if (!this._config) return [];
+    return this._genTabs.length ? [...this._config.tabs, ...this._genTabs] : this._config.tabs;
+  }
+
   private _visibleTabs() {
     if (!this._config) return [];
-    return this._config.tabs.filter((t) =>
+    return this._allTabs().filter((t) =>
       isTabVisible(t.visibility, this._hass, this._templateResolver),
     );
   }
@@ -146,6 +162,7 @@ export class TabdeckCard extends LitElement {
   private _collectTemplates(): string[] {
     if (!this._config) return [];
     const out: string[] = [];
+    if (this._config.auto_tabs?.template) out.push(this._config.auto_tabs.template);
     // Walk a condition tree, gathering template value_templates (including those
     // nested inside and/or/not groups) so they all get subscribed.
     const walk = (conds: any[] | undefined) => {
@@ -154,7 +171,7 @@ export class TabdeckCard extends LitElement {
         if (Array.isArray(c?.conditions)) walk(c.conditions);
       }
     };
-    for (const t of this._config.tabs) {
+    for (const t of this._allTabs()) {
       if (isTemplate(t.badge)) out.push(t.badge!);
       walk(t.visibility);
       walk(t.default_if);
@@ -204,9 +221,51 @@ export class TabdeckCard extends LitElement {
       const subscribe = this._makeSubscribe();
       if (!subscribe) return; // no connection yet; retried on next hass
       this._templates = new TemplateRenderer(subscribe);
-      this._templates.addEventListener("change", () => this.requestUpdate());
+      this._templates.addEventListener("change", () => {
+        void this._syncGeneratedTabs();
+        this.requestUpdate();
+      });
     }
     this._templates.track(templates);
+  }
+
+  // Rebuild generated tabs from the latest template result. Guarded by a JSON
+  // signature so an unchanged result causes no card churn. On a real change,
+  // rebuild the card manager over the combined list, re-subscribe any templates
+  // the new tabs introduce, and keep the user on the same tab where possible.
+  private async _syncGeneratedTabs(): Promise<void> {
+    const auto = this._config?.auto_tabs;
+    if (!auto || !this._manager) return;
+    const items = this._templates?.result(auto.template);
+    const raw = expandGeneratedTabs(items, auto);
+    const key = JSON.stringify(raw);
+    if (key === this._genKey) return;
+    const prevName = this._visibleTabs()[this._selected]?.name;
+    this._genKey = key;
+    this._genTabs = raw.map(normalizeTab);
+    // Restore selection synchronously, before awaiting the (internally sync)
+    // rebuild, so the panel never renders the new tab set against a stale index.
+    this._restoreSelection(prevName);
+    await this._manager.build(this._allTabs().map((t) => t.card));
+    if (this._hass) this._manager.setHass(this._hass);
+    this._syncTemplates();
+    this.requestUpdate();
+  }
+
+  // Keep the selection on the same-named tab; else clamp into range; else fall
+  // back to the computed default.
+  private _restoreSelection(prevName?: string): void {
+    const visible = this._visibleTabs();
+    if (prevName) {
+      const i = visible.findIndex((t) => t.name === prevName);
+      if (i >= 0) {
+        this._selected = i;
+        return;
+      }
+    }
+    if (this._selected > visible.length - 1) {
+      this._selected = Math.min(this._computeDefaultIndex(), Math.max(0, visible.length - 1));
+    }
   }
 
   getCardSize(): number {
@@ -235,14 +294,14 @@ export class TabdeckCard extends LitElement {
       }
     }
     const orig = resolveDefaultIndex(this._config!);
-    const vIdx = visible.indexOf(this._config!.tabs[orig]);
+    const vIdx = visible.indexOf(this._allTabs()[orig] ?? this._config!.tabs[orig]);
     return vIdx >= 0 ? vIdx : 0;
   }
 
   private _activeOriginalIndex(): number {
     const visible = this._visibleTabs();
     const target = visible[this._selected];
-    return this._config ? this._config.tabs.indexOf(target) : 0;
+    return this._allTabs().indexOf(target);
   }
 
   private _onSelect(e: CustomEvent<{ index: number }>): void {
@@ -400,6 +459,9 @@ export class TabdeckCard extends LitElement {
   render() {
     if (!this._config || !this._built) return nothing;
     const visible = this._visibleTabs();
+    if (visible.length === 0) {
+      return html`<div class="empty"></div>`;
+    }
     const cfg = this._config;
     const bar = html`
       <tabdeck-tabbar
@@ -455,7 +517,7 @@ export class TabdeckCard extends LitElement {
             </div>`
           : nothing}
         ${visible.map((tab, i) => {
-          const original = cfg.tabs.indexOf(tab);
+          const original = this._allTabs().indexOf(tab);
           const active = i === this._selected;
           // With unmount_hidden, only the active panel's card is in the DOM
           // (others stay retained in the manager but detached) to save memory.
@@ -524,6 +586,9 @@ export class TabdeckCard extends LitElement {
     }
     .panel[hidden] {
       display: none;
+    }
+    .empty {
+      min-height: 8px;
     }
   `;
 }
