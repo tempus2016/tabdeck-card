@@ -2,12 +2,15 @@
 
 ## HACS (recommended)
 
-1. In Home Assistant, open **HACS → Frontend**.
-2. Use the menu (⋮) → **Custom repositories**, add `https://github.com/tempus2016/tabdeck-card` with category **Lovelace**.
-3. Search for **Tabdeck Card** and install it.
-4. HACS adds the resource automatically. If not, add it under **Settings → Dashboards → ⋮ → Resources**:
+Tabdeck Card is in the **default HACS store** — no custom repository needed.
+
+1. In Home Assistant, open **HACS** and search for **Tabdeck Card**.
+2. Open it and click **Download**.
+3. HACS adds the resource automatically. If not, add it under **Settings → Dashboards → ⋮ → Resources**:
    - URL: `/hacsfiles/tabdeck-card/tabdeck-card.js`
    - Type: **JavaScript Module**
+
+[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=tempus2016&repository=tabdeck-card&category=plugin)
 
 ## Manual
 
