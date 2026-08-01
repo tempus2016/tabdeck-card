@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://github.com/tempus2016/tabdeck-card/releases"><img src="https://img.shields.io/github/v/release/tempus2016/tabdeck-card" alt="Latest Release"></a>
   <a href="https://github.com/tempus2016/tabdeck-card/releases"><img src="https://img.shields.io/github/downloads/tempus2016/tabdeck-card/total" alt="Downloads"></a>
-  <img src="https://img.shields.io/badge/HACS-Custom-41BDF5.svg" alt="HACS Custom">
+  <a href="https://github.com/hacs/default"><img src="https://img.shields.io/badge/HACS-Default-41BDF5.svg" alt="HACS Default"></a>
   <a href="https://github.com/tempus2016/tabdeck-card/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tempus2016/tabdeck-card" alt="License"></a>
 </p>
 
@@ -48,11 +48,14 @@ A nested map card rendering correctly the moment its tab is selected — no
 
 ## Installation (HACS)
 
-1. HACS → Frontend → ⋮ → **Custom repositories** → add
-   `https://github.com/tempus2016/tabdeck-card` (category: **Lovelace**).
-2. Install **Tabdeck Card**.
+Tabdeck Card is in the **default HACS store** — no custom repository needed.
+
+1. In HACS, search for **Tabdeck Card** and open it.
+2. Click **Download**.
 3. HACS registers the resource automatically at
    `/hacsfiles/tabdeck-card/tabdeck-card.js` (type: **JavaScript Module**).
+
+[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=tempus2016&repository=tabdeck-card&category=plugin)
 
 ### Manual installation
 
