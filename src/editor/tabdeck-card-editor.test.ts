@@ -470,4 +470,53 @@ describe("tabdeck-card-editor", () => {
     alertEd.dispatchEvent(new CustomEvent("value-changed", { detail: { value: [] }, bubbles: true, composed: true }));
     expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].alert).toBeUndefined();
   });
+
+  it("copies a tab's config to the clipboard", async () => {
+    const written: string[] = [];
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: async (t: string) => void written.push(t) },
+      configurable: true,
+    });
+    const el = await mount({ tabs: [{ name: "Lights", icon: "mdi:lightbulb", card: { type: "light", entity: "light.a" } }] });
+    el.shadowRoot.querySelector(".copy-tab").click();
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+    const copied = JSON.parse(written[0]);
+    expect(copied).toEqual({ name: "Lights", icon: "mdi:lightbulb", card: { type: "light", entity: "light.a" } });
+    expect(el.shadowRoot.querySelector(".editor-status").textContent).toContain("Lights");
+  });
+
+  it("imports one or several tabs from pasted config", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    el.shadowRoot.querySelector(".import-tab").click();
+    await el.updateComplete;
+    const ta = el.shadowRoot.querySelector("textarea.import-json");
+    ta.value = JSON.stringify([
+      { name: "B", card: { type: "light" } },
+      { name: "C", tap_action: { action: "navigate", navigation_path: "/c" } },
+    ]);
+    ta.dispatchEvent(new Event("input"));
+    el.shadowRoot.querySelector(".import-apply").click();
+    await el.updateComplete;
+    const tabs = handler.mock.calls.at(-1)![0].detail.config.tabs;
+    expect(tabs.map((t: any) => t.name)).toEqual(["A", "B", "C"]);
+    expect(el.shadowRoot.querySelector("textarea.import-json")).toBeNull();
+  });
+
+  it("rejects pasted config that isn't a tab", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    el.shadowRoot.querySelector(".import-tab").click();
+    await el.updateComplete;
+    const ta = el.shadowRoot.querySelector("textarea.import-json");
+    ta.value = '{"foo": 1}';
+    ta.dispatchEvent(new Event("input"));
+    el.shadowRoot.querySelector(".import-apply").click();
+    await el.updateComplete;
+    expect(handler).not.toHaveBeenCalled();
+    expect(el.shadowRoot.querySelector(".import-error").textContent).toMatch(/tab/i);
+  });
 });
