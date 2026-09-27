@@ -36,6 +36,14 @@ describe("parseHashIndex", () => {
   it("matches a numeric index", () => {
     expect(parseHashIndex("#tab=1", ["Lights", "Climate"])).toBe(1);
   });
+  it("matches a tab name case-insensitively and by slug", () => {
+    expect(parseHashIndex("#tab=lights", ["Lights", "Climate"])).toBe(0);
+    expect(parseHashIndex("#tab=living-room", ["Kitchen", "Living Room"])).toBe(1);
+    expect(parseHashIndex("#tab=Living%20Room", ["Kitchen", "Living Room"])).toBe(1);
+  });
+  it("prefers an exact name over a slug match", () => {
+    expect(parseHashIndex("#tab=a-b", ["A B", "a-b"])).toBe(1);
+  });
   it("returns null for no/unknown hash", () => {
     expect(parseHashIndex("", ["A"])).toBeNull();
     expect(parseHashIndex("#tab=ZZ", ["A"])).toBeNull();

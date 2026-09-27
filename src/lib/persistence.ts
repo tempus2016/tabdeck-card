@@ -8,12 +8,25 @@ function clamp(i: number, count: number, fallback: number): number {
   return i >= 0 && i < count ? i : fallback;
 }
 
+// URL-friendly form of a tab name: "Living Room" -> "living-room".
+export function slugify(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export function parseHashIndex(hash: string, tabNames: string[]): number | null {
   const m = /(?:^|[#&])tab=([^&]+)/.exec(hash || "");
   if (!m) return null;
   const value = decodeURIComponent(m[1]);
   const byName = tabNames.indexOf(value);
   if (byName >= 0) return byName;
+  // Fall back to a case-insensitive / slug match so `#tab=living-room` works.
+  const slug = slugify(value);
+  const bySlug = slug ? tabNames.findIndex((n) => slugify(n) === slug) : -1;
+  if (bySlug >= 0) return bySlug;
   const n = Number(value);
   if (Number.isInteger(n) && n >= 0) return n;
   return null;
