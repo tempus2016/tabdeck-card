@@ -52,6 +52,8 @@ Each item in `tabs`:
 | `hold_action` / `badge_action` | action | — | HA action on tab long-press / badge click. See [Tab & badge actions](Feature-Hold-Action). |
 | `visibility` | list of conditions | — | Conditions for showing the tab (supports and/or/not). See [Tab Visibility](Tab-Visibility). |
 
+> `name`, `subtitle`, `icon`, `accent` and `color` also accept a **Jinja template** that renders live. See [State-driven icons, names & colours](Feature-Templated-Fields).
+
 ## Full example
 
 ```yaml

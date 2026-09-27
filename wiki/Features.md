@@ -15,6 +15,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Scroll buttons & overflow menu](Feature-Scroll-Buttons)** — arrows (`scroll_buttons`) or a ⋯ jump-to-tab menu (`overflow_menu`).
 
 ## Per-tab content
+- **[State-driven icons, names & colours](Feature-Templated-Fields)** — `icon`/`name`/`subtitle`/`color`/`accent` as live Jinja templates.
 - **[Per-tab text/icon colour](Feature-Tab-Color)** — fixed label/icon colour for a tab (`color`).
 - **[Badge display mode](Feature-Badge-Display)** — text or dot badges (`badge_display`).
 - **[Hide inactive badges](Feature-Hide-Inactive-Badge)** — hide 0/off badges (`hide_inactive_badge`).

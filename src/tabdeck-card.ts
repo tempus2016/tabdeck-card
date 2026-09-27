@@ -18,6 +18,9 @@ import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import "./components/tabdeck-tabbar";
 import { isActiveBadge } from "./components/tabdeck-tab";
 
+// Tab display fields that may be Jinja templates (rendered live by HA).
+const TEMPLATED_FIELDS = ["name", "subtitle", "icon", "color", "accent"] as const;
+
 @customElement("tabdeck-card")
 export class TabdeckCard extends LitElement {
   @state() private _config?: TabdeckCardConfig;
@@ -202,6 +205,7 @@ export class TabdeckCard extends LitElement {
     };
     for (const t of this._allTabs()) {
       if (isTemplate(t.badge)) out.push(t.badge!);
+      for (const f of TEMPLATED_FIELDS) if (isTemplate(t[f])) out.push(t[f]!);
       walk(t.visibility);
       walk(t.default_if);
     }
@@ -498,11 +502,11 @@ export class TabdeckCard extends LitElement {
     const bar = html`
       <tabdeck-tabbar
         .items=${visible.map((t) => ({
-          name: t.name,
-          subtitle: t.subtitle,
-          icon: t.icon,
-          accent: t.accent,
-          color: t.color,
+          name: this._text(t.name),
+          subtitle: this._text(t.subtitle),
+          icon: this._text(t.icon),
+          accent: this._text(t.accent),
+          color: this._text(t.color),
           disabled: t.disabled,
           badgeColor: t.badge_color,
           holdAction: !!t.hold_action,
@@ -542,9 +546,11 @@ export class TabdeckCard extends LitElement {
       >
         ${cfg.header && visible[this._selected]
           ? html`<div class="content-header">
-              <span class="content-title">${visible[this._selected].name ?? ""}</span>
-              ${visible[this._selected].subtitle
-                ? html`<span class="content-subtitle">${visible[this._selected].subtitle}</span>`
+              <span class="content-title">${this._text(visible[this._selected].name) ?? ""}</span>
+              ${this._text(visible[this._selected].subtitle)
+                ? html`<span class="content-subtitle"
+                    >${this._text(visible[this._selected].subtitle)}</span
+                  >`
                 : nothing}
             </div>`
           : nothing}
@@ -566,6 +572,14 @@ export class TabdeckCard extends LitElement {
         ${cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
       </div>
     `;
+  }
+
+  // A display field that may be a Jinja template: the latest rendered value
+  // (empty/pending → unset), or the plain string as-is.
+  private _text(value?: string): string | undefined {
+    if (!isTemplate(value)) return value;
+    const r = this._templates?.result(value!);
+    return r === undefined || r === null || String(r).trim() === "" ? undefined : String(r).trim();
   }
 
   // Resolve a badge, then drop it if hide_inactive_badge is on and the value is
