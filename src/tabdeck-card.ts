@@ -743,10 +743,12 @@ export class TabdeckCard extends LitElement {
   private _appliedStyleKeys: string[] = [];
 
   // Apply the `styles` map (CSS property → value, e.g. `--tabdeck-accent`) to the
-  // card host. A simple, dependency-free theming hook without card-mod.
+  // card host, plus the active tab's `styles`. A simple, dependency-free theming hook without card-mod.
   private _applyStyles(): void {
     for (const key of this._appliedStyleKeys) this.style.removeProperty(key);
-    const styles = this._config?.styles ?? {};
+    // The active tab's own styles layer over the top-level ones.
+    const active = this._visibleTabs()[this._selected];
+    const styles = { ...(this._config?.styles ?? {}), ...(active?.styles ?? {}) };
     this._appliedStyleKeys = Object.keys(styles);
     for (const [key, value] of Object.entries(styles)) {
       this.style.setProperty(key, String(value));

@@ -36,12 +36,15 @@ A nested map card rendering correctly the moment its tab is selected — no
 
 ## Features
 
-- **Visual GUI editor** — add, remove, **drag-to-reorder**, duplicate and name tabs without YAML; collapsible tab blocks, native HA card editor, duplicate-name warnings.
+- **Visual GUI editor** — add, remove, **drag-to-reorder**, duplicate, **copy & import** tabs without YAML; collapsible tab blocks, native HA card editor, HA's native **condition builder** for visibility/alert/default, style **presets**, duplicate-name warnings.
 - **Keep-alive content** (or opt-in `unmount_hidden`) — maps/cameras/graphs render correctly without navigating away.
 - **Tab bar styling** — `top`/`bottom`/`left`/`right` positions; `underline`/`pill`/`segmented`/`boxed`/`text` styles; `tab_display` (icon/label/both); `align`; `indicator_size`; `sticky`; `elevation`; `bar_background`; per-tab `accent`/`color`.
-- **Per-tab** — `subtitle`, `badge` (text or `dot`, `badge_color`, hide-inactive), `disabled`, multiple `cards`/`columns`, long-press `hold_action`.
-- **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`.
-- **Persistence** — remember the active tab per `browser`, `url` (`#tab=`), or across devices via an `entity`.
+- **Per-tab** — `subtitle`, `badge` (text or `dot`, `badge_color`, `badge_format`, hide-inactive), `disabled`, multiple `cards`/`columns`, per-tab `styles`; `icon`/`name`/`color` can be **live templates**; pulsing `alert` conditions.
+- **Actions** — `tap_action` turns a tab into a **navigation link/button**; `hold_action`, `badge_action`, and `enter_action`/`leave_action` when a tab opens or closes (incl. `perform-action`).
+- **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`, generated tabs via `auto_tabs` (Jinja, or **one tab per area/label**).
+- **Layouts** — `scroll_spy` anchor mode, `collapsible` deck, responsive `split` view (side by side on wide cards) and `tab_display_narrow`.
+- **Wall panels** — `auto_rotate` through tabs, `idle_return` to the default tab.
+- **Persistence** — remember the active tab per `browser`, `url` (`#tab=name`, slug or index), or across devices via an `entity` with **live two-way sync**.
 - **Transitions** — optional `fade`/`slide` panel animations (respects reduced-motion).
 - **Theming** — CSS variables via `styles`, no card-mod needed.
 - **Accessible** — `tablist` semantics, full keyboard navigation (Arrows, Home/End, skips disabled).
@@ -133,6 +136,13 @@ A ready-to-paste dashboard showcasing many features lives in
 | `animated`    | boolean           | `true`       | Slide the active-tab indicator between tabs. Snaps instantly when `false` or under reduced-motion. |
 | `swipe`       | boolean           | `false`      | Change tabs by swiping left/right on the card body (touch devices). Off by default so it never hijacks gestures of interactive cards (maps, sliders). |
 | `styles`      | object            | `{}`         | CSS-variable overrides (see Theming). |
+| `preset`      | string            | —            | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` style bundle; explicit keys win. |
+| `badge_format` | object           | —            | Default numeric badge format `{precision, unit, max}`. |
+| `auto_rotate` / `idle_return` | number | —      | Cycle tabs every N s / return to the default tab after N s idle. |
+| `scroll_spy`  | boolean           | `false`      | Stack all tabs as sections; the bar scrolls to and tracks them. |
+| `collapsible` / `start_collapsed` | boolean | `false` | Tap the active tab to fold the content away. |
+| `split`       | number \| object  | —            | Side-by-side columns at/above this card width (`{min_width, columns}`). |
+| `tab_display_narrow` / `narrow_width` | string / number | — / `450` | Display mode on narrow cards. |
 
 ### Tab options
 
@@ -146,6 +156,11 @@ A ready-to-paste dashboard showcasing many features lives in
 | `badge` / `badge_color` | string | — | Entity id or Jinja template; optional badge colour. |
 | `disabled`   | boolean | `false` | Show greyed-out and non-selectable. |
 | `hold_action` | action | —      | HA action fired on long-press (tap still selects). |
+| `tap_action` | action | —       | Tap runs this action instead of opening the tab (navigation tabs; no card needed). |
+| `enter_action` / `leave_action` | action | — | HA action when the tab becomes / stops being active. |
+| `badge_format` | object | —     | `{precision, unit, max}` numeric badge formatting. |
+| `alert`      | list   | —       | Conditions that make the tab pulse while met. |
+| `styles`     | object | —       | CSS properties applied while this tab is active. |
 | `auto_select` | string \| object | — | Switch to this tab when an entity becomes active. |
 | `default_if` | list   | —       | Conditions that make this the default tab on load. |
 | `visibility` | list   | —       | Conditions (see below); the tab is hidden when unmet. |

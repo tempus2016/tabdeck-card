@@ -58,7 +58,8 @@ auto_tabs:
 
 | Key | Type | Description |
 | --- | --- | --- |
-| `template` | string (Jinja) | **Required.** Rendered by Home Assistant; must resolve to a **list**. Each element becomes a tab. |
+| `template` | string (Jinja) | **Required** unless `source` is set. Rendered by Home Assistant; must resolve to a **list**. Each element becomes a tab. |
+| `source` | `areas` \| `labels` | Built-in source instead of `template` (see above), with optional `domains` and `exclude`. |
 | `tab_template` | tab config | Optional blueprint. When present, it's filled once per list item using the placeholders below. When **absent**, each list element is used directly as a complete tab config. |
 
 ## Placeholders (inside `tab_template`)

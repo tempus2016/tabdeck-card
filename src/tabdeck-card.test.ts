@@ -1180,3 +1180,24 @@ describe("auto_tabs source: areas", () => {
     expect(el.shadowRoot.querySelectorAll('[data-type="entities"]')).toHaveLength(2);
   });
 });
+
+describe("per-tab styles", () => {
+  it("applies the active tab's styles over the global ones and removes them on switch", async () => {
+    const el = await mount({
+      styles: { "--tabdeck-accent": "blue", "--x": "1" },
+      tabs: [
+        { name: "A", styles: { "--tabdeck-accent": "red", "--only-a": "yes" }, card: { type: "markdown" } },
+        { name: "B", card: { type: "light" } },
+      ],
+    });
+    expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("red");
+    expect(el.style.getPropertyValue("--only-a")).toBe("yes");
+    expect(el.style.getPropertyValue("--x")).toBe("1");
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 }, bubbles: true, composed: true }));
+    await el.updateComplete;
+    expect(el.style.getPropertyValue("--tabdeck-accent")).toBe("blue");
+    expect(el.style.getPropertyValue("--only-a")).toBe("");
+  });
+});

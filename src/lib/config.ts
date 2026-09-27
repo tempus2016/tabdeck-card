@@ -43,6 +43,9 @@ export interface TabdeckTabConfig {
   visibility?: any[];
   // Conditions (visibility-style) that, while met, make the tab pulse.
   alert?: any[];
+  // CSS properties applied to the card while this tab is active (over the
+  // top-level `styles`).
+  styles?: Record<string, string>;
   // A single resolved card. When the source config supplies `cards: [...]`,
   // it is collapsed into one `vertical-stack` card here.
   card: LovelaceCardConfig;
@@ -197,6 +200,10 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     default_if: raw?.default_if ?? undefined,
     visibility: raw?.visibility ?? undefined,
     alert: Array.isArray(raw?.alert) && raw.alert.length > 0 ? raw.alert : undefined,
+    styles:
+      raw?.styles && typeof raw.styles === "object" && !Array.isArray(raw.styles)
+        ? raw.styles
+        : undefined,
     card,
   };
 }

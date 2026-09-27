@@ -22,6 +22,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Editor condition builders** — each tab's Visibility, Alert and Default-when conditions are editable with Home Assistant's native condition editor (tabdeck-only types like `template` edit as YAML in place).
 - **Copy & import tabs** — the editor can copy a tab's config to the clipboard (works on http too) and import one or several pasted tabs.
 - **A tab per area or label** — `auto_tabs: { source: areas | labels, domains, exclude }` builds a tab per area (with its registry icon) or label, listing its entities; no Jinja required.
+- **Per-tab styles** — a tab's own `styles` apply over the top-level ones while it's active (e.g. a different accent per tab).
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed
