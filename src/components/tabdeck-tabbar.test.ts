@@ -306,3 +306,16 @@ describe("tabdeck-tabbar", () => {
     ).toBe(false);
   });
 });
+
+describe("tabdeck-tabbar alert passthrough", () => {
+  it("passes item.alert to the tab", async () => {
+    await import("./tabdeck-tabbar");
+    const bar = document.createElement("tabdeck-tabbar") as any;
+    bar.items = [{ name: "A" }, { name: "B", alert: true }];
+    document.body.appendChild(bar);
+    await bar.updateComplete;
+    const tabs = bar.shadowRoot.querySelectorAll("tabdeck-tab");
+    expect(tabs[0].alert).toBe(false);
+    expect(tabs[1].alert).toBe(true);
+  });
+});

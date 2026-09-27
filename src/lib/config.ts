@@ -33,6 +33,8 @@ export interface TabdeckTabConfig {
   // load (first matching tab wins, unless a remembered selection exists).
   default_if?: any[];
   visibility?: any[];
+  // Conditions (visibility-style) that, while met, make the tab pulse.
+  alert?: any[];
   // A single resolved card. When the source config supplies `cards: [...]`,
   // it is collapsed into one `vertical-stack` card here.
   card: LovelaceCardConfig;
@@ -144,6 +146,7 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     auto_select: normalizeAutoSelect(raw?.auto_select),
     default_if: raw?.default_if ?? undefined,
     visibility: raw?.visibility ?? undefined,
+    alert: Array.isArray(raw?.alert) && raw.alert.length > 0 ? raw.alert : undefined,
     card,
   };
 }

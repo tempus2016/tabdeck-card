@@ -29,6 +29,8 @@ export class TabdeckTab extends LitElement {
   @property() display: TabDisplay = "both";
   @property({ type: Boolean, reflect: true }) selected = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
+  // Pulses to draw attention while the tab's alert conditions are met.
+  @property({ type: Boolean, reflect: true }) alert = false;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -111,6 +113,35 @@ export class TabdeckTab extends LitElement {
     }
     :host([selected]) {
       color: var(--tabdeck-accent, var(--primary-color));
+    }
+    /* alert: a gentle pulsing tint + alert-coloured label/icon. */
+    :host([alert]) {
+      color: var(--tabdeck-alert-color, var(--error-color, #db4437));
+      border-radius: var(--tabdeck-alert-radius, 8px);
+      animation: tabdeck-alert-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes tabdeck-alert-pulse {
+      0%,
+      100% {
+        background: transparent;
+      }
+      50% {
+        background: color-mix(
+          in srgb,
+          var(--tabdeck-alert-color, var(--error-color, #db4437)) 20%,
+          transparent
+        );
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      :host([alert]) {
+        animation: none;
+        background: color-mix(
+          in srgb,
+          var(--tabdeck-alert-color, var(--error-color, #db4437)) 14%,
+          transparent
+        );
+      }
     }
     :host([disabled]) {
       opacity: 0.5;
