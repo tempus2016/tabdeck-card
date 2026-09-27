@@ -30,6 +30,8 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `lazy` | boolean | `false` | When `true`, a tab's card is only built the first time it becomes visible. |
 | `animated` | boolean | `true` | Animate the selection indicator as it moves between tabs. |
 | `swipe` | boolean | `false` | Allow left/right swipe gestures to change tabs (mobile). |
+| `auto_rotate` | number \| `{interval, resume_after}` | — | Cycle tabs every N seconds; pauses after interaction. See [Auto-rotate & idle return](Feature-Kiosk). |
+| `idle_return` | number (seconds) | — | Return to the default tab after inactivity. See [Auto-rotate & idle return](Feature-Kiosk). |
 | `styles` | map | — | CSS variables/properties applied to the card. See [Theming](Feature-Theming). |
 
 > **Legacy:** `options.defaultTabIndex` is still accepted as a fallback for `default_tab`.

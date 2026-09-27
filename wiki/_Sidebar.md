@@ -17,6 +17,7 @@
 - [Dynamic tabs](Feature-Dynamic-Tabs)
 - [State-driven icons & names](Feature-Templated-Fields)
 - [Alert pulse](Feature-Alert)
+- [Auto-rotate & idle return](Feature-Kiosk)
 - [Tab display mode](Feature-Tab-Display)
 - [Accent indicator](Feature-Accent-Indicator)
 - [Extra bar styles](Feature-Bar-Styles)

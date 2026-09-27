@@ -755,3 +755,77 @@ describe("alert pulse", () => {
     expect(el.shadowRoot.querySelector("tabdeck-tabbar").items[0].alert).toBe(true);
   });
 });
+
+describe("auto_rotate & idle_return", () => {
+  const tabs = [
+    { name: "A", card: { type: "markdown" } },
+    { name: "B", card: { type: "light" }, disabled: true },
+    { name: "C", card: { type: "light" } },
+  ];
+  const sel = (el: any) => el.shadowRoot.querySelector("tabdeck-tabbar").selected;
+
+  it("rotates through enabled tabs every interval", async () => {
+    const el = await mount({ auto_rotate: 10, tabs });
+    const t0 = el._lastInteraction;
+    el._tick(t0 + 9_000);
+    expect(el._selected).toBe(0);
+    el._tick(t0 + 10_000);
+    await el.updateComplete;
+    expect(sel(el)).toBe(2); // skips disabled B
+    el._tick(t0 + 20_000);
+    await el.updateComplete;
+    expect(sel(el)).toBe(0); // wraps
+  });
+
+  it("pauses rotation after interaction until resume_after", async () => {
+    const el = await mount({ auto_rotate: { interval: 10, resume_after: 60 }, tabs });
+    const t0 = Date.now();
+    el._noteInteraction(t0);
+    el._tick(t0 + 30_000);
+    expect(el._selected).toBe(0);
+    el._tick(t0 + 60_000);
+    expect(el._selected).toBe(2);
+  });
+
+  it("does not persist rotated selections", async () => {
+    const store: Record<string, string> = {};
+    const orig = globalThis.localStorage.setItem;
+    globalThis.localStorage.setItem = (k: string, v: string) => void (store[k] = v);
+    try {
+      const el = await mount({ auto_rotate: 10, remember: "browser", tabs });
+      el._tick(el._lastInteraction + 10_000);
+      expect(el._selected).toBe(2);
+      expect(Object.keys(store)).toHaveLength(0);
+    } finally {
+      globalThis.localStorage.setItem = orig;
+    }
+  });
+
+  it("idle_return goes back to the default tab after inactivity", async () => {
+    const el = await mount({ idle_return: 30, default_tab: 0, tabs });
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 2 }, bubbles: true, composed: true }));
+    const t0 = Date.now();
+    el._noteInteraction(t0);
+    el._tick(t0 + 29_000);
+    expect(el._selected).toBe(2);
+    el._tick(t0 + 30_000);
+    await el.updateComplete;
+    expect(sel(el)).toBe(0);
+  });
+
+  it("records interaction from pointer events on the card", async () => {
+    const el = await mount({ idle_return: 30, tabs });
+    el._lastInteraction = 0;
+    el.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    expect(el._lastInteraction).toBeGreaterThan(0);
+  });
+
+  it("clears its timer when disconnected", async () => {
+    const el = await mount({ auto_rotate: 10, tabs });
+    expect(el._timer).toBeDefined();
+    el.remove();
+    expect(el._timer).toBeUndefined();
+  });
+});

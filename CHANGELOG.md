@@ -10,6 +10,8 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **State-driven tab fields** — a tab's `icon`, `name`, `subtitle`, `color` and `accent` can be Jinja templates rendered live by Home Assistant (e.g. an open-garage icon in red).
 - **Numeric badge formatting** — `badge_format: { precision, unit, max }` per tab or as a top-level default (`21.456` → `21.5°`, `150` → `99+`).
 - **Alert pulse** — per-tab `alert` conditions (visibility syntax, incl. templates) make a tab pulse in `--tabdeck-alert-color` while met; steady tint under reduced motion.
+- **Auto-rotate** — `auto_rotate: 15` (or `{ interval, resume_after }`) cycles enabled tabs for wall panels, pausing after any interaction. Rotations are not persisted.
+- **Idle return** — `idle_return: 120` goes back to the default tab after inactivity.
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed

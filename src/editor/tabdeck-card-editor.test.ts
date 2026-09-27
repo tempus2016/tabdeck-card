@@ -414,4 +414,19 @@ describe("tabdeck-card-editor", () => {
     formChange(form, { ...globalsData(), scrollable: "auto" });
     expect(handler.mock.calls.at(-1)![0].detail.config.scrollable).toBe("auto");
   });
+
+  it("maps auto_rotate seconds to an object, keeping resume_after", async () => {
+    const el = await mount({ auto_rotate: { interval: 10, resume_after: 30 }, tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    const form = el.shadowRoot.querySelector(".globals-form");
+    formChange(form, { ...globalsData(), auto_rotate: 15, idle_return: 90 });
+    const cfg = handler.mock.calls.at(-1)![0].detail.config;
+    expect(cfg.auto_rotate).toEqual({ interval: 15, resume_after: 30 });
+    expect(cfg.idle_return).toBe(90);
+    formChange(form, { ...globalsData(), auto_rotate: 0, idle_return: 0 });
+    const off = handler.mock.calls.at(-1)![0].detail.config;
+    expect(off.auto_rotate).toBeUndefined();
+    expect(off.idle_return).toBeUndefined();
+  });
 });

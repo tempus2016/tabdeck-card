@@ -19,6 +19,9 @@ import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import "./components/tabdeck-tabbar";
 import { isActiveBadge } from "./components/tabdeck-tab";
 
+// Events that count as the user interacting with the card.
+const INTERACTION_EVENTS = ["pointerdown", "keydown", "touchstart", "wheel"] as const;
+
 // Tab display fields that may be Jinja templates (rendered live by HA).
 const TEMPLATED_FIELDS = ["name", "subtitle", "icon", "color", "accent"] as const;
 
@@ -68,13 +71,90 @@ export class TabdeckCard extends LitElement {
     // Drop any subscriptions from a previous config; they re-sync on next hass.
     this._templates?.destroy();
     this._templates = undefined;
+    this._syncTimer();
     void this._build();
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    for (const ev of INTERACTION_EVENTS) this.addEventListener(ev, this._onInteraction);
+    this._syncTimer();
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    for (const ev of INTERACTION_EVENTS) this.removeEventListener(ev, this._onInteraction);
+    this._stopTimer();
     this._templates?.destroy();
     this._templates = undefined;
+  }
+
+  // --- auto_rotate / idle_return -------------------------------------------
+  // One 1 s ticker drives both. `_tick(now)` holds all the logic so it can be
+  // tested without fake timers.
+  private _timer?: ReturnType<typeof setInterval>;
+  private _lastInteraction = Date.now();
+  private _lastRotate = Date.now();
+  // Rotation is held until this time after the user touches the card.
+  private _rotatePausedUntil = 0;
+
+  private _onInteraction = (): void => this._noteInteraction(Date.now());
+
+  private _noteInteraction(now: number): void {
+    this._lastInteraction = now;
+    const resume = this._config?.auto_rotate?.resume_after ?? 0;
+    this._rotatePausedUntil = now + resume * 1000;
+  }
+
+  private _syncTimer(): void {
+    const want = !!(this._config?.auto_rotate || this._config?.idle_return) && this.isConnected;
+    if (want && !this._timer) {
+      this._lastInteraction = this._lastRotate = Date.now();
+      this._timer = setInterval(() => this._tick(Date.now()), 1000);
+    } else if (!want) {
+      this._stopTimer();
+    }
+  }
+
+  private _stopTimer(): void {
+    if (this._timer) clearInterval(this._timer);
+    this._timer = undefined;
+  }
+
+  private _tick(now: number): void {
+    const cfg = this._config;
+    if (!cfg || !this._built) return;
+    const idleMs = now - this._lastInteraction;
+    const rotate = cfg.auto_rotate;
+    if (rotate) {
+      if (now < this._rotatePausedUntil) {
+        // Recently touched: hold; the interval restarts once it resumes.
+        this._lastRotate = now;
+        return;
+      }
+      if (now - this._lastRotate >= rotate.interval * 1000) {
+        this._lastRotate = now;
+        const next = this._nextRotatable(this._selected);
+        if (next !== this._selected) this._selectIndex(next, false);
+      }
+      return;
+    }
+    if (cfg.idle_return && idleMs >= cfg.idle_return * 1000) {
+      const home = this._computeDefaultIndex();
+      if (home !== this._selected) this._selectIndex(home, false);
+      this._lastInteraction = now; // don't re-fire every tick
+    }
+  }
+
+  // Next visible tab after `from` that can be shown (wraps, skips disabled).
+  private _nextRotatable(from: number): number {
+    const visible = this._visibleTabs();
+    const n = visible.length;
+    for (let i = 1; i <= n; i++) {
+      const idx = (from + i) % n;
+      if (!visible[idx].disabled) return idx;
+    }
+    return from;
   }
 
   private _computeCardKey(cfg: TabdeckCardConfig): string {
@@ -356,11 +436,13 @@ export class TabdeckCard extends LitElement {
     handleAction(this, this._hass as any, cfg as any, key as any);
   }
 
-  private _selectIndex(index: number, writeEntity = true): void {
+  // `persist: false` for automatic switches (rotation, idle return, entity
+  // sync) that must not overwrite the remembered choice.
+  private _selectIndex(index: number, persist = true): void {
     this._selected = index;
     const visible = this._visibleTabs();
     const tab = visible[this._selected];
-    if (this._config) {
+    if (this._config && persist) {
       const r = persistIndex({
         mode: this._config.remember,
         cardKey: this._cardKey,
@@ -370,9 +452,7 @@ export class TabdeckCard extends LitElement {
       if (r.hash && typeof location !== "undefined") {
         history.replaceState(null, "", r.hash);
       }
-      if (this._config.remember === "entity" && writeEntity) {
-        this._writeRememberEntity(this._selected);
-      }
+      if (this._config.remember === "entity") this._writeRememberEntity(this._selected);
     }
     this.updateComplete.then(() =>
       this._manager?.notifyVisible(this._activeOriginalIndex()),

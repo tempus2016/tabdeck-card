@@ -49,6 +49,13 @@ export interface AutoTabsConfig {
   tab_template?: Record<string, any>;
 }
 
+export interface AutoRotateConfig {
+  // Seconds between automatic tab advances.
+  interval: number;
+  // Seconds after the last interaction before rotation resumes.
+  resume_after: number;
+}
+
 export interface TabdeckCardConfig {
   type: string;
   default_tab: number | string;
@@ -84,6 +91,9 @@ export interface TabdeckCardConfig {
   styles: Record<string, string>;
   tabs: TabdeckTabConfig[];
   auto_tabs?: AutoTabsConfig;
+  auto_rotate?: AutoRotateConfig;
+  // Seconds of inactivity before returning to the default tab.
+  idle_return?: number;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -161,6 +171,17 @@ function normalizeAutoTabs(raw: any): AutoTabsConfig | undefined {
   };
 }
 
+// `auto_rotate: 10` or `{ interval: 10, resume_after: 60 }`. 0/absent = off.
+function normalizeAutoRotate(raw: any): AutoRotateConfig | undefined {
+  const obj = typeof raw === "object" && raw !== null ? raw : { interval: raw };
+  const interval = Number(obj.interval);
+  if (!Number.isFinite(interval) || interval <= 0) return undefined;
+  return {
+    interval: Math.max(2, interval),
+    resume_after: clampNumber(obj.resume_after, 0, 86400, 60),
+  };
+}
+
 export function normalizeConfig(raw: any): TabdeckCardConfig {
   const tabs = Array.isArray(raw?.tabs) ? raw.tabs : [];
   const auto_tabs = normalizeAutoTabs(raw?.auto_tabs);
@@ -205,6 +226,9 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     styles: raw?.styles ?? {},
     tabs: tabs.map(normalizeTab),
     auto_tabs,
+    auto_rotate: normalizeAutoRotate(raw?.auto_rotate),
+    idle_return:
+      Number(raw?.idle_return) > 0 ? Math.max(5, Number(raw.idle_return)) : undefined,
   };
 }
 
