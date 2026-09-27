@@ -31,6 +31,8 @@ export class TabdeckCard extends LitElement {
   @state() private _config?: TabdeckCardConfig;
   @state() private _selected = 0;
   @state() private _built = false;
+  // collapsible: content folded away (the bar stays).
+  @state() private _collapsed = false;
   private _hass?: HomeAssistant;
   private _manager?: CardManager;
   private _cardKey = "";
@@ -65,6 +67,7 @@ export class TabdeckCard extends LitElement {
     this._cardKey = this._computeCardKey(this._config);
     this._built = false;
     this._selected = resolveDefaultIndex(this._config);
+    this._collapsed = this._config.start_collapsed;
     this._autoPrev = undefined;
     this._lastEntityValue = undefined;
     this._genTabs = [];
@@ -417,6 +420,7 @@ export class TabdeckCard extends LitElement {
   }
 
   getCardSize(): number {
+    if (this._collapsed) return 1;
     // A per-tab card_size hint wins, so masonry sizing doesn't jump around as
     // tabs change (and works even before the nested card reports a size).
     const tab = this._visibleTabs()[this._selected];
@@ -457,6 +461,13 @@ export class TabdeckCard extends LitElement {
     if (isActionTab(tab)) {
       this._runAction(tab!.tap_action, "tap");
       return;
+    }
+    if (this._config?.collapsible) {
+      if (e.detail.index === this._selected) {
+        this._collapsed = !this._collapsed;
+        return;
+      }
+      this._collapsed = false;
     }
     this._selectIndex(e.detail.index);
   }
@@ -737,6 +748,7 @@ export class TabdeckCard extends LitElement {
         .indicatorSize=${cfg.indicator_size}
         .indicatorRadius=${cfg.indicator_radius}
         .sticky=${cfg.sticky || cfg.scroll_spy}
+        .collapsed=${this._collapsed}
         .elevation=${cfg.elevation}
         .scrollButtons=${cfg.scroll_buttons}
         .overflowMenu=${cfg.overflow_menu}
@@ -750,6 +762,7 @@ export class TabdeckCard extends LitElement {
         class="content"
         id="tabdeck-panel"
         role="tabpanel"
+        ?hidden=${this._collapsed}
         @touchstart=${this._onTouchStart}
         @touchend=${this._onTouchEnd}
         @pointerdown=${this._onPointerDown}
@@ -855,7 +868,8 @@ export class TabdeckCard extends LitElement {
       font-size: 13px;
       color: var(--secondary-text-color);
     }
-    .panel[hidden] {
+    .panel[hidden],
+    .content[hidden] {
       display: none;
     }
     /* scroll_spy: stacked sections; leave room for HA's header + sticky bar
