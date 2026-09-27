@@ -53,6 +53,7 @@ Each item in `tabs`:
 | `card_size` | number | — | `getCardSize()` hint (rows) for this tab, so masonry sizing is stable across tab switches. |
 | `hold_action` / `badge_action` | action | — | HA action on tab long-press / badge click. See [Tab & badge actions](Feature-Hold-Action). |
 | `visibility` | list of conditions | — | Conditions for showing the tab (supports and/or/not). See [Tab Visibility](Tab-Visibility). |
+| `alert` | list of conditions | — | While all are met, the tab pulses in the alert colour. See [Alert pulse](Feature-Alert). |
 
 > `name`, `subtitle`, `icon`, `accent` and `color` also accept a **Jinja template** that renders live. See [State-driven icons, names & colours](Feature-Templated-Fields).
 

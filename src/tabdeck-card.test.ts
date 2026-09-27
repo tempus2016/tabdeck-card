@@ -714,3 +714,44 @@ describe("badge_format", () => {
     expect(el.shadowRoot.querySelector("tabdeck-tabbar").items[0].badge).toBeUndefined();
   });
 });
+
+describe("alert pulse", () => {
+  const cfg = {
+    tabs: [
+      { name: "A", card: { type: "markdown" } },
+      {
+        name: "Door",
+        alert: [{ condition: "state", entity: "binary_sensor.door", state: "on" }],
+        card: { type: "light" },
+      },
+    ],
+  };
+  it("flags a tab as alerting while its conditions are met", async () => {
+    const el = await mountWith(cfg, { states: { "binary_sensor.door": { state: "off" } } });
+    const items = () => el.shadowRoot.querySelector("tabdeck-tabbar").items;
+    expect(items()[1].alert).toBe(false);
+    el.hass = { states: { "binary_sensor.door": { state: "on" } } };
+    await el.updateComplete;
+    expect(items()[1].alert).toBe(true);
+    expect(items()[0].alert).toBe(false);
+  });
+
+  it("supports template conditions (e.g. open for 5 minutes)", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      {
+        tabs: [
+          {
+            name: "Door",
+            alert: [{ condition: "template", value_template: "{{ door_open_5min }}" }],
+            card: { type: "light" },
+          },
+        ],
+      },
+      hass,
+    );
+    push("door_open_5min", { result: true });
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").items[0].alert).toBe(true);
+  });
+});

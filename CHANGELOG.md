@@ -9,6 +9,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Live `remember: entity` sync** — the card now follows its helper entity when it changes elsewhere (another device, an automation, Node-RED), so the helper doubles as a remote control for wall panels. Echoes of the card's own writes are ignored.
 - **State-driven tab fields** — a tab's `icon`, `name`, `subtitle`, `color` and `accent` can be Jinja templates rendered live by Home Assistant (e.g. an open-garage icon in red).
 - **Numeric badge formatting** — `badge_format: { precision, unit, max }` per tab or as a top-level default (`21.456` → `21.5°`, `150` → `99+`).
+- **Alert pulse** — per-tab `alert` conditions (visibility syntax, incl. templates) make a tab pulse in `--tabdeck-alert-color` while met; steady tint under reduced motion.
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed

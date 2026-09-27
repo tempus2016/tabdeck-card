@@ -129,3 +129,17 @@ describe("isActiveBadge numeric zero", () => {
     expect(isActiveBadge("0.5")).toBe(true);
   });
 });
+
+describe("tabdeck-tab alert", () => {
+  it("reflects the alert attribute", async () => {
+    const el = document.createElement("tabdeck-tab") as any;
+    el.label = "Door";
+    el.alert = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.hasAttribute("alert")).toBe(true);
+    el.alert = false;
+    await el.updateComplete;
+    expect(el.hasAttribute("alert")).toBe(false);
+  });
+});

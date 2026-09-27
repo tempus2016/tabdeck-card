@@ -15,6 +15,7 @@ interface TabItem {
   disabled?: boolean;
   holdAction?: boolean;
   badgeAction?: boolean;
+  alert?: boolean;
 }
 
 const HOLD_MS = 500;
@@ -316,6 +317,7 @@ export class TabdeckTabbar extends LitElement {
               .accent=${item.accent}
               .color=${item.color}
               .disabled=${!!item.disabled}
+              .alert=${!!item.alert}
               .display=${this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"

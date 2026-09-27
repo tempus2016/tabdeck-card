@@ -209,6 +209,7 @@ export class TabdeckCard extends LitElement {
       for (const f of TEMPLATED_FIELDS) if (isTemplate(t[f])) out.push(t[f]!);
       walk(t.visibility);
       walk(t.default_if);
+      walk(t.alert);
     }
     return out;
   }
@@ -513,6 +514,7 @@ export class TabdeckCard extends LitElement {
           holdAction: !!t.hold_action,
           badgeAction: !!t.badge_action,
           badge: this._resolveBadgeFinal(t),
+          alert: this._isAlerting(t),
         }))}
         .selected=${this._selected}
         @tabdeck-action=${this._onTabAction}
@@ -573,6 +575,12 @@ export class TabdeckCard extends LitElement {
         ${cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
       </div>
     `;
+  }
+
+  // A tab pulses while all of its `alert` conditions are met.
+  private _isAlerting(tab: TabdeckTabConfig): boolean {
+    if (!tab.alert || !this._hass) return false;
+    return isTabVisible(tab.alert, this._hass, this._templateResolver);
   }
 
   // A display field that may be a Jinja template: the latest rendered value
