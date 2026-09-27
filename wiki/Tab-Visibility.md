@@ -12,6 +12,8 @@ tabs:
     card: { ... }
 ```
 
+> **Visual editor:** each tab has a **Visibility** section powered by Home Assistant's own condition builder. See [The Visual Editor](Editor#condition-builders).
+
 ## Condition types
 
 ### `state`

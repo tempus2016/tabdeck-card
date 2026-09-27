@@ -25,3 +25,5 @@ tabs:
 - A **remembered** selection ([`remember`](Navigation-and-Persistence)) still wins over `default_if`.
 - `default_if` is evaluated at first paint, so use **synchronous** conditions: `state`, `numeric_state`, `screen`, `time`, `user`, and `and`/`or`/`not` groups. Template conditions may not have resolved yet on the very first render and aren't reliable here.
 - Configured in YAML.
+
+> In the visual editor, use the tab's **Default when** condition builder. See [The Visual Editor](Editor#condition-builders).

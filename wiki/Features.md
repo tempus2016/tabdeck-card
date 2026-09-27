@@ -50,6 +50,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Duplicate tab](Feature-Duplicate-Tab)** — one-click deep copy of a tab in the editor.
 - **[Expand all / Collapse all](Feature-Editor-Expand-Collapse)** — bulk-toggle tab blocks; new tabs auto-expand.
 - **[Drag-to-reorder & warnings](Editor#reordering-deleting-adding)** — drag tabs to reorder; duplicate-name warnings.
+- **[Condition builders](Editor#condition-builders)** — edit Visibility / Alert / Default-when conditions with HA's native builder.
 - **[Live preview](Editor#live-preview)** — the editor previews the bar as you edit.
 
 ## Theming
