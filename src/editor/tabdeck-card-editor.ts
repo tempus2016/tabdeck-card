@@ -117,6 +117,9 @@ const GLOBAL_LABELS: Record<string, string> = {
   bar_background: "Tab bar background colour",
   swipe: "Swipe to change tabs (mobile)",
   swipe_mouse: "Mouse drag to change tabs (desktop)",
+  tab_display_narrow: "Tab display on narrow cards",
+  narrow_width: "Narrow below (px)",
+  split: "Side-by-side split at or above width (px, 0 = off)",
   collapsible: "Collapsible (tap the active tab to fold content)",
   start_collapsed: "Start collapsed",
   scroll_spy: "Scroll-spy: stack tabs as sections",
@@ -385,6 +388,9 @@ export class TabdeckCardEditor extends LitElement {
       { name: "bar_background", selector: { text: {} } },
       { name: "swipe", selector: { boolean: {} } },
       { name: "swipe_mouse", selector: { boolean: {} } },
+      { name: "tab_display_narrow", selector: { select: { mode: "dropdown", options: opts(["", "both", "icon", "label"]) } } },
+      { name: "narrow_width", selector: { number: { min: 100, max: 4000, step: 10, mode: "box" } } },
+      { name: "split", selector: { number: { min: 0, max: 4000, step: 10, mode: "box" } } },
       { name: "collapsible", selector: { boolean: {} } },
       { name: "start_collapsed", selector: { boolean: {} } },
       { name: "scroll_spy", selector: { boolean: {} } },
@@ -424,6 +430,9 @@ export class TabdeckCardEditor extends LitElement {
       bar_background: cfg.bar_background ?? "",
       swipe: cfg.swipe,
       swipe_mouse: cfg.swipe_mouse,
+      tab_display_narrow: cfg.tab_display_narrow ?? "",
+      narrow_width: cfg.narrow_width,
+      split: cfg.split?.min_width ?? 0,
       collapsible: cfg.collapsible,
       start_collapsed: cfg.start_collapsed,
       scroll_spy: cfg.scroll_spy,
@@ -466,6 +475,13 @@ export class TabdeckCardEditor extends LitElement {
       bar_background: v.bar_background || undefined,
       swipe: !!v.swipe,
       swipe_mouse: !!v.swipe_mouse,
+      tab_display_narrow: v.tab_display_narrow || undefined,
+      narrow_width: Number(v.narrow_width) || 450,
+      // Keep a YAML-set column count when only the width is edited.
+      split:
+        Number(v.split) > 0
+          ? { min_width: Number(v.split), columns: this._config?.split?.columns ?? 2 }
+          : undefined,
       collapsible: !!v.collapsible,
       start_collapsed: !!v.collapsible && !!v.start_collapsed,
       scroll_spy: !!v.scroll_spy,

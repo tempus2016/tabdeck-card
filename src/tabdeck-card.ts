@@ -31,6 +31,9 @@ export class TabdeckCard extends LitElement {
   @state() private _config?: TabdeckCardConfig;
   @state() private _selected = 0;
   @state() private _built = false;
+  // Measured card width (px; 0 = unknown), for split / narrow layouts.
+  @state() private _width = 0;
+  private _widthObserver?: ResizeObserver;
   // collapsible: content folded away (the bar stays).
   @state() private _collapsed = false;
   private _hass?: HomeAssistant;
@@ -76,13 +79,67 @@ export class TabdeckCard extends LitElement {
     this._templates?.destroy();
     this._templates = undefined;
     this._syncTimer();
+    this._syncWidthObserver();
     void this._build();
+  }
+
+  // Only measure when a responsive option needs the width.
+  private _syncWidthObserver(): void {
+    const want =
+      !!(this._config?.split || this._config?.tab_display_narrow) &&
+      this.isConnected &&
+      typeof ResizeObserver !== "undefined";
+    if (want && !this._widthObserver) {
+      this._widthObserver = new ResizeObserver((entries) => {
+        const w = Math.round(entries[0]?.contentRect?.width ?? 0);
+        if (w !== this._width) this._width = w;
+      });
+      this._widthObserver.observe(this);
+    } else if (!want && this._widthObserver) {
+      this._widthObserver.disconnect();
+      this._widthObserver = undefined;
+    }
+  }
+
+  private get _isSplit(): boolean {
+    const split = this._config?.split;
+    return !!split && this._width >= split.min_width;
+  }
+
+  private get _effectiveDisplay() {
+    const cfg = this._config!;
+    if (cfg.tab_display_narrow && this._width > 0 && this._width < cfg.narrow_width) {
+      return cfg.tab_display_narrow;
+    }
+    return cfg.tab_display;
+  }
+
+  // Wide layout: every visible content tab as a titled column.
+  private _renderSplit(visible: TabdeckTabConfig[]) {
+    const cols = visible.filter((t) => !isActionTab(t));
+    return html`
+      <div class="split" style="--tabdeck-split-columns:${this._config!.split!.columns}">
+        ${cols.map((tab) => {
+          const icon = this._text(tab.icon);
+          return html`
+            <div class="split-col">
+              <div class="split-title">
+                ${icon ? html`<ha-icon .icon=${icon}></ha-icon>` : nothing}
+                <span>${this._text(tab.name) ?? ""}</span>
+              </div>
+              ${this._manager?.get(this._allTabs().indexOf(tab))}
+            </div>
+          `;
+        })}
+      </div>
+    `;
   }
 
   connectedCallback(): void {
     super.connectedCallback();
     for (const ev of INTERACTION_EVENTS) this.addEventListener(ev, this._onInteraction);
     this._syncTimer();
+    this._syncWidthObserver();
     // HA moves cards around the DOM during layout; re-observe on reconnect.
     if (this._config?.scroll_spy) this.updateComplete.then(() => this._syncSpyObserver());
   }
@@ -94,6 +151,8 @@ export class TabdeckCard extends LitElement {
     this._spyObserver?.disconnect();
     this._spyObserver = undefined;
     this._spyObserved = [];
+    this._widthObserver?.disconnect();
+    this._widthObserver = undefined;
     this._templates?.destroy();
     this._templates = undefined;
   }
@@ -719,6 +778,7 @@ export class TabdeckCard extends LitElement {
       return html`<div class="empty"></div>`;
     }
     const cfg = this._config;
+    if (this._isSplit) return this._renderSplit(visible);
     const bar = html`
       <tabdeck-tabbar
         .items=${visible.map((t) => ({
@@ -739,7 +799,7 @@ export class TabdeckCard extends LitElement {
         @tabdeck-action=${this._onTabAction}
         .position=${cfg.position}
         .tabStyle=${cfg.style}
-        .display=${cfg.tab_display}
+        .display=${this._effectiveDisplay}
         .align=${cfg.align}
         .badgeDisplay=${cfg.badge_display}
         .scrollable=${cfg.scrollable}
@@ -888,6 +948,25 @@ export class TabdeckCard extends LitElement {
     }
     .empty {
       min-height: 8px;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: repeat(var(--tabdeck-split-columns, 2), minmax(0, 1fr));
+      gap: var(--tabdeck-split-gap, 16px);
+      align-items: start;
+    }
+    .split-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary-text-color);
+      padding: 4px 4px 10px;
+    }
+    .split-title ha-icon {
+      --mdc-icon-size: 20px;
+      color: var(--secondary-text-color);
     }
   `;
 }

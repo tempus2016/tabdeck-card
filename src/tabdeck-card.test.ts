@@ -1110,3 +1110,50 @@ describe("collapsible", () => {
     expect(contentHidden(el)).toBe(false);
   });
 });
+
+describe("responsive: split & tab_display_narrow", () => {
+  const tabs = [
+    { name: "A", icon: "mdi:a", card: { type: "markdown" } },
+    { name: "B", card: { type: "light" } },
+    { name: "Nav", tap_action: { action: "navigate", navigation_path: "/x" } },
+  ];
+
+  it("shows every content tab side by side when wide enough", async () => {
+    const el = await mount({ split: { min_width: 800, columns: 2 }, tabs });
+    expect(el.shadowRoot.querySelector(".split")).toBeNull();
+    el._width = 1000;
+    await el.updateComplete;
+    const split = el.shadowRoot.querySelector(".split");
+    expect(split).toBeTruthy();
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar")).toBeNull();
+    const cols = split.querySelectorAll(".split-col");
+    expect(cols).toHaveLength(2); // action tab excluded
+    expect(cols[0].querySelector(".split-title").textContent).toContain("A");
+    expect(split.querySelectorAll("[data-type]")).toHaveLength(2);
+    expect(split.style.getPropertyValue("--tabdeck-split-columns")).toBe("2");
+  });
+
+  it("falls back to tabs below min_width", async () => {
+    const el = await mount({ split: 800, tabs });
+    el._width = 600;
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".split")).toBeNull();
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar")).toBeTruthy();
+  });
+
+  it("switches tab_display on narrow cards", async () => {
+    const el = await mount({ tab_display: "both", tab_display_narrow: "icon", narrow_width: 400, tabs });
+    const bar = () => el.shadowRoot.querySelector("tabdeck-tabbar");
+    el._width = 700;
+    await el.updateComplete;
+    expect(bar().display).toBe("both");
+    el._width = 350;
+    await el.updateComplete;
+    expect(bar().display).toBe("icon");
+  });
+
+  it("uses the normal display before the width is known", async () => {
+    const el = await mount({ tab_display_narrow: "icon", tabs });
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").display).toBe("both");
+  });
+});

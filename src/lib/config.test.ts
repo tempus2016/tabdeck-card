@@ -310,3 +310,19 @@ describe("auto_rotate / idle_return normalization", () => {
     expect(normalizeConfig({ tabs }).idle_return).toBeUndefined();
   });
 });
+
+describe("split / narrow normalization", () => {
+  const tabs = [{ name: "A", card: { type: "markdown" } }];
+  it("accepts a number or object for split", () => {
+    expect(normalizeConfig({ tabs, split: 900 }).split).toEqual({ min_width: 900, columns: 2 });
+    expect(normalizeConfig({ tabs, split: { min_width: 1200, columns: 3 } }).split).toEqual({ min_width: 1200, columns: 3 });
+    expect(normalizeConfig({ tabs, split: { min_width: 800, columns: 9 } }).split).toEqual({ min_width: 800, columns: 4 });
+    expect(normalizeConfig({ tabs }).split).toBeUndefined();
+  });
+  it("normalizes tab_display_narrow + narrow_width", () => {
+    const c = normalizeConfig({ tabs, tab_display_narrow: "icon" });
+    expect(c.tab_display_narrow).toBe("icon");
+    expect(c.narrow_width).toBe(450);
+    expect(normalizeConfig({ tabs, tab_display_narrow: "bogus" }).tab_display_narrow).toBeUndefined();
+  });
+});
