@@ -16,6 +16,8 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Scroll-spy (anchor mode)** — `scroll_spy: true` stacks every tab as a section; the (auto-sticky) bar scrolls to sections and highlights the one in view.
 - **Tab-change actions** — per-tab `enter_action` / `leave_action` run an HA action when a tab becomes / stops being active (any source; not on initial load).
 - **Collapsible deck** — `collapsible: true` folds the content away when the active tab is tapped again; `start_collapsed` opens folded.
+- **Split view** — `split: 900` (or `{ min_width, columns }`) shows every tab side by side as titled columns when the card is wide enough.
+- **Responsive tab display** — `tab_display_narrow` (+ `narrow_width`) switches e.g. to icon-only tabs on narrow cards.
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed

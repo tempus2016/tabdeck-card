@@ -62,6 +62,12 @@ export interface AutoRotateConfig {
   resume_after: number;
 }
 
+export interface SplitConfig {
+  // Card width (px) at or above which tabs are shown side by side.
+  min_width: number;
+  columns: number;
+}
+
 export interface TabdeckCardConfig {
   type: string;
   default_tab: number | string;
@@ -105,6 +111,11 @@ export interface TabdeckCardConfig {
   // Tapping the active tab folds the content away (and back).
   collapsible: boolean;
   start_collapsed: boolean;
+  // Wide cards: every content tab side by side, no bar.
+  split?: SplitConfig;
+  // Narrow cards (< narrow_width px): use this tab_display instead.
+  tab_display_narrow?: TabDisplay;
+  narrow_width: number;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -208,6 +219,14 @@ function normalizeAutoRotate(raw: any): AutoRotateConfig | undefined {
   };
 }
 
+// `split: 900` or `{ min_width: 900, columns: 2 }`.
+function normalizeSplit(raw: any): SplitConfig | undefined {
+  const obj = typeof raw === "object" && raw !== null ? raw : { min_width: raw };
+  const min = Number(obj.min_width);
+  if (!Number.isFinite(min) || min <= 0) return undefined;
+  return { min_width: min, columns: Math.round(clampNumber(obj.columns, 2, 4, 2)) };
+}
+
 export function normalizeConfig(raw: any): TabdeckCardConfig {
   const tabs = Array.isArray(raw?.tabs) ? raw.tabs : [];
   const auto_tabs = normalizeAutoTabs(raw?.auto_tabs);
@@ -254,6 +273,11 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     auto_tabs,
     auto_rotate: normalizeAutoRotate(raw?.auto_rotate),
     scroll_spy: Boolean(raw?.scroll_spy),
+    split: normalizeSplit(raw?.split),
+    tab_display_narrow: DISPLAYS.includes(raw?.tab_display_narrow)
+      ? raw.tab_display_narrow
+      : undefined,
+    narrow_width: clampNumber(raw?.narrow_width, 100, 4000, 450),
     collapsible: Boolean(raw?.collapsible),
     start_collapsed: Boolean(raw?.collapsible && raw?.start_collapsed),
     idle_return:

@@ -36,3 +36,5 @@ Set it globally in the card config, or pick it from the **Tab display** dropdown
 
 - Pair `tab_display: icon` with the `pill` or `segmented` [style](Configuration) for a clean app-style switcher.
 - Give every tab an `icon` when using `icon` mode so the bar stays consistent.
+
+> To switch display mode automatically on narrow cards, see [`tab_display_narrow`](Feature-Responsive#narrow-display-tab_display_narrow).
