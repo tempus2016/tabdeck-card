@@ -22,6 +22,7 @@
 - [Scroll-spy](Feature-Scroll-Spy)
 - [Collapsible deck](Feature-Collapsible)
 - [Responsive layouts](Feature-Responsive)
+- [Style presets](Feature-Presets)
 - [Tab-change actions](Feature-Enter-Leave-Actions)
 - [Tab display mode](Feature-Tab-Display)
 - [Accent indicator](Feature-Accent-Indicator)

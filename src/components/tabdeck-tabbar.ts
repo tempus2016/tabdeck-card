@@ -238,8 +238,11 @@ export class TabdeckTabbar extends LitElement {
     if (this.sticky) {
       this.style.position = "sticky";
       this.style.zIndex = "2";
-      this.style.background =
-        "var(--card-background-color, var(--ha-card-background, inherit))";
+      // A custom (possibly translucent/blurred) bar background paints itself;
+      // otherwise back the pinned bar with the card colour.
+      this.style.background = this.barBackground
+        ? "transparent"
+        : "var(--card-background-color, var(--ha-card-background, inherit))";
       if (this.position === "bottom") {
         this.style.bottom = "0";
         this.style.top = "";
@@ -451,6 +454,9 @@ export class TabdeckTabbar extends LitElement {
       align-items: stretch;
       border-bottom: 1px solid var(--divider-color);
       position: relative;
+      /* e.g. blur(12px) for a frosted-glass bar (the glass preset). */
+      backdrop-filter: var(--tabdeck-bar-backdrop, none);
+      -webkit-backdrop-filter: var(--tabdeck-bar-backdrop, none);
     }
     .bar.top,
     .bar.bottom {

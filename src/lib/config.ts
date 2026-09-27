@@ -1,5 +1,6 @@
 import type { LovelaceCardConfig } from "../types";
 import { normalizeBadgeFormat, type BadgeFormat } from "./badge";
+import { isPreset, withPreset, type PresetName } from "./presets";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
 export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text" | "rail";
@@ -116,6 +117,8 @@ export interface TabdeckCardConfig {
   // Narrow cards (< narrow_width px): use this tab_display instead.
   tab_display_narrow?: TabDisplay;
   narrow_width: number;
+  // Named style bundle (defaults under explicit keys).
+  preset?: PresetName;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -228,6 +231,7 @@ function normalizeSplit(raw: any): SplitConfig | undefined {
 }
 
 export function normalizeConfig(raw: any): TabdeckCardConfig {
+  raw = withPreset(raw);
   const tabs = Array.isArray(raw?.tabs) ? raw.tabs : [];
   const auto_tabs = normalizeAutoTabs(raw?.auto_tabs);
   if (tabs.length === 0 && !auto_tabs) {
@@ -278,6 +282,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
       ? raw.tab_display_narrow
       : undefined,
     narrow_width: clampNumber(raw?.narrow_width, 100, 4000, 450),
+    preset: isPreset(raw?.preset) ? raw.preset : undefined,
     collapsible: Boolean(raw?.collapsible),
     start_collapsed: Boolean(raw?.collapsible && raw?.start_collapsed),
     idle_return:

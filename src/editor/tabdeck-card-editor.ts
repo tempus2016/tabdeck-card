@@ -4,6 +4,7 @@ import { fireEvent } from "custom-card-helpers";
 import type { HomeAssistant } from "../types";
 import { normalizeConfig, type TabdeckCardConfig } from "../lib/config";
 import { isTemplate } from "../lib/templates";
+import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
 import "../components/tabdeck-tabbar";
 
 // MDI icon paths for the per-tab reorder/delete buttons. Inlined rather than
@@ -89,6 +90,7 @@ const TAB_LABELS: Record<string, string> = {
 };
 
 const GLOBAL_LABELS: Record<string, string> = {
+  preset: "Style preset (applies a bundle of the options below)",
   position: "Position",
   style: "Style",
   tab_display: "Tab display",
@@ -360,6 +362,7 @@ export class TabdeckCardEditor extends LitElement {
       label: t.name || `Tab ${i + 1}`,
     }));
     return [
+      { name: "preset", selector: { select: { mode: "dropdown", options: opts(["", ...PRESET_NAMES]) } } },
       { name: "position", selector: { select: { mode: "dropdown", options: opts(["top", "bottom", "left", "right"]) } } },
       { name: "style", selector: { select: { mode: "dropdown", options: opts(["underline", "pill", "segmented", "boxed", "text", "rail"]) } } },
       { name: "tab_display", selector: { select: { mode: "dropdown", options: opts(["both", "icon", "label"]) } } },
@@ -402,6 +405,7 @@ export class TabdeckCardEditor extends LitElement {
   private get _globalData() {
     const cfg = this._config!;
     return {
+      preset: cfg.preset ?? "",
       position: cfg.position,
       style: cfg.style,
       tab_display: cfg.tab_display,
@@ -444,6 +448,11 @@ export class TabdeckCardEditor extends LitElement {
   private _onGlobalChanged(e: CustomEvent): void {
     e.stopPropagation();
     const v = (e.detail as any).value ?? {};
+    // Picking a preset writes its bundle of values; other fields follow.
+    if (this._config && isPreset(v.preset) && v.preset !== this._config.preset) {
+      this._emit(applyPresetToConfig(this._config, v.preset));
+      return;
+    }
     const scrollable =
       v.scrollable === "auto" ? "auto" : v.scrollable === "true" || v.scrollable === true;
     this._patch({
