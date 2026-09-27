@@ -22,9 +22,27 @@ Each tab is a collapsible block. By default every block is **collapsed** to save
 - **Icon** — HA's searchable icon picker with live previews
 - **Accent colour**
 - **Badge** — entity id or template
+- **Actions** — tap / long-press / badge / enter / leave actions via HA's action picker
+- **Visibility**, **Alert**, **Default when** — condition builders (see below)
 - **Edit card** — drills into HA's native card editor (visual + YAML)
 
 ![Editor — expanded tab block](images/editor-expanded.png)
+
+### Condition builders
+
+Below the tab's fields are three collapsible sections, each showing its condition count:
+
+| Section | Edits | Meaning |
+| --- | --- | --- |
+| **Visibility** | `visibility` | Show the tab only when… ([Tab Visibility](Tab-Visibility)) |
+| **Alert** | `alert` | Pulse the tab when… ([Alert pulse](Feature-Alert)) |
+| **Default when** | `default_if` | Start on this tab when… ([Conditional default](Feature-Conditional-Default)) |
+
+They use **Home Assistant's own condition editor**, the same one as a card's *Visibility* tab. You can add *Entity state*, *Entity numeric state*, *Screen*, *User*, *Time* and *And/Or/Not* groups visually, test each condition live, and reorder, duplicate or delete them. Tabdeck-only types such as `template` show as editable **YAML** inside the same list. Removing every condition removes the key.
+
+![Visibility condition builder](images/feature-conditions-editor.png)
+
+If HA's condition editor isn't available (an unusual frontend build), the section falls back to a YAML editor, or failing that a JSON text box.
 
 ### Reordering, deleting, adding
 

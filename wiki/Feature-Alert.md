@@ -40,6 +40,8 @@ alert:
          (now() - states.binary_sensor.front_door.last_changed).total_seconds() > 300 }}
 ```
 
+> In the visual editor, use the tab's **Alert** condition builder. See [The Visual Editor](Editor#condition-builders).
+
 ## Styling
 
 | Variable | Default | Effect |

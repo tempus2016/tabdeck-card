@@ -129,6 +129,19 @@ const GLOBAL_LABELS: Record<string, string> = {
   idle_return: "Return to default tab after idle (seconds, 0 = off)",
 };
 
+interface ConditionSection {
+  key: "visibility" | "alert" | "default_if";
+  label: string;
+  hint: string;
+}
+
+// Per-tab condition lists editable in the visual editor.
+const CONDITION_SECTIONS: ConditionSection[] = [
+  { key: "visibility", label: "Visibility", hint: "show the tab only when…" },
+  { key: "alert", label: "Alert", hint: "pulse the tab when…" },
+  { key: "default_if", label: "Default when", hint: "start on this tab when…" },
+];
+
 export type CardEditorTag =
   | "hui-card-element-editor"
   | "ha-yaml-editor"
@@ -530,6 +543,77 @@ export class TabdeckCardEditor extends LitElement {
     });
   }
 
+  // A collapsible condition-list editor for one of a tab's condition keys.
+  // Uses HA's own ha-card-conditions-editor (the one behind a card's
+  // Visibility tab) — tabdeck-only condition types such as `template` show as
+  // editable YAML inside it. Falls back to ha-yaml-editor, then JSON.
+  private _renderConditions(index: number, tab: any, sec: ConditionSection) {
+    const conditions: any[] = Array.isArray(tab[sec.key]) ? tab[sec.key] : [];
+    const onChange = (e: CustomEvent) => {
+      e.stopPropagation();
+      const value = (e.detail as any)?.value;
+      if ((e.detail as any)?.isValid === false || !Array.isArray(value)) return;
+      this._patchTab(index, { [sec.key]: value.length ? value : undefined });
+    };
+    let body;
+    if (customElements.get("ha-card-conditions-editor")) {
+      body = html`<ha-card-conditions-editor
+        .hass=${this.hass}
+        .conditions=${conditions}
+        @value-changed=${onChange}
+      ></ha-card-conditions-editor>`;
+    } else if (customElements.get("ha-yaml-editor")) {
+      body = html`<ha-yaml-editor
+        .defaultValue=${conditions}
+        @value-changed=${onChange}
+      ></ha-yaml-editor>`;
+    } else {
+      body = html`<textarea
+        class="conditions-json"
+        rows="6"
+        .value=${JSON.stringify(conditions, null, 2)}
+        @change=${(e: any) => {
+          try {
+            const value = JSON.parse(e.target.value || "[]");
+            if (Array.isArray(value)) {
+              this._patchTab(index, { [sec.key]: value.length ? value : undefined });
+            }
+          } catch {
+            /* keep typing */
+          }
+        }}
+      ></textarea>`;
+    }
+    return html`
+      <details class="conditions-section" data-key=${sec.key}>
+        <summary>
+          ${sec.label}${conditions.length ? ` (${conditions.length})` : ""}
+          <span class="conditions-hint">${sec.hint}</span>
+        </summary>
+        ${body}
+      </details>
+    `;
+  }
+
+  // HA lazy-loads its conditions editor with the conditional card's editor;
+  // pull it in so the builder is available even if nothing else loaded it.
+  private async _ensureConditionsEditor(): Promise<void> {
+    if (customElements.get("ha-card-conditions-editor")) return;
+    try {
+      const helpers = await (window as any).loadCardHelpers?.();
+      helpers?.createCardElement?.({ type: "conditional", conditions: [], card: { type: "markdown" } });
+      const ctor: any = customElements.get("hui-conditional-card");
+      await ctor?.getConfigElement?.();
+      if (customElements.get("ha-card-conditions-editor")) this.requestUpdate();
+    } catch {
+      /* fallback editors are used */
+    }
+  }
+
+  protected firstUpdated(): void {
+    void this._ensureConditionsEditor();
+  }
+
   private _computeGlobalLabel = (s: { name: string }) => GLOBAL_LABELS[s.name] ?? s.name;
   private _computeTabLabel = (s: { name: string }) => TAB_LABELS[s.name] ?? s.name;
 
@@ -768,6 +852,7 @@ export class TabdeckCardEditor extends LitElement {
                         @value-changed=${(e: CustomEvent) =>
                           this._onTabFieldsChanged(index, e)}
                       ></ha-form>
+                      ${CONDITION_SECTIONS.map((sec) => this._renderConditions(index, tab, sec))}
                       <button class="edit-card" @click=${() => this._openCard(index)}>
                         <span class="edit-card-label">Edit card</span>
                         <span class="edit-card-type">${tab.card?.type ?? "—"}</span>
@@ -789,6 +874,31 @@ export class TabdeckCardEditor extends LitElement {
   }
 
   static styles = css`
+    .conditions-section {
+      margin: 8px 0;
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 8px;
+      padding: 6px 10px;
+    }
+    .conditions-section summary {
+      cursor: pointer;
+      font-weight: 500;
+      padding: 4px 0;
+    }
+    .conditions-hint {
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      margin-left: 6px;
+    }
+    .conditions-section[open] summary {
+      margin-bottom: 8px;
+    }
+    textarea.conditions-json {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: var(--code-font-family, monospace);
+    }
     .editor {
       display: flex;
       flex-direction: column;

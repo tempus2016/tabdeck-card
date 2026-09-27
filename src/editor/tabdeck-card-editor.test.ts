@@ -441,4 +441,33 @@ describe("tabdeck-card-editor", () => {
     expect(cfg.style).toBe("segmented");
     expect(cfg.align).toBe("justify");
   });
+
+  it("edits visibility / alert / default_if with HA's conditions editor", async () => {
+    if (!customElements.get("ha-card-conditions-editor")) {
+      customElements.define(
+        "ha-card-conditions-editor",
+        class extends HTMLElement {
+          conditions: any;
+          hass: any;
+        },
+      );
+    }
+    const cond = [{ condition: "state", entity: "light.a", state: "on" }];
+    const el = await mount({ tabs: [{ name: "A", card: {}, visibility: cond }] });
+    await expand(el, 0);
+    const sections = [...el.shadowRoot.querySelectorAll(".conditions-section")];
+    expect(sections.map((s: any) => s.dataset.key)).toEqual(["visibility", "alert", "default_if"]);
+    expect(sections[0].querySelector("summary").textContent).toContain("(1)");
+    const ed = sections[0].querySelector("ha-card-conditions-editor");
+    expect(ed.conditions).toEqual(cond);
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    const next = [...cond, { condition: "screen", media_query: "(min-width: 600px)" }];
+    ed.dispatchEvent(new CustomEvent("value-changed", { detail: { value: next }, bubbles: true, composed: true }));
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].visibility).toEqual(next);
+    // Clearing all conditions removes the key.
+    const alertEd = sections[1].querySelector("ha-card-conditions-editor");
+    alertEd.dispatchEvent(new CustomEvent("value-changed", { detail: { value: [] }, bubbles: true, composed: true }));
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].alert).toBeUndefined();
+  });
 });

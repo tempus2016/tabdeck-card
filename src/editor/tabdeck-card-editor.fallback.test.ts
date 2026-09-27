@@ -49,3 +49,19 @@ describe("tabdeck-card-editor JSON fallback", () => {
     expect(el.shadowRoot.querySelector(".tab-card-error")).toBeTruthy();
   });
 });
+
+describe("conditions fallback", () => {
+  it("falls back to a YAML/JSON editor when HA's conditions editor is missing", async () => {
+    const el = document.createElement("tabdeck-card-editor") as any;
+    el.hass = { states: {} };
+    el.setConfig({ tabs: [{ name: "A", card: {}, visibility: [{ condition: "user", users: ["x"] }] }] });
+    document.body.appendChild(el);
+    await el.updateComplete;
+    el.shadowRoot.querySelector(".tab-header").click();
+    await el.updateComplete;
+    const section = el.shadowRoot.querySelector('.conditions-section[data-key="visibility"]');
+    expect(section.querySelector("ha-card-conditions-editor")).toBeNull();
+    const ta = section.querySelector("textarea.conditions-json");
+    expect(JSON.parse(ta.value)).toEqual([{ condition: "user", users: ["x"] }]);
+  });
+});
