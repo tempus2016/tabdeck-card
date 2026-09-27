@@ -111,6 +111,8 @@ const GLOBAL_LABELS: Record<string, string> = {
   bar_background: "Tab bar background colour",
   swipe: "Swipe to change tabs (mobile)",
   swipe_mouse: "Mouse drag to change tabs (desktop)",
+  auto_rotate: "Auto-rotate tabs every (seconds, 0 = off)",
+  idle_return: "Return to default tab after idle (seconds, 0 = off)",
 };
 
 export type CardEditorTag =
@@ -374,6 +376,8 @@ export class TabdeckCardEditor extends LitElement {
       { name: "bar_background", selector: { text: {} } },
       { name: "swipe", selector: { boolean: {} } },
       { name: "swipe_mouse", selector: { boolean: {} } },
+      { name: "auto_rotate", selector: { number: { min: 0, max: 3600, step: 1, mode: "box" } } },
+      { name: "idle_return", selector: { number: { min: 0, max: 86400, step: 1, mode: "box" } } },
     ];
   }
 
@@ -408,6 +412,8 @@ export class TabdeckCardEditor extends LitElement {
       bar_background: cfg.bar_background ?? "",
       swipe: cfg.swipe,
       swipe_mouse: cfg.swipe_mouse,
+      auto_rotate: cfg.auto_rotate?.interval ?? 0,
+      idle_return: cfg.idle_return ?? 0,
     };
   }
 
@@ -445,6 +451,15 @@ export class TabdeckCardEditor extends LitElement {
       bar_background: v.bar_background || undefined,
       swipe: !!v.swipe,
       swipe_mouse: !!v.swipe_mouse,
+      // Keep a YAML-set resume_after when only the interval is edited.
+      auto_rotate:
+        Number(v.auto_rotate) > 0
+          ? {
+              interval: Math.max(2, Number(v.auto_rotate)),
+              resume_after: this._config?.auto_rotate?.resume_after ?? 60,
+            }
+          : undefined,
+      idle_return: Number(v.idle_return) > 0 ? Math.max(5, Number(v.idle_return)) : undefined,
     });
   }
 

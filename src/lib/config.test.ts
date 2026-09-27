@@ -291,3 +291,22 @@ describe("resolveDefaultIndex", () => {
     expect(resolveDefaultIndex({ ...base, default_tab: "ZZ" })).toBe(0);
   });
 });
+
+describe("auto_rotate / idle_return normalization", () => {
+  const tabs = [{ name: "A", card: { type: "markdown" } }];
+  it("accepts a number or an object for auto_rotate", () => {
+    expect(normalizeConfig({ tabs, auto_rotate: 10 }).auto_rotate).toEqual({ interval: 10, resume_after: 60 });
+    expect(normalizeConfig({ tabs, auto_rotate: { interval: 5, resume_after: 30 } }).auto_rotate).toEqual({
+      interval: 5,
+      resume_after: 30,
+    });
+    expect(normalizeConfig({ tabs, auto_rotate: 1 }).auto_rotate).toEqual({ interval: 2, resume_after: 60 });
+    expect(normalizeConfig({ tabs }).auto_rotate).toBeUndefined();
+    expect(normalizeConfig({ tabs, auto_rotate: 0 }).auto_rotate).toBeUndefined();
+  });
+  it("normalizes idle_return seconds", () => {
+    expect(normalizeConfig({ tabs, idle_return: 120 }).idle_return).toBe(120);
+    expect(normalizeConfig({ tabs, idle_return: 1 }).idle_return).toBe(5);
+    expect(normalizeConfig({ tabs }).idle_return).toBeUndefined();
+  });
+});
