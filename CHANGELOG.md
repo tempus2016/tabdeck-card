@@ -20,9 +20,11 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Responsive tab display** — `tab_display_narrow` (+ `narrow_width`) switches e.g. to icon-only tabs on narrow cards.
 - **Style presets** — `preset: ios | material | glass | minimal | rail | default` applies a bundle of styling options (explicit keys win); the editor's preset picker writes the values into the form. New `--tabdeck-bar-backdrop` variable for frosted bars.
 - **Editor condition builders** — each tab's Visibility, Alert and Default-when conditions are editable with Home Assistant's native condition editor (tabdeck-only types like `template` edit as YAML in place).
+- **Copy & import tabs** — the editor can copy a tab's config to the clipboard (works on http too) and import one or several pasted tabs.
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed
+- Editor button icons (Add tab) render on current WebAwesome-based HA builds.
 - `perform-action` actions (what HA's action picker writes) now work for `hold_action`, `badge_action` and `tap_action`; previously only the legacy `call-service` ran.
 - `sticky` bars now pin below Home Assistant's app header (`--header-height`) instead of hiding underneath it; override with `--tabdeck-sticky-top`.
 - Swiping now steps over disabled tabs instead of landing on them.

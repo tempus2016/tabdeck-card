@@ -2,7 +2,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { fireEvent } from "custom-card-helpers";
 import type { HomeAssistant } from "../types";
-import { normalizeConfig, type TabdeckCardConfig } from "../lib/config";
+import { normalizeConfig, normalizeTab, type TabdeckCardConfig } from "../lib/config";
 import { isTemplate } from "../lib/templates";
 import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
 import "../components/tabdeck-tabbar";
@@ -18,6 +18,10 @@ const MDI_COPY =
   "M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z";
 const MDI_DRAG =
   "M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z";
+const MDI_EXPORT =
+  "M23,12L19,8V11H10V13H19V16M1,18V6C1,4.89 1.9,4 3,4H15A2,2 0 0,1 17,6V9H15V6H3V18H15V15H17V18A2,2 0 0,1 15,20H3A2,2 0 0,1 1,18Z";
+const MDI_IMPORT =
+  "M14,12L10,8V11H2V13H10V16M20,18V6C20,4.89 19.1,4 18,4H6A2,2 0 0,0 4,6V9H6V6H18V18H6V15H4V18A2,2 0 0,0 6,20H18A2,2 0 0,0 20,18Z";
 const MDI_CHEVRON_DOWN = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z";
 
 // Fallback icon shown in a collapsed tab header when the tab has no icon set.
@@ -169,6 +173,13 @@ export class TabdeckCardEditor extends LitElement {
   // Indices of tabs whose fields are expanded in the list view. Empty by
   // default, so every tab opens collapsed to save vertical space.
   @state() private _expanded = new Set<number>();
+  // Import panel: open state, pending parsed value, and error message.
+  @state() private _importOpen = false;
+  @state() private _importError = "";
+  private _importValue: any;
+  // Transient status line (e.g. "Copied tab …").
+  @state() private _status = "";
+  private _statusTimer?: ReturnType<typeof setTimeout>;
   public hass?: HomeAssistant;
   // Set by Home Assistant's card-editor dialog; forwarded to the nested editor.
   public lovelace?: any;
@@ -238,6 +249,107 @@ export class TabdeckCardEditor extends LitElement {
     tabs.splice(index + 1, 0, copy);
     this._expanded = new Set();
     this._emit({ ...this._config, tabs });
+  }
+
+  private _flash(message: string): void {
+    this._status = message;
+    if (this._statusTimer) clearTimeout(this._statusTimer);
+    this._statusTimer = setTimeout(() => (this._status = ""), 2500);
+  }
+
+  // Copy one tab's config (as JSON, which is valid YAML) to paste into another
+  // deck's "Import tab". Falls back to execCommand on insecure (http) origins,
+  // where navigator.clipboard is unavailable.
+  private async _copyTab(index: number): Promise<void> {
+    const tab = this._config?.tabs[index];
+    if (!tab) return;
+    const text = JSON.stringify(tab, null, 2);
+    let ok = false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      }
+    } catch {
+      ok = false;
+    }
+    if (!ok) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.cssText = "position:fixed;opacity:0";
+      this.renderRoot.appendChild(ta);
+      ta.select();
+      try {
+        ok = document.execCommand("copy");
+      } catch {
+        ok = false;
+      }
+      ta.remove();
+    }
+    const label = tab.name || `Tab ${index + 1}`;
+    this._flash(ok ? `Copied tab "${label}" — paste it into Import tab.` : "Couldn't access the clipboard.");
+  }
+
+  private _toggleImport(): void {
+    this._importOpen = !this._importOpen;
+    this._importError = "";
+    this._importValue = undefined;
+  }
+
+  // Accept one tab object or a list of them.
+  private _applyImport(): void {
+    if (!this._config) return;
+    const raw = this._importValue;
+    const list = Array.isArray(raw) ? raw : [raw];
+    const tabLike = (o: any) =>
+      o && typeof o === "object" && !Array.isArray(o) && (o.card || o.cards || o.tap_action);
+    if (list.length === 0 || !list.every(tabLike)) {
+      this._importError = "That doesn't look like a tab (needs a card, cards or tap_action).";
+      return;
+    }
+    const start = this._config.tabs.length;
+    const tabs = [...this._config.tabs, ...list.map(normalizeTab)];
+    const expanded = new Set(this._expanded);
+    for (let i = start; i < tabs.length; i++) expanded.add(i);
+    this._expanded = expanded;
+    this._importOpen = false;
+    this._importValue = undefined;
+    this._flash(`Imported ${list.length} tab${list.length > 1 ? "s" : ""}.`);
+    this._emit({ ...this._config, tabs });
+  }
+
+  private _renderImport() {
+    const onYaml = (e: CustomEvent) => {
+      e.stopPropagation();
+      const d = e.detail as any;
+      this._importValue = d?.isValid === false ? undefined : d?.value;
+      this._importError = "";
+    };
+    return html`
+      <div class="import-panel">
+        <div class="import-hint">Paste a tab (or a list of tabs) copied with <b>Copy tab</b>, or any tab YAML.</div>
+        ${customElements.get("ha-yaml-editor")
+          ? html`<ha-yaml-editor @value-changed=${onYaml}></ha-yaml-editor>`
+          : html`<textarea
+              class="import-json"
+              rows="8"
+              placeholder='{"name": "Lights", "card": {"type": "light", "entity": "light.kitchen"}}'
+              @input=${(e: any) => {
+                try {
+                  this._importValue = JSON.parse(e.target.value);
+                  this._importError = "";
+                } catch {
+                  this._importValue = undefined;
+                }
+              }}
+            ></textarea>`}
+        ${this._importError ? html`<div class="import-error" role="alert">${this._importError}</div>` : nothing}
+        <div class="import-actions">
+          <ha-button class="import-apply" @click=${this._applyImport}>Add</ha-button>
+          <ha-button class="import-cancel" @click=${this._toggleImport}>Cancel</ha-button>
+        </div>
+      </div>
+    `;
   }
 
   private _toggleExpanded(index: number): void {
@@ -807,6 +919,15 @@ export class TabdeckCardEditor extends LitElement {
                       }}
                     ></ha-icon-button>
                     <ha-icon-button
+                      class="copy-tab"
+                      label="Copy tab"
+                      .path=${MDI_EXPORT}
+                      @click=${(e: Event) => {
+                        e.stopPropagation();
+                        void this._copyTab(index);
+                      }}
+                    ></ha-icon-button>
+                    <ha-icon-button
                       class="duplicate-tab"
                       label="Duplicate tab"
                       .path=${MDI_COPY}
@@ -865,15 +986,63 @@ export class TabdeckCardEditor extends LitElement {
           })}
         </div>
         </ha-sortable>
-        <ha-button class="add-tab" @click=${this._addTab}>
-          <ha-svg-icon slot="icon" .path=${MDI_PLUS}></ha-svg-icon>
-          Add tab
-        </ha-button>
+        <!-- Icons go in both slots: "start" (current WebAwesome ha-button) and
+             "icon" (older builds); the unused slot's copy isn't rendered. -->
+        <div class="add-row">
+          <ha-button class="add-tab" @click=${this._addTab}>
+            <ha-svg-icon slot="start" .path=${MDI_PLUS}></ha-svg-icon>
+            <ha-svg-icon slot="icon" .path=${MDI_PLUS}></ha-svg-icon>
+            Add tab
+          </ha-button>
+          <ha-button class="import-tab" @click=${this._toggleImport}>
+            <ha-svg-icon slot="start" .path=${MDI_IMPORT}></ha-svg-icon>
+            <ha-svg-icon slot="icon" .path=${MDI_IMPORT}></ha-svg-icon>
+            Import tab
+          </ha-button>
+        </div>
+        ${this._importOpen ? this._renderImport() : nothing}
+        ${this._status ? html`<div class="editor-status" role="status">${this._status}</div>` : nothing}
       </div>
     `;
   }
 
   static styles = css`
+    .add-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .import-panel {
+      margin-top: 8px;
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .import-hint {
+      font-size: 13px;
+      color: var(--secondary-text-color);
+      margin-bottom: 8px;
+    }
+    textarea.import-json {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: var(--code-font-family, monospace);
+    }
+    .import-error {
+      color: var(--error-color, #db4437);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    .import-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .editor-status {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
     .conditions-section {
       margin: 8px 0;
       border: 1px solid var(--divider-color, #e0e0e0);

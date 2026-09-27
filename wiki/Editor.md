@@ -50,6 +50,17 @@ Each header has a **drag handle** (the grip icon) — drag a tab to reorder it �
 
 ![Drag handle and duplicate-name warning](images/feature-editor-drag-warn.png)
 
+### Copy & import tabs
+
+Move tabs between decks, or share them, without hand-editing YAML:
+
+- **Copy tab** (the export icon in a tab's header) copies that tab's full config to the clipboard. It works on plain-`http://` Home Assistant too, where browsers block the modern clipboard API.
+- **Import tab** (next to *Add tab*) opens a YAML box. Paste one tab, or a **list** of tabs, and press **Add**. The new tabs are appended and expanded. Anything that doesn't look like a tab (no `card`, `cards` or `tap_action`) is rejected with a message.
+
+![Importing two tabs](images/feature-import-tab.png)
+
+The copied text is JSON, which is valid YAML, so you can also paste it straight into a dashboard's YAML.
+
 ### Warnings
 
 The editor shows a warning when it spots a footgun, e.g. **duplicate tab names** (which make `remember: url` and default-tab-by-name ambiguous). The **Add tab** button at the bottom appends a new, typeless tab — its drill-in shows a **card-type chooser** so you can pick (or type) any card type, including `custom:` cards.
