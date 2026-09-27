@@ -18,6 +18,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[State-driven icons, names & colours](Feature-Templated-Fields)** — `icon`/`name`/`subtitle`/`color`/`accent` as live Jinja templates.
 - **[Per-tab text/icon colour](Feature-Tab-Color)** — fixed label/icon colour for a tab (`color`).
 - **[Badge display mode](Feature-Badge-Display)** — text or dot badges (`badge_display`).
+- **[Numeric badge formatting](Badges#numeric-formatting-badge_format)** — precision, unit and `99+` caps (`badge_format`).
 - **[Hide inactive badges](Feature-Hide-Inactive-Badge)** — hide 0/off badges (`hide_inactive_badge`).
 - **[Per-tab badge colour](Feature-Badge-Color)** — colour a tab's badge (`badge_color`).
 - **[Multiple cards per tab](Feature-Multiple-Cards)** — stack several cards in one tab (`cards`).

@@ -684,3 +684,33 @@ describe("templated tab fields", () => {
     expect(el.shadowRoot.querySelector("tabdeck-tabbar").items[0].icon).toBe("mdi:home");
   });
 });
+
+describe("badge_format", () => {
+  const hass = { states: { "sensor.t": { state: "21.456" }, "sensor.n": { state: "150" }, "sensor.z": { state: "0.0" } } };
+  it("formats per tab, with a global default", async () => {
+    const el = await mountWith(
+      {
+        badge_format: { max: 99 },
+        tabs: [
+          { name: "T", badge: "sensor.t", badge_format: { precision: 1, unit: "°" }, card: { type: "markdown" } },
+          { name: "N", badge: "sensor.n", card: { type: "markdown" } },
+        ],
+      },
+      hass,
+    );
+    const items = el.shadowRoot.querySelector("tabdeck-tabbar").items;
+    expect(items[0].badge).toBe("21.5°");
+    expect(items[1].badge).toBe("99+");
+  });
+
+  it("hide_inactive_badge treats numeric zero (0.0) as inactive", async () => {
+    const el = await mountWith(
+      {
+        hide_inactive_badge: true,
+        tabs: [{ name: "Z", badge: "sensor.z", badge_format: { unit: " W" }, card: { type: "markdown" } }],
+      },
+      hass,
+    );
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").items[0].badge).toBeUndefined();
+  });
+});

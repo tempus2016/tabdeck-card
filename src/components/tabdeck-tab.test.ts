@@ -121,3 +121,11 @@ describe("tabdeck-tab", () => {
     expect(el.shadowRoot.querySelector(".label")).toBeTruthy();
   });
 });
+
+describe("isActiveBadge numeric zero", () => {
+  it("treats any numeric zero as inactive", () => {
+    expect(isActiveBadge("0.0")).toBe(false);
+    expect(isActiveBadge("-0")).toBe(false);
+    expect(isActiveBadge("0.5")).toBe(true);
+  });
+});
