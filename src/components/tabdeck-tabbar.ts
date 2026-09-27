@@ -242,7 +242,9 @@ export class TabdeckTabbar extends LitElement {
         this.style.bottom = "0";
         this.style.top = "";
       } else {
-        this.style.top = "0";
+        // Pin just below HA's fixed app header (it exposes --header-height);
+        // --tabdeck-sticky-top overrides (e.g. 0px for a kiosk with no header).
+        this.style.setProperty("top", "var(--tabdeck-sticky-top, var(--header-height, 0px))");
         this.style.bottom = "";
       }
     } else {

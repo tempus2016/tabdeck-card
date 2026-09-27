@@ -97,6 +97,8 @@ export interface TabdeckCardConfig {
   auto_rotate?: AutoRotateConfig;
   // Seconds of inactivity before returning to the default tab.
   idle_return?: number;
+  // Anchor mode: all panels stacked; the bar scrolls to / tracks sections.
+  scroll_spy: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -239,6 +241,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     tabs: tabs.map(normalizeTab),
     auto_tabs,
     auto_rotate: normalizeAutoRotate(raw?.auto_rotate),
+    scroll_spy: Boolean(raw?.scroll_spy),
     idle_return:
       Number(raw?.idle_return) > 0 ? Math.max(5, Number(raw.idle_return)) : undefined,
   };
