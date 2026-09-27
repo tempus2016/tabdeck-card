@@ -28,6 +28,24 @@ tabs: [ ... ]
 
 On load the tab is restored from the entity's value; on every switch the card writes the new index back (`input_number.set_value` / `input_text.set_value`). Because it's a real entity, the choice follows you to every dashboard and device.
 
+**Live two-way sync.** The card also *watches* the entity. When anything else changes it (another device, an automation, a Node-RED flow, a voice command), every open card switches to that tab straight away, with no reload. That makes the helper a remote control for your wall panels:
+
+```yaml
+# automation: show the Cameras tab (index 2) when the doorbell rings
+triggers:
+  - trigger: state
+    entity_id: binary_sensor.doorbell
+    to: "on"
+actions:
+  - action: input_number.set_value
+    target: { entity_id: input_number.kitchen_deck_tab }
+    data: { value: 2 }
+```
+
+- Only a real change of the entity's value switches tabs, so a routine state update never pulls you off the tab you picked.
+- Out-of-range values (e.g. `9` on a 3-tab deck) are ignored.
+- Echoes of the card's own recent writes are ignored, so tapping quickly through several tabs never bounces back.
+
 ### `storage_key` (browser mode)
 
 By default `browser` mode keys storage by dashboard path + tab names. Set `storage_key: my-deck` to give a deck its own slot — useful when two identical decks would otherwise share state.
@@ -38,6 +56,16 @@ remember: url
 default_tab: Climate
 tabs: [ ... ]
 ```
+
+### Deep links (`#tab=`)
+
+With `remember: url` (or any mode, on first load), a `#tab=` hash selects a tab. It can be:
+
+- the tab's **index**: `#tab=2`
+- the tab's **name**: `#tab=Living%20Room`
+- a **case-insensitive slug** of the name: `#tab=living-room`, `#tab=LIGHTS`
+
+An exact name match wins over a slug match.
 
 ### Notes
 

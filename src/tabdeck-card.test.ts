@@ -555,3 +555,73 @@ describe("tabdeck-card swipe", () => {
     expect(selected(el)).toBe(0);
   });
 });
+
+describe("remember:entity live sync", () => {
+  const cfg = {
+    remember: "entity",
+    remember_entity: "input_number.tab",
+    tabs: [
+      { name: "A", card: { type: "markdown" } },
+      { name: "B", card: { type: "light" } },
+      { name: "C", card: { type: "light" } },
+    ],
+  };
+
+  it("switches tab when the entity changes externally", async () => {
+    const calls: any[] = [];
+    const callService = (d: string, s: string, data: any) => calls.push({ d, s, data });
+    const el = await mountWith(cfg, { states: { "input_number.tab": { state: "0" } }, callService });
+    el.hass = { states: { "input_number.tab": { state: "2.0" } }, callService };
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(2);
+    // An externally-driven switch must not echo a write back to the entity.
+    expect(calls).toHaveLength(0);
+  });
+
+  it("ignores hass updates where the entity value is unchanged", async () => {
+    const callService = () => {};
+    const el = await mountWith(cfg, { states: { "input_number.tab": { state: "0" } }, callService });
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 }, bubbles: true, composed: true }));
+    await el.updateComplete;
+    // Entity hasn't caught up yet (still 0) — a routine hass tick must not yank
+    // the user back to tab 0.
+    el.hass = { states: { "input_number.tab": { state: "0" } }, callService };
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(1);
+  });
+
+  it("ignores out-of-range entity values", async () => {
+    const callService = () => {};
+    const el = await mountWith(cfg, { states: { "input_number.tab": { state: "1" } }, callService });
+    el.hass = { states: { "input_number.tab": { state: "9" } }, callService };
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(1);
+  });
+});
+
+describe("remember:entity echo guard", () => {
+  it("does not bounce back on an echo of an earlier write", async () => {
+    const callService = () => {};
+    const el = await mountWith(
+      {
+        remember: "entity",
+        remember_entity: "input_number.tab",
+        tabs: [
+          { name: "A", card: { type: "markdown" } },
+          { name: "B", card: { type: "light" } },
+          { name: "C", card: { type: "light" } },
+        ],
+      },
+      { states: { "input_number.tab": { state: "0" } }, callService },
+    );
+    const bar = el.shadowRoot.querySelector("tabdeck-tabbar");
+    bar.dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 }, bubbles: true, composed: true }));
+    bar.dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 2 }, bubbles: true, composed: true }));
+    // The first write (1) lands after the user has already moved to 2.
+    el.hass = { states: { "input_number.tab": { state: "1" } }, callService };
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(2);
+  });
+});

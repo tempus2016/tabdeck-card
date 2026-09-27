@@ -25,7 +25,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `header` | boolean | `false` | Show the active tab's title above the content. See [Content header](Feature-Header). |
 | `transition` | `none` \| `fade` \| `slide` | `none` | Panel switch animation. See [Panel transitions](Feature-Panel-Transition). |
 | `aria_label` | string | `Tabs` | Accessible name for the tab bar (screen readers). |
-| `remember` | `none` \| `browser` \| `url` | `none` | How the selected tab is remembered. See [Navigation & Persistence](Navigation-and-Persistence). |
+| `remember` | `none` \| `browser` \| `url` \| `entity` | `none` | How the selected tab is remembered. See [Navigation & Persistence](Navigation-and-Persistence). |
 | `lazy` | boolean | `false` | When `true`, a tab's card is only built the first time it becomes visible. |
 | `animated` | boolean | `true` | Animate the selection indicator as it moves between tabs. |
 | `swipe` | boolean | `false` | Allow left/right swipe gestures to change tabs (mobile). |

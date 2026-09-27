@@ -33,6 +33,10 @@ export class TabdeckCard extends LitElement {
   @state() private _genTabs: TabdeckTabConfig[] = [];
   // JSON signature of the last raw generated set, to skip no-op rebuilds.
   private _genKey = "";
+  // Last remember_entity state seen, so only a real change switches tabs.
+  private _lastEntityValue?: string;
+  // Until this time, entity changes are echoes of our own recent writes.
+  private _entityWriteGuard = 0;
 
   static getStubConfig() {
     return {
@@ -54,6 +58,7 @@ export class TabdeckCard extends LitElement {
     this._built = false;
     this._selected = resolveDefaultIndex(this._config);
     this._autoPrev = undefined;
+    this._lastEntityValue = undefined;
     this._genTabs = [];
     this._genKey = "";
     // Drop any subscriptions from a previous config; they re-sync on next hass.
@@ -95,6 +100,7 @@ export class TabdeckCard extends LitElement {
         ? this._hass?.states?.[this._config.remember_entity]?.state
         : undefined,
     });
+    this._lastEntityValue = this._rememberEntityState();
     this._built = true;
     this.requestUpdate();
   }
@@ -104,7 +110,30 @@ export class TabdeckCard extends LitElement {
     this._manager?.setHass(hass);
     this._syncTemplates();
     this._runAutoSelect();
+    this._syncRememberEntity();
     this.requestUpdate();
+  }
+
+  private _rememberEntityState(): string | undefined {
+    const ent = this._config?.remember === "entity" ? this._config.remember_entity : undefined;
+    return ent ? this._hass?.states?.[ent]?.state : undefined;
+  }
+
+  // Live two-way sync for remember:entity — when the helper is changed
+  // elsewhere (another device, an automation, Node-RED), follow it. Only a
+  // real change of the entity's value switches, so a routine hass tick never
+  // yanks the user back while their own write is still in flight. Does not
+  // write back (the entity already holds the value).
+  private _syncRememberEntity(): void {
+    if (!this._built) return;
+    const value = this._rememberEntityState();
+    if (value === undefined || value === this._lastEntityValue) return;
+    this._lastEntityValue = value;
+    // Rapid taps: an echo of an earlier write must not bounce the selection.
+    if (Date.now() < this._entityWriteGuard) return;
+    const n = Math.trunc(Number(value));
+    if (!Number.isFinite(n) || n < 0 || n >= this._visibleTabs().length) return;
+    if (n !== this._selected) this._selectIndex(n, false);
   }
 
   // Edge-triggered tab switching: when a tab's auto_select entity enters its
@@ -321,7 +350,7 @@ export class TabdeckCard extends LitElement {
     handleAction(this, this._hass as any, cfg as any, key as any);
   }
 
-  private _selectIndex(index: number): void {
+  private _selectIndex(index: number, writeEntity = true): void {
     this._selected = index;
     const visible = this._visibleTabs();
     const tab = visible[this._selected];
@@ -335,7 +364,9 @@ export class TabdeckCard extends LitElement {
       if (r.hash && typeof location !== "undefined") {
         history.replaceState(null, "", r.hash);
       }
-      if (this._config.remember === "entity") this._writeRememberEntity(this._selected);
+      if (this._config.remember === "entity" && writeEntity) {
+        this._writeRememberEntity(this._selected);
+      }
     }
     this.updateComplete.then(() =>
       this._manager?.notifyVisible(this._activeOriginalIndex()),
@@ -348,6 +379,7 @@ export class TabdeckCard extends LitElement {
     const ent = this._config?.remember_entity;
     const hass = this._hass as any;
     if (!ent || !hass?.callService || !hass.states?.[ent]) return;
+    this._entityWriteGuard = Date.now() + 1500;
     const domain = ent.split(".")[0];
     if (domain === "input_number") {
       hass.callService("input_number", "set_value", { entity_id: ent, value: index });

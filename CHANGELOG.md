@@ -3,6 +3,12 @@
 All notable changes are documented here. Each GitHub release uses the matching
 section below as its release notes (see `.github/workflows/release.yml`).
 
+## Unreleased
+
+### Added
+- **Live `remember: entity` sync** — the card now follows its helper entity when it changes elsewhere (another device, an automation, Node-RED), so the helper doubles as a remote control for wall panels. Echoes of the card's own writes are ignored.
+- **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
+
 ## v1.0.0 — 2026-06-24
 
 First stable release of **Tabdeck Card** — a dependency-free, themeable tabbed Lovelace card with a full visual editor and keep-alive content (maps, cameras and graphs render correctly without the "navigate away and back" workaround). Every capability below is an opt-in option, unit-tested, verified on a real Home Assistant instance, and documented on the [Wiki](https://github.com/tempus2016/tabdeck-card/wiki).
