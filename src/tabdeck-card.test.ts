@@ -1006,3 +1006,66 @@ describe("scroll_spy reconnect", () => {
     }
   });
 });
+
+describe("enter_action / leave_action", () => {
+  it("fires leave on the old tab and enter on the new one", async () => {
+    const fired: string[] = [];
+    const hass = {
+      states: {},
+      callService: (d: string, s: string, data: any) => fired.push(`${d}.${s}:${data.entity_id}`),
+    };
+    const el = await mountWith(
+      {
+        tabs: [
+          {
+            name: "A",
+            leave_action: { action: "call-service", service: "script.turn_on", service_data: { entity_id: "script.leave_a" } },
+            card: { type: "markdown" },
+          },
+          {
+            name: "Cams",
+            enter_action: { action: "call-service", service: "script.turn_on", service_data: { entity_id: "script.start_stream" } },
+            card: { type: "light" },
+          },
+        ],
+      },
+      hass,
+    );
+    expect(fired).toEqual([]); // nothing on initial load
+    const bar = el.shadowRoot.querySelector("tabdeck-tabbar");
+    bar.dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 }, bubbles: true, composed: true }));
+    expect(fired).toEqual(["script.turn_on:script.leave_a", "script.turn_on:script.start_stream"]);
+    // Re-selecting the same tab fires nothing.
+    bar.dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 }, bubbles: true, composed: true }));
+    expect(fired).toHaveLength(2);
+  });
+});
+
+describe("perform-action support", () => {
+  it("runs modern perform-action actions (as produced by HA's action picker)", async () => {
+    const calls: any[] = [];
+    const hass = { states: {}, callService: (...a: any[]) => calls.push(a) };
+    const el = await mountWith(
+      {
+        tabs: [
+          { name: "A", card: { type: "markdown" } },
+          {
+            name: "B",
+            enter_action: {
+              action: "perform-action",
+              perform_action: "light.turn_on",
+              target: { entity_id: "light.kitchen" },
+              data: { brightness_pct: 50 },
+            },
+            card: { type: "light" },
+          },
+        ],
+      },
+      hass,
+    );
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 }, bubbles: true, composed: true }));
+    expect(calls).toEqual([["light", "turn_on", { brightness_pct: 50 }, { entity_id: "light.kitchen" }]]);
+  });
+});

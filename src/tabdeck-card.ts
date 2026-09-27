@@ -527,6 +527,16 @@ export class TabdeckCard extends LitElement {
   // from the top-level config (for more-info/toggle), so surface the action's.
   private _runAction(action: any, key: "tap" | "hold"): void {
     if (!action || !this._hass) return;
+    // custom-card-helpers only knows the legacy `call-service`; translate the
+    // modern `perform-action` (what HA's own action picker writes).
+    if (action.action === "perform-action" && typeof action.perform_action === "string") {
+      action = {
+        ...action,
+        action: "call-service",
+        service: action.perform_action,
+        service_data: action.data ?? action.service_data,
+      };
+    }
     const cfg = { entity: action?.entity, [`${key}_action`]: action };
     handleAction(this, this._hass as any, cfg as any, key as any);
   }
@@ -544,8 +554,14 @@ export class TabdeckCard extends LitElement {
   // `persist: false` for automatic switches (rotation, idle return, entity
   // sync) that must not overwrite the remembered choice.
   private _selectIndex(index: number, persist = true): void {
-    this._selected = index;
     const visible = this._visibleTabs();
+    const prev = visible[this._selected];
+    const changed = index !== this._selected;
+    this._selected = index;
+    if (changed) {
+      this._runAction(prev?.leave_action, "tap");
+      this._runAction(visible[index]?.enter_action, "tap");
+    }
     const tab = visible[this._selected];
     if (this._config && persist) {
       const r = persistIndex({

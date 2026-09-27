@@ -14,9 +14,11 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Idle return** — `idle_return: 120` goes back to the default tab after inactivity.
 - **Navigation & action tabs** — per-tab `tap_action` runs an HA action (e.g. `navigate`) instead of opening the tab; such tabs need no card and are skipped by arrows, swipe and auto-rotate.
 - **Scroll-spy (anchor mode)** — `scroll_spy: true` stacks every tab as a section; the (auto-sticky) bar scrolls to sections and highlights the one in view.
+- **Tab-change actions** — per-tab `enter_action` / `leave_action` run an HA action when a tab becomes / stops being active (any source; not on initial load).
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed
+- `perform-action` actions (what HA's action picker writes) now work for `hold_action`, `badge_action` and `tap_action`; previously only the legacy `call-service` ran.
 - `sticky` bars now pin below Home Assistant's app header (`--header-height`) instead of hiding underneath it; override with `--tabdeck-sticky-top`.
 - Swiping now steps over disabled tabs instead of landing on them.
 - Numeric zero badges such as `0.0` now count as inactive (hidden by `hide_inactive_badge`, no dot in dot mode).
