@@ -117,6 +117,9 @@ const GLOBAL_LABELS: Record<string, string> = {
   bar_background: "Tab bar background colour",
   swipe: "Swipe to change tabs (mobile)",
   swipe_mouse: "Mouse drag to change tabs (desktop)",
+  collapsible: "Collapsible (tap the active tab to fold content)",
+  start_collapsed: "Start collapsed",
+  scroll_spy: "Scroll-spy: stack tabs as sections",
   auto_rotate: "Auto-rotate tabs every (seconds, 0 = off)",
   idle_return: "Return to default tab after idle (seconds, 0 = off)",
 };
@@ -382,6 +385,9 @@ export class TabdeckCardEditor extends LitElement {
       { name: "bar_background", selector: { text: {} } },
       { name: "swipe", selector: { boolean: {} } },
       { name: "swipe_mouse", selector: { boolean: {} } },
+      { name: "collapsible", selector: { boolean: {} } },
+      { name: "start_collapsed", selector: { boolean: {} } },
+      { name: "scroll_spy", selector: { boolean: {} } },
       { name: "auto_rotate", selector: { number: { min: 0, max: 3600, step: 1, mode: "box" } } },
       { name: "idle_return", selector: { number: { min: 0, max: 86400, step: 1, mode: "box" } } },
     ];
@@ -418,6 +424,9 @@ export class TabdeckCardEditor extends LitElement {
       bar_background: cfg.bar_background ?? "",
       swipe: cfg.swipe,
       swipe_mouse: cfg.swipe_mouse,
+      collapsible: cfg.collapsible,
+      start_collapsed: cfg.start_collapsed,
+      scroll_spy: cfg.scroll_spy,
       auto_rotate: cfg.auto_rotate?.interval ?? 0,
       idle_return: cfg.idle_return ?? 0,
     };
@@ -457,6 +466,9 @@ export class TabdeckCardEditor extends LitElement {
       bar_background: v.bar_background || undefined,
       swipe: !!v.swipe,
       swipe_mouse: !!v.swipe_mouse,
+      collapsible: !!v.collapsible,
+      start_collapsed: !!v.collapsible && !!v.start_collapsed,
+      scroll_spy: !!v.scroll_spy,
       // Keep a YAML-set resume_after when only the interval is edited.
       auto_rotate:
         Number(v.auto_rotate) > 0

@@ -49,6 +49,8 @@ export class TabdeckTabbar extends LitElement {
   // fit all tabs.
   @property({ type: Boolean }) overflowMenu = false;
   @state() private _menuOpen = false;
+  // Deck content is folded away (collapsible): dims the indicator.
+  @property({ type: Boolean, reflect: true }) collapsed = false;
   // Accessible name for the tablist.
   @property() barLabel = "Tabs";
   // Optional custom bar background colour.
@@ -560,6 +562,10 @@ export class TabdeckTabbar extends LitElement {
     .indicator.animate {
       transition: left 200ms ease, top 200ms ease, width 200ms ease,
         height 200ms ease;
+    }
+    /* collapsible: while folded, the selection is only hinted. */
+    :host([collapsed]) .indicator {
+      opacity: 0.35 !important;
     }
     @media (prefers-reduced-motion: reduce) {
       .indicator.animate {

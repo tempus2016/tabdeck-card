@@ -102,6 +102,9 @@ export interface TabdeckCardConfig {
   idle_return?: number;
   // Anchor mode: all panels stacked; the bar scrolls to / tracks sections.
   scroll_spy: boolean;
+  // Tapping the active tab folds the content away (and back).
+  collapsible: boolean;
+  start_collapsed: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -251,6 +254,8 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     auto_tabs,
     auto_rotate: normalizeAutoRotate(raw?.auto_rotate),
     scroll_spy: Boolean(raw?.scroll_spy),
+    collapsible: Boolean(raw?.collapsible),
+    start_collapsed: Boolean(raw?.collapsible && raw?.start_collapsed),
     idle_return:
       Number(raw?.idle_return) > 0 ? Math.max(5, Number(raw.idle_return)) : undefined,
   };

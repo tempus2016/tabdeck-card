@@ -15,6 +15,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Navigation & action tabs** — per-tab `tap_action` runs an HA action (e.g. `navigate`) instead of opening the tab; such tabs need no card and are skipped by arrows, swipe and auto-rotate.
 - **Scroll-spy (anchor mode)** — `scroll_spy: true` stacks every tab as a section; the (auto-sticky) bar scrolls to sections and highlights the one in view.
 - **Tab-change actions** — per-tab `enter_action` / `leave_action` run an HA action when a tab becomes / stops being active (any source; not on initial load).
+- **Collapsible deck** — `collapsible: true` folds the content away when the active tab is tapped again; `start_collapsed` opens folded.
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed

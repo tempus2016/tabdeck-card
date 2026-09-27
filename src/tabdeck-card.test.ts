@@ -1069,3 +1069,44 @@ describe("perform-action support", () => {
     expect(calls).toEqual([["light", "turn_on", { brightness_pct: 50 }, { entity_id: "light.kitchen" }]]);
   });
 });
+
+describe("collapsible", () => {
+  const tabs = [
+    { name: "A", card: { type: "markdown" } },
+    { name: "B", card: { type: "light" } },
+  ];
+  const select = (el: any, index: number) =>
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index }, bubbles: true, composed: true }));
+  const contentHidden = (el: any) => el.shadowRoot.querySelector(".content").hasAttribute("hidden");
+
+  it("tapping the active tab collapses and re-expands the content", async () => {
+    const el = await mount({ collapsible: true, tabs });
+    expect(contentHidden(el)).toBe(false);
+    select(el, 0);
+    await el.updateComplete;
+    expect(contentHidden(el)).toBe(true);
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").collapsed).toBe(true);
+    expect(el.getCardSize()).toBe(1);
+    select(el, 0);
+    await el.updateComplete;
+    expect(contentHidden(el)).toBe(false);
+  });
+
+  it("choosing another tab while collapsed expands it", async () => {
+    const el = await mount({ collapsible: true, start_collapsed: true, tabs });
+    expect(contentHidden(el)).toBe(true);
+    select(el, 1);
+    await el.updateComplete;
+    expect(contentHidden(el)).toBe(false);
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(1);
+  });
+
+  it("does nothing special when collapsible is off", async () => {
+    const el = await mount({ tabs });
+    select(el, 0);
+    await el.updateComplete;
+    expect(contentHidden(el)).toBe(false);
+  });
+});

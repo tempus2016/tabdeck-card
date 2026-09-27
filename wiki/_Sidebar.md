@@ -20,6 +20,7 @@
 - [Auto-rotate & idle return](Feature-Kiosk)
 - [Navigation & action tabs](Feature-Navigation-Tabs)
 - [Scroll-spy](Feature-Scroll-Spy)
+- [Collapsible deck](Feature-Collapsible)
 - [Tab-change actions](Feature-Enter-Leave-Actions)
 - [Tab display mode](Feature-Tab-Display)
 - [Accent indicator](Feature-Accent-Indicator)

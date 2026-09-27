@@ -20,6 +20,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `accent_indicator` | boolean | `true` | Colour the indicator by the selected tab's `accent`. See [Accent indicator](Feature-Accent-Indicator). |
 | `scrollable` | `auto` \| `true` \| `false` | `auto` | Whether the bar scrolls horizontally when tabs overflow. `auto` scrolls only when needed. |
 | `sticky` | boolean | `false` | Pin the bar while content scrolls. See [Sticky tab bar](Feature-Sticky-Bar). |
+| `collapsible` / `start_collapsed` | boolean | `false` | Tap the active tab to fold the content away / start folded. See [Collapsible deck](Feature-Collapsible). |
 | `scroll_spy` | boolean | `false` | Stack all tabs as sections; the bar scrolls to and tracks them. See [Scroll-spy](Feature-Scroll-Spy). |
 | `scroll_buttons` / `overflow_menu` | boolean | `false` | Scroll arrows / ⋯ jump-menu when the bar overflows. See [Scroll buttons](Feature-Scroll-Buttons). |
 | `swipe_mouse` | boolean | `false` | Change tabs by mouse drag (desktop). |
