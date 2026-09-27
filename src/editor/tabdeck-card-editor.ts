@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { fireEvent } from "custom-card-helpers";
 import type { HomeAssistant } from "../types";
 import { normalizeConfig, type TabdeckCardConfig } from "../lib/config";
+import { isTemplate } from "../lib/templates";
 import "../components/tabdeck-tabbar";
 
 // MDI icon paths for the per-tab reorder/delete buttons. Inlined rather than
@@ -563,10 +564,11 @@ export class TabdeckCardEditor extends LitElement {
           <tabdeck-tabbar
             class="preview-bar"
             .items=${cfg.tabs.map((t, i) => ({
-              name: t.name || `Tab ${i + 1}`,
-              icon: t.icon,
-              accent: t.accent,
-              color: t.color,
+              // Templated fields only render on the live card; preview plain ones.
+              name: (!isTemplate(t.name) && t.name) || `Tab ${i + 1}`,
+              icon: isTemplate(t.icon) ? undefined : t.icon,
+              accent: isTemplate(t.accent) ? undefined : t.accent,
+              color: isTemplate(t.color) ? undefined : t.color,
               disabled: t.disabled,
             }))}
             .selected=${0}
@@ -630,7 +632,7 @@ export class TabdeckCardEditor extends LitElement {
                     ></ha-svg-icon>
                     <ha-icon
                       class="tab-icon"
-                      .icon=${tab.icon || DEFAULT_TAB_ICON}
+                      .icon=${(!isTemplate(tab.icon) && tab.icon) || DEFAULT_TAB_ICON}
                     ></ha-icon>
                     <span class="tab-title">${tab.name || `Tab ${index + 1}`}</span>
                     <span class="tab-type">${tab.card?.type ?? "—"}</span>

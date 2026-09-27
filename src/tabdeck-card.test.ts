@@ -625,3 +625,62 @@ describe("remember:entity echo guard", () => {
     expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(2);
   });
 });
+
+describe("templated tab fields", () => {
+  it("renders icon, name, subtitle, color and accent from templates", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      {
+        header: true,
+        tabs: [
+          {
+            name: "{{ 'Garage ' ~ states('cover.g') }}",
+            subtitle: "{{ 'sub:' ~ states('cover.g') }}",
+            icon: "{{ 'mdi:garage-open' if is_state('cover.g','open') else 'mdi:garage' }}",
+            color: "{{ 'red' if is_state('cover.g','open') else '' }}",
+            accent: "{{ 'orange' }}",
+            card: { type: "markdown" },
+          },
+        ],
+      },
+      hass,
+    );
+    const item = () => el.shadowRoot.querySelector("tabdeck-tabbar").items[0];
+    expect(item().icon).toBeUndefined();
+    push("'Garage '", { result: "Garage open" });
+    push("'sub:'", { result: "sub:open" });
+    push("mdi:garage-open", { result: "mdi:garage-open" });
+    push("'red'", { result: "red" });
+    push("'orange'", { result: "orange" });
+    await el.updateComplete;
+    expect(item()).toMatchObject({
+      name: "Garage open",
+      subtitle: "sub:open",
+      icon: "mdi:garage-open",
+      color: "red",
+      accent: "orange",
+    });
+    expect(el.shadowRoot.querySelector(".content-title").textContent).toContain("Garage open");
+  });
+
+  it("treats an empty template result as unset", async () => {
+    const { hass, push } = hassWithTemplates();
+    const el = await mountWith(
+      { tabs: [{ name: "A", color: "{{ '' }}", card: { type: "markdown" } }] },
+      hass,
+    );
+    push("''", { result: "" });
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").items[0].color).toBeUndefined();
+  });
+
+  it("leaves plain strings untouched and subscribes nothing", async () => {
+    const { hass, subs } = hassWithTemplates();
+    const el = await mountWith(
+      { tabs: [{ name: "A", icon: "mdi:home", card: { type: "markdown" } }] },
+      hass,
+    );
+    expect(subs).toHaveLength(0);
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").items[0].icon).toBe("mdi:home");
+  });
+});

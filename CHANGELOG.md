@@ -7,6 +7,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 
 ### Added
 - **Live `remember: entity` sync** — the card now follows its helper entity when it changes elsewhere (another device, an automation, Node-RED), so the helper doubles as a remote control for wall panels. Echoes of the card's own writes are ignored.
+- **State-driven tab fields** — a tab's `icon`, `name`, `subtitle`, `color` and `accent` can be Jinja templates rendered live by Home Assistant (e.g. an open-garage icon in red).
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ## v1.0.0 — 2026-06-24
