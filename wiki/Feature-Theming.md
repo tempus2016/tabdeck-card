@@ -34,3 +34,28 @@ The card also honours standard HA theme variables (`--primary-color`, `--divider
 > `styles` is YAML/advanced — it isn't shown in the visual editor, but it's fully supported and round-trips through the code editor.
 
 > For one-line looks built from these options, see [Style presets](Feature-Presets). `--tabdeck-bar-backdrop` (e.g. `blur(12px)`) adds a frosted-glass `backdrop-filter` to the bar.
+
+## Per-tab styles
+
+A tab can carry its own **`styles`**. They're applied on top of the top-level `styles` **while that tab is active**, and removed when you switch away. Use them to give each tab its own accent, or to change any other variable per tab:
+
+```yaml
+type: custom:tabdeck-card
+styles:
+  --tabdeck-accent: "#1f6feb"        # default for every tab
+tabs:
+  - name: Security
+    icon: mdi:shield-home
+    styles:
+      --tabdeck-accent: "#d93025"    # red while Security is open
+    card: { ... }
+  - name: Garden
+    icon: mdi:flower
+    styles:
+      --tabdeck-accent: "#188038"
+    card: { ... }
+  - name: Other                      # falls back to the blue default
+    card: { ... }
+```
+
+Unlike a tab's `accent` (which only colours that tab and the indicator), per-tab `styles` can change **anything** styled by a variable: bar background, tab height, alert colour and so on.

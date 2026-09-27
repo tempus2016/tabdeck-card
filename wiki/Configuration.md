@@ -62,6 +62,7 @@ Each item in `tabs`:
 | `enter_action` / `leave_action` | action | — | HA action when the tab becomes / stops being active. See [Tab-change actions](Feature-Enter-Leave-Actions). |
 | `hold_action` / `badge_action` | action | — | HA action on tab long-press / badge click. See [Tab & badge actions](Feature-Hold-Action). |
 | `visibility` | list of conditions | — | Conditions for showing the tab (supports and/or/not). See [Tab Visibility](Tab-Visibility). |
+| `styles` | map | — | CSS properties applied to the card while this tab is active (over the top-level `styles`). See [Theming](Feature-Theming#per-tab-styles). |
 | `alert` | list of conditions | — | While all are met, the tab pulses in the alert colour. See [Alert pulse](Feature-Alert). |
 
 > `name`, `subtitle`, `icon`, `accent` and `color` also accept a **Jinja template** that renders live. See [State-driven icons, names & colours](Feature-Templated-Fields).

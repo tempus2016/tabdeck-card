@@ -58,6 +58,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 ## Theming
 - **[Style presets](Feature-Presets)** — one-line looks: `ios`, `material`, `glass`, `minimal`, `rail` (`preset`).
 - **[Theming & styles passthrough](Feature-Theming)** — set CSS variables from config (`styles`).
+- **[Per-tab styles](Feature-Theming#per-tab-styles)** — `styles` on a tab, applied while it's active.
 
 ---
 
