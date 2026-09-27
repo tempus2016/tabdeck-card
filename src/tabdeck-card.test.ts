@@ -879,3 +879,130 @@ describe("tap_action (navigation tabs)", () => {
     expect(el._selected).toBe(2);
   });
 });
+
+describe("scroll_spy", () => {
+  const cfg = () => ({
+    scroll_spy: true,
+    remember: "browser",
+    storage_key: "spy-test",
+    tabs: [
+      { name: "A", card: { type: "markdown" } },
+      { name: "B", card: { type: "light" } },
+      { name: "C", card: { type: "markdown" } },
+    ],
+  });
+
+  it("renders every panel (none hidden) and pins the bar", async () => {
+    const el = await mount(cfg());
+    const panels = el.shadowRoot.querySelectorAll(".panel");
+    expect(panels).toHaveLength(3);
+    for (const p of panels) expect(p.hasAttribute("hidden")).toBe(false);
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").sticky).toBe(true);
+  });
+
+  it("scrolls the chosen section into view on select", async () => {
+    const el = await mount(cfg());
+    const calls: any[] = [];
+    const orig = (Element.prototype as any).scrollIntoView;
+    (Element.prototype as any).scrollIntoView = function (opts: any) {
+      calls.push({ index: this.dataset?.index, opts });
+    };
+    try {
+      el.shadowRoot
+        .querySelector("tabdeck-tabbar")
+        .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 2 }, bubbles: true, composed: true }));
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+      expect(calls.at(-1).index).toBe("2");
+      expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(2);
+    } finally {
+      (Element.prototype as any).scrollIntoView = orig;
+    }
+  });
+
+  it("follows the topmost section in view, without persisting", async () => {
+    localStorage.removeItem("tabdeck-card:spy-test");
+    const el = await mount(cfg());
+    const panels = el.shadowRoot.querySelectorAll(".panel");
+    el._onSpyEntries([
+      { target: panels[1], isIntersecting: true },
+      { target: panels[2], isIntersecting: true },
+    ]);
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(1);
+    expect(localStorage.getItem("tabdeck-card:spy-test")).toBeNull();
+  });
+
+  it("ignores spy updates while a programmatic scroll is in flight", async () => {
+    const el = await mount(cfg());
+    (Element.prototype as any).scrollIntoView ??= () => {};
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 2 }, bubbles: true, composed: true }));
+    await el.updateComplete;
+    const panels = el.shadowRoot.querySelectorAll(".panel");
+    el._onSpyEntries([{ target: panels[0], isIntersecting: true }]);
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(2);
+  });
+
+  it("shows a title per section when header is on", async () => {
+    const el = await mount({ ...cfg(), header: true });
+    const titles = [...el.shadowRoot.querySelectorAll(".section-title")].map((t: any) => t.textContent.trim());
+    expect(titles).toEqual(["A", "B", "C"]);
+    expect(el.shadowRoot.querySelector(".content-header")).toBeNull();
+  });
+});
+
+describe("scroll_spy with swipe", () => {
+  it("scrolls to the section a swipe selects", async () => {
+    const el = await mount({
+      scroll_spy: true,
+      swipe: true,
+      tabs: [
+        { name: "A", card: { type: "markdown" } },
+        { name: "B", card: { type: "light" } },
+      ],
+    });
+    const calls: string[] = [];
+    const orig = (Element.prototype as any).scrollIntoView;
+    (Element.prototype as any).scrollIntoView = function () {
+      calls.push(this.dataset?.index);
+    };
+    try {
+      swipe(el, -120);
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+      expect(calls).toEqual(["1"]);
+    } finally {
+      (Element.prototype as any).scrollIntoView = orig;
+    }
+  });
+});
+
+describe("scroll_spy reconnect", () => {
+  it("rebuilds its observer after the card is moved in the DOM", async () => {
+    const observed: Element[] = [];
+    const Orig = (globalThis as any).IntersectionObserver;
+    (globalThis as any).IntersectionObserver = class {
+      observe(e: Element) { observed.push(e); }
+      disconnect() {}
+    };
+    try {
+      const el = await mount({
+        scroll_spy: true,
+        tabs: [{ name: "A", card: { type: "markdown" } }, { name: "B", card: { type: "light" } }],
+      });
+      expect(observed).toHaveLength(2);
+      const parent = el.parentNode;
+      el.remove();
+      parent.appendChild(el);
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+      expect(observed).toHaveLength(4);
+      expect(el._spyObserver).toBeDefined();
+    } finally {
+      (globalThis as any).IntersectionObserver = Orig;
+    }
+  });
+});

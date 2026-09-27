@@ -13,9 +13,11 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Auto-rotate** — `auto_rotate: 15` (or `{ interval, resume_after }`) cycles enabled tabs for wall panels, pausing after any interaction. Rotations are not persisted.
 - **Idle return** — `idle_return: 120` goes back to the default tab after inactivity.
 - **Navigation & action tabs** — per-tab `tap_action` runs an HA action (e.g. `navigate`) instead of opening the tab; such tabs need no card and are skipped by arrows, swipe and auto-rotate.
+- **Scroll-spy (anchor mode)** — `scroll_spy: true` stacks every tab as a section; the (auto-sticky) bar scrolls to sections and highlights the one in view.
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed
+- `sticky` bars now pin below Home Assistant's app header (`--header-height`) instead of hiding underneath it; override with `--tabdeck-sticky-top`.
 - Swiping now steps over disabled tabs instead of landing on them.
 - Numeric zero badges such as `0.0` now count as inactive (hidden by `hide_inactive_badge`, no dot in dot mode).
 

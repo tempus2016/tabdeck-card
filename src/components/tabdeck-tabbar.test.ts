@@ -266,7 +266,10 @@ describe("tabdeck-tabbar", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     expect(el.style.position).toBe("sticky");
-    expect(el.style.top).toBe("0px");
+    // Clears HA's fixed app header (--header-height), overridable.
+    expect(el.style.getPropertyValue("top")).toBe(
+      "var(--tabdeck-sticky-top, var(--header-height, 0px))",
+    );
   });
 
   it("pins to the bottom edge for a bottom bar, and clears when sticky is off", async () => {

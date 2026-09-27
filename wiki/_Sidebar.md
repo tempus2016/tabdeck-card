@@ -19,6 +19,7 @@
 - [Alert pulse](Feature-Alert)
 - [Auto-rotate & idle return](Feature-Kiosk)
 - [Navigation & action tabs](Feature-Navigation-Tabs)
+- [Scroll-spy](Feature-Scroll-Spy)
 - [Tab display mode](Feature-Tab-Display)
 - [Accent indicator](Feature-Accent-Indicator)
 - [Extra bar styles](Feature-Bar-Styles)

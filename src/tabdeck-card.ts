@@ -80,12 +80,17 @@ export class TabdeckCard extends LitElement {
     super.connectedCallback();
     for (const ev of INTERACTION_EVENTS) this.addEventListener(ev, this._onInteraction);
     this._syncTimer();
+    // HA moves cards around the DOM during layout; re-observe on reconnect.
+    if (this._config?.scroll_spy) this.updateComplete.then(() => this._syncSpyObserver());
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
     for (const ev of INTERACTION_EVENTS) this.removeEventListener(ev, this._onInteraction);
     this._stopTimer();
+    this._spyObserver?.disconnect();
+    this._spyObserver = undefined;
+    this._spyObserved = [];
     this._templates?.destroy();
     this._templates = undefined;
   }
@@ -456,6 +461,68 @@ export class TabdeckCard extends LitElement {
     this._selectIndex(e.detail.index);
   }
 
+  // --- scroll_spy -----------------------------------------------------------
+  private _spyObserver?: IntersectionObserver;
+  private _spyObserved: Element[] = [];
+  private _spyInView = new Set<number>();
+  // Spy updates are ignored until this time (a programmatic scroll is running).
+  private _spySuppressUntil = 0;
+  private _spyDriven = false;
+
+  private _scrollToSection(index: number): void {
+    this._spySuppressUntil = Date.now() + 900;
+    this.updateComplete.then(() => {
+      const panel = this.renderRoot?.querySelector?.(
+        `.panel[data-index="${index}"]`,
+      ) as HTMLElement | null;
+      panel?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  // (Re)observe the section panels whenever the rendered set changes.
+  private _syncSpyObserver(): void {
+    if (!this._config?.scroll_spy || typeof IntersectionObserver === "undefined") {
+      this._spyObserver?.disconnect();
+      this._spyObserver = undefined;
+      this._spyObserved = [];
+      return;
+    }
+    const panels = [...(this.renderRoot?.querySelectorAll?.(".panel") ?? [])];
+    const same =
+      panels.length === this._spyObserved.length &&
+      panels.every((p, i) => p === this._spyObserved[i]);
+    if (same && this._spyObserver) return;
+    this._spyObserver?.disconnect();
+    this._spyInView.clear();
+    // A band across the upper part of the viewport, below HA's header and the
+    // sticky bar: whichever section crosses it is "current".
+    this._spyObserver = new IntersectionObserver(
+      (entries) => this._onSpyEntries(entries),
+      { rootMargin: "-120px 0px -55% 0px" },
+    );
+    for (const p of panels) this._spyObserver.observe(p);
+    this._spyObserved = panels;
+  }
+
+  private _onSpyEntries(entries: Array<Pick<IntersectionObserverEntry, "target" | "isIntersecting">>): void {
+    for (const e of entries) {
+      const idx = Number((e.target as HTMLElement).dataset?.index);
+      if (!Number.isInteger(idx)) continue;
+      if (e.isIntersecting) this._spyInView.add(idx);
+      else this._spyInView.delete(idx);
+    }
+    if (Date.now() < this._spySuppressUntil || this._spyInView.size === 0) return;
+    const top = Math.min(...this._spyInView);
+    if (top === this._selected) return;
+    // Selection follows the scroll here — don't scroll back in response.
+    this._spyDriven = true;
+    try {
+      this._selectIndex(top, false);
+    } finally {
+      this._spyDriven = false;
+    }
+  }
+
   // Fire an HA action via the standard handler. handleAction reads `entity`
   // from the top-level config (for more-info/toggle), so surface the action's.
   private _runAction(action: any, key: "tap" | "hold"): void {
@@ -492,6 +559,7 @@ export class TabdeckCard extends LitElement {
       }
       if (this._config.remember === "entity") this._writeRememberEntity(this._selected);
     }
+    if (this._config?.scroll_spy && !this._spyDriven) this._scrollToSection(index);
     this.updateComplete.then(() =>
       this._manager?.notifyVisible(this._activeOriginalIndex()),
     );
@@ -566,10 +634,15 @@ export class TabdeckCard extends LitElement {
     super.updated(changed);
     const visible = this._visibleTabs();
     if (this._selected > visible.length - 1) this._selected = 0;
-    if (changed.has("_selected") && changed.get("_selected") !== undefined) {
+    if (
+      changed.has("_selected") &&
+      changed.get("_selected") !== undefined &&
+      !this._config?.scroll_spy
+    ) {
       this._animatePanel();
     }
     this._applyStyles();
+    this._syncSpyObserver();
   }
 
   // Keys currently applied to the host from `styles`, so they can be removed if
@@ -647,7 +720,7 @@ export class TabdeckCard extends LitElement {
         .accentIndicator=${cfg.accent_indicator}
         .indicatorSize=${cfg.indicator_size}
         .indicatorRadius=${cfg.indicator_radius}
-        .sticky=${cfg.sticky}
+        .sticky=${cfg.sticky || cfg.scroll_spy}
         .elevation=${cfg.elevation}
         .scrollButtons=${cfg.scroll_buttons}
         .overflowMenu=${cfg.overflow_menu}
@@ -666,7 +739,7 @@ export class TabdeckCard extends LitElement {
         @pointerdown=${this._onPointerDown}
         @pointerup=${this._onPointerUp}
       >
-        ${cfg.header && visible[this._selected]
+        ${cfg.header && !cfg.scroll_spy && visible[this._selected]
           ? html`<div class="content-header">
               <span class="content-title">${this._text(visible[this._selected].name) ?? ""}</span>
               ${this._text(visible[this._selected].subtitle)
@@ -679,11 +752,16 @@ export class TabdeckCard extends LitElement {
         ${visible.map((tab, i) => {
           const original = this._allTabs().indexOf(tab);
           const active = i === this._selected;
+          const spy = cfg.scroll_spy;
           // With unmount_hidden, only the active panel's card is in the DOM
           // (others stay retained in the manager but detached) to save memory.
+          // scroll_spy stacks every panel, so it always shows them all.
           return html`
-            <div class="panel" ?hidden=${!active}>
-              ${!cfg.unmount_hidden || active ? this._manager?.get(original) : nothing}
+            <div class="panel ${spy ? "section" : ""}" data-index=${i} ?hidden=${!spy && !active}>
+              ${spy && cfg.header && !isActionTab(tab)
+                ? html`<div class="section-title">${this._text(tab.name) ?? ""}</div>`
+                : nothing}
+              ${spy || !cfg.unmount_hidden || active ? this._manager?.get(original) : nothing}
             </div>
           `;
         })}
@@ -763,6 +841,20 @@ export class TabdeckCard extends LitElement {
     }
     .panel[hidden] {
       display: none;
+    }
+    /* scroll_spy: stacked sections; leave room for HA's header + sticky bar
+       when a section is scrolled to. */
+    .panel.section {
+      scroll-margin-top: var(--tabdeck-spy-offset, 120px);
+    }
+    .panel.section + .panel.section {
+      margin-top: 16px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-text-color);
+      padding: 4px 4px 10px;
     }
     .empty {
       min-height: 8px;
