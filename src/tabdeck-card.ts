@@ -446,7 +446,14 @@ export class TabdeckCard extends LitElement {
   private async _syncGeneratedTabs(): Promise<void> {
     const auto = this._config?.auto_tabs;
     if (!auto || !this._manager) return;
-    const items = this._templates?.result(auto.template);
+    let items = this._templates?.result(auto.template);
+    // Areas source: use each area's icon from HA's area registry.
+    const areas = (this._hass as any)?.areas;
+    if (auto.source === "areas" && Array.isArray(items) && areas) {
+      items = items.map((it: any) =>
+        it && typeof it === "object" ? { ...it, icon: areas[it.id]?.icon || it.icon } : it,
+      );
+    }
     const raw = expandGeneratedTabs(items, auto);
     const key = JSON.stringify(raw);
     if (key === this._genKey) return;

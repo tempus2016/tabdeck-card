@@ -40,6 +40,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 
 ## Dynamic behaviour
 - **[Dynamic tabs](Feature-Dynamic-Tabs)** — generate a tab per item from a live Jinja list (`auto_tabs`).
+- **[A tab per area / label](Feature-Dynamic-Tabs#built-in-sources-a-tab-per-area-or-label)** — `auto_tabs: { source: areas }`, no Jinja needed.
 - **[Visibility and/or/not groups](Tab-Visibility#logical-groups-and--or--not)** — nestable logical conditions for tab visibility.
 - **[Alert pulse](Feature-Alert)** — a tab pulses while its conditions are met (`alert`).
 - **[Auto-select a tab](Feature-Auto-Select)** — switch tab when an entity becomes active (`auto_select`).

@@ -1,6 +1,7 @@
 import type { LovelaceCardConfig } from "../types";
 import { normalizeBadgeFormat, type BadgeFormat } from "./badge";
 import { isPreset, withPreset, type PresetName } from "./presets";
+import { buildSourceTemplate, SOURCES, SOURCE_TAB_TEMPLATE, type AutoTabsSource } from "./sources";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
 export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text" | "rail";
@@ -54,6 +55,10 @@ export interface AutoTabsConfig {
   // {{ item }} / {{ item.prop }} / {{ index }} placeholders; when absent, each
   // list element is treated as a complete tab config.
   tab_template?: Record<string, any>;
+  // Built-in source (areas/labels); the template is then generated.
+  source?: AutoTabsSource;
+  domains?: string[];
+  exclude?: string[];
 }
 
 export interface AutoRotateConfig {
@@ -203,6 +208,20 @@ export function isActionTab(tab: TabdeckTabConfig | undefined): boolean {
 
 function normalizeAutoTabs(raw: any): AutoTabsConfig | undefined {
   if (!raw || typeof raw !== "object") return undefined;
+  if (SOURCES.includes(raw.source)) {
+    const domains = Array.isArray(raw.domains) ? raw.domains.map(String) : undefined;
+    const exclude = Array.isArray(raw.exclude) ? raw.exclude.map(String) : undefined;
+    return {
+      source: raw.source,
+      domains,
+      exclude,
+      template: buildSourceTemplate({ source: raw.source, domains, exclude }),
+      tab_template:
+        raw.tab_template && typeof raw.tab_template === "object"
+          ? raw.tab_template
+          : SOURCE_TAB_TEMPLATE,
+    };
+  }
   if (typeof raw.template !== "string" || raw.template.trim() === "") return undefined;
   return {
     template: raw.template,

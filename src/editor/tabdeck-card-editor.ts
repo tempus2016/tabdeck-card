@@ -5,6 +5,7 @@ import type { HomeAssistant } from "../types";
 import { normalizeConfig, normalizeTab, type TabdeckCardConfig } from "../lib/config";
 import { isTemplate } from "../lib/templates";
 import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
+import { SOURCE_TAB_TEMPLATE } from "../lib/sources";
 import "../components/tabdeck-tabbar";
 
 // MDI icon paths for the per-tab reorder/delete buttons. Inlined rather than
@@ -190,8 +191,20 @@ export class TabdeckCardEditor extends LitElement {
 
   private _emit(next: TabdeckCardConfig): void {
     this._config = next;
-    fireEvent(this, "config-changed", { config: next } as any);
+    fireEvent(this, "config-changed", { config: this._forOutput(next) } as any);
     this.requestUpdate();
+  }
+
+  // Drop values the card derives itself, so they aren't baked into the YAML:
+  // an auto_tabs `source` regenerates its template (and default blueprint).
+  private _forOutput(cfg: TabdeckCardConfig): TabdeckCardConfig {
+    const auto = cfg.auto_tabs;
+    if (!auto?.source) return cfg;
+    const { template: _t, ...rest } = auto;
+    const out: any = { ...rest };
+    if (out.tab_template === SOURCE_TAB_TEMPLATE) delete out.tab_template;
+    for (const k of ["domains", "exclude"]) if (out[k] === undefined) delete out[k];
+    return { ...cfg, auto_tabs: out };
   }
 
   private _patch(partial: Partial<TabdeckCardConfig>): void {
