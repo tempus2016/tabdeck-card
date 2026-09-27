@@ -429,4 +429,16 @@ describe("tabdeck-card-editor", () => {
     expect(off.auto_rotate).toBeUndefined();
     expect(off.idle_return).toBeUndefined();
   });
+
+  it("choosing a preset writes its values into the config", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    const form = el.shadowRoot.querySelector(".globals-form");
+    formChange(form, { ...globalsData(), preset: "ios" });
+    const cfg = handler.mock.calls.at(-1)![0].detail.config;
+    expect(cfg.preset).toBe("ios");
+    expect(cfg.style).toBe("segmented");
+    expect(cfg.align).toBe("justify");
+  });
 });

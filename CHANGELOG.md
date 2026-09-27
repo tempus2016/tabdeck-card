@@ -18,6 +18,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Collapsible deck** — `collapsible: true` folds the content away when the active tab is tapped again; `start_collapsed` opens folded.
 - **Split view** — `split: 900` (or `{ min_width, columns }`) shows every tab side by side as titled columns when the card is wide enough.
 - **Responsive tab display** — `tab_display_narrow` (+ `narrow_width`) switches e.g. to icon-only tabs on narrow cards.
+- **Style presets** — `preset: ios | material | glass | minimal | rail | default` applies a bundle of styling options (explicit keys win); the editor's preset picker writes the values into the form. New `--tabdeck-bar-backdrop` variable for frosted bars.
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed

@@ -53,6 +53,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Live preview](Editor#live-preview)** — the editor previews the bar as you edit.
 
 ## Theming
+- **[Style presets](Feature-Presets)** — one-line looks: `ios`, `material`, `glass`, `minimal`, `rail` (`preset`).
 - **[Theming & styles passthrough](Feature-Theming)** — set CSS variables from config (`styles`).
 
 ---

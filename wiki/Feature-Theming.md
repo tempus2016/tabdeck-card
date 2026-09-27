@@ -32,3 +32,5 @@ The card also honours standard HA theme variables (`--primary-color`, `--divider
 - Per-tab [`accent`](Feature-Accent-Indicator) still overrides `--tabdeck-accent` for the selected tab.
 
 > `styles` is YAML/advanced — it isn't shown in the visual editor, but it's fully supported and round-trips through the code editor.
+
+> For one-line looks built from these options, see [Style presets](Feature-Presets). `--tabdeck-bar-backdrop` (e.g. `blur(12px)`) adds a frosted-glass `backdrop-filter` to the bar.
