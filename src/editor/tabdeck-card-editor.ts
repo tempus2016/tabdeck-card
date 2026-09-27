@@ -38,6 +38,7 @@ const TAB_SCHEMA = [
   { name: "card_size", selector: { number: { min: 1, max: 20, step: 1, mode: "box" } } },
   { name: "hold_action", selector: { ui_action: {} } },
   { name: "badge_action", selector: { ui_action: {} } },
+  { name: "tap_action", selector: { ui_action: {} } },
 ];
 
 // Common built-in Lovelace card types offered when choosing/changing a tab's
@@ -80,6 +81,7 @@ const TAB_LABELS: Record<string, string> = {
   card_size: "Card size hint (rows)",
   hold_action: "Long-press action",
   badge_action: "Badge tap action",
+  tap_action: "Tap action (replaces opening the tab, e.g. navigate)",
 };
 
 const GLOBAL_LABELS: Record<string, string> = {
@@ -478,6 +480,8 @@ export class TabdeckCardEditor extends LitElement {
       card_size: typeof v.card_size === "number" ? v.card_size : undefined,
       hold_action: v.hold_action ?? undefined,
       badge_action: v.badge_action ?? undefined,
+      tap_action:
+        v.tap_action && v.tap_action.action !== "none" ? v.tap_action : undefined,
     });
   }
 
@@ -710,6 +714,7 @@ export class TabdeckCardEditor extends LitElement {
                           card_size: tab.card_size,
                           hold_action: tab.hold_action,
                           badge_action: tab.badge_action,
+                          tap_action: tab.tap_action,
                         }}
                         .schema=${TAB_SCHEMA}
                         .computeLabel=${this._computeTabLabel}

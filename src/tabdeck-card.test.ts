@@ -829,3 +829,53 @@ describe("auto_rotate & idle_return", () => {
     expect(el._timer).toBeUndefined();
   });
 });
+
+describe("tap_action (navigation tabs)", () => {
+  const cfg = () => ({
+    swipe: true,
+    tabs: [
+      { name: "A", card: { type: "markdown" } },
+      { name: "Energy", tap_action: { action: "navigate", navigation_path: "/energy" } },
+      { name: "B", card: { type: "light" } },
+    ],
+  });
+
+  it("runs the action instead of selecting the tab", async () => {
+    const el = await mount(cfg());
+    const nav: string[] = [];
+    const onNav = () => nav.push(location.pathname);
+    window.addEventListener("location-changed", onNav);
+    el.shadowRoot
+      .querySelector("tabdeck-tabbar")
+      .dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 }, bubbles: true, composed: true }));
+    await el.updateComplete;
+    window.removeEventListener("location-changed", onNav);
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(0);
+    expect(nav).toEqual(["/energy"]);
+    history.replaceState(null, "", "/");
+  });
+
+  it("builds no card for an action tab without a card", async () => {
+    const el = await mount(cfg());
+    expect(el.shadowRoot.querySelectorAll("[data-type]")).toHaveLength(2);
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").items[1].action).toBe(true);
+  });
+
+  it("swipe skips action tabs", async () => {
+    const el = await mount(cfg());
+    swipe(el, -120);
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(2);
+  });
+
+  it("never starts on an action tab", async () => {
+    const el = await mount({ ...cfg(), default_tab: 1 });
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").selected).toBe(0);
+  });
+
+  it("auto_rotate skips action tabs", async () => {
+    const el = await mount({ ...cfg(), auto_rotate: 10 });
+    el._tick(el._lastInteraction + 10_000);
+    expect(el._selected).toBe(2);
+  });
+});

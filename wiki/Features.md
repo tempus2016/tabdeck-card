@@ -29,6 +29,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 
 ## Navigation & interaction
 - **[Panel transitions](Feature-Panel-Transition)** — fade or slide when switching tabs (`transition`).
+- **[Navigation & action tabs](Feature-Navigation-Tabs)** — a tab that navigates / runs an action instead of opening a panel (`tap_action`).
 - **[Tab & badge actions](Feature-Hold-Action)** — long-press tab (`hold_action`) and clickable badge (`badge_action`).
 - **[Auto-rotate & idle return](Feature-Kiosk)** — cycle tabs on a timer (`auto_rotate`) or return to the default when idle (`idle_return`).
 - **[Performance & swipe options](Feature-Performance)** — `unmount_hidden`, `swipe_wrap`, `swipe_mouse` (desktop drag).

@@ -12,9 +12,11 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Alert pulse** — per-tab `alert` conditions (visibility syntax, incl. templates) make a tab pulse in `--tabdeck-alert-color` while met; steady tint under reduced motion.
 - **Auto-rotate** — `auto_rotate: 15` (or `{ interval, resume_after }`) cycles enabled tabs for wall panels, pausing after any interaction. Rotations are not persisted.
 - **Idle return** — `idle_return: 120` goes back to the default tab after inactivity.
+- **Navigation & action tabs** — per-tab `tap_action` runs an HA action (e.g. `navigate`) instead of opening the tab; such tabs need no card and are skipped by arrows, swipe and auto-rotate.
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
 
 ### Fixed
+- Swiping now steps over disabled tabs instead of landing on them.
 - Numeric zero badges such as `0.0` now count as inactive (hidden by `hide_inactive_badge`, no dot in dot mode).
 
 ## v1.0.0 — 2026-06-24

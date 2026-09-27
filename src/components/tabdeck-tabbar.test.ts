@@ -319,3 +319,34 @@ describe("tabdeck-tabbar alert passthrough", () => {
     expect(tabs[1].alert).toBe(true);
   });
 });
+
+describe("tabdeck-tabbar action tabs", () => {
+  it("arrow keys and Home/End skip action tabs", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "Nav", action: true }, { name: "A" }, { name: "Link", action: true }, { name: "B" }];
+    el.selected = 1;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const events: number[] = [];
+    el.addEventListener("tabdeck-select", (e: any) => events.push(e.detail.index));
+    el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    expect(events.at(-1)).toBe(3);
+    el.dispatchEvent(new KeyboardEvent("keydown", { key: "Home" }));
+    expect(events.at(-1)).toBe(1);
+  });
+
+  it("action tabs stay focusable and activate on Enter", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }, { name: "Nav", action: true }];
+    el.selected = 0;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const tab = el.shadowRoot.querySelectorAll("tabdeck-tab")[1];
+    await tab.updateComplete;
+    expect(tab.tabIndex).toBe(0);
+    const events: number[] = [];
+    el.addEventListener("tabdeck-select", (e: any) => events.push(e.detail.index));
+    tab.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(events).toEqual([1]);
+  });
+});

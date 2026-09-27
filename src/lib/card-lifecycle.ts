@@ -9,7 +9,7 @@ export async function getCreateCardElement(): Promise<CreateCardElement> {
 
 export class CardManager extends EventTarget {
   private _create: CreateCardElement;
-  private _configs: LovelaceCardConfig[] = [];
+  private _configs: (LovelaceCardConfig | null)[] = [];
   private _elements: any[] = [];
   private _hass?: HomeAssistant;
 
@@ -18,12 +18,15 @@ export class CardManager extends EventTarget {
     this._create = create;
   }
 
-  async build(configs: LovelaceCardConfig[]): Promise<void> {
+  // A `null` config reserves the slot without building a card (e.g. action
+  // tabs), keeping indices aligned with the tab list.
+  async build(configs: (LovelaceCardConfig | null)[]): Promise<void> {
     this._configs = configs.slice();
     this._elements = configs.map((cfg, index) => this._make(cfg, index));
   }
 
-  private _make(config: LovelaceCardConfig, index: number): any {
+  private _make(config: LovelaceCardConfig | null, index: number): any {
+    if (!config) return undefined;
     const el = this._create(config);
     if (this._hass) el.hass = this._hass;
     el.addEventListener("ll-rebuild", (e: Event) => {
@@ -53,6 +56,7 @@ export class CardManager extends EventTarget {
 
   private async _rebuild(index: number): Promise<void> {
     const fresh = this._make(this._configs[index], index);
+    if (!fresh) return;
     if (this._hass) fresh.hass = this._hass;
     this._elements[index] = fresh;
     this.dispatchEvent(new CustomEvent("ll-rebuild-done", { detail: { index } }));

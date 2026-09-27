@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { handleAction } from "custom-card-helpers";
 import type { HomeAssistant } from "./types";
 import {
+  isActionTab,
   normalizeConfig,
   normalizeTab,
   resolveDefaultIndex,
@@ -146,15 +147,9 @@ export class TabdeckCard extends LitElement {
     }
   }
 
-  // Next visible tab after `from` that can be shown (wraps, skips disabled).
+  // Next visible content tab after `from` (wraps, skips disabled/action).
   private _nextRotatable(from: number): number {
-    const visible = this._visibleTabs();
-    const n = visible.length;
-    for (let i = 1; i <= n; i++) {
-      const idx = (from + i) % n;
-      if (!visible[idx].disabled) return idx;
-    }
-    return from;
+    return this._stepContent(from, 1, true);
   }
 
   private _computeCardKey(cfg: TabdeckCardConfig): string {
@@ -170,7 +165,7 @@ export class TabdeckCard extends LitElement {
     const create = await getCreateCardElement();
     this._manager = new CardManager(create);
     this._manager.addEventListener("ll-rebuild-done", () => this.requestUpdate());
-    await this._manager.build(this._allTabs().map((t) => t.card));
+    await this._manager.build(this._cardConfigs());
     if (this._hass) this._manager.setHass(this._hass);
     this._syncTemplates();
     this._selected = loadInitialIndex({
@@ -184,6 +179,7 @@ export class TabdeckCard extends LitElement {
         ? this._hass?.states?.[this._config.remember_entity]?.state
         : undefined,
     });
+    this._selected = this._ensureContentTab(this._selected);
     this._lastEntityValue = this._rememberEntityState();
     this._built = true;
     this.requestUpdate();
@@ -258,6 +254,38 @@ export class TabdeckCard extends LitElement {
   // boolean (undefined while pending → fail-closed in isTabVisible).
   private _templateResolver = (tpl: string): boolean | undefined =>
     this._templates?.boolean(tpl);
+
+  // Card configs aligned with _allTabs(); action tabs without a card get none.
+  private _cardConfigs() {
+    return this._allTabs().map((t) => (isActionTab(t) && !t.card?.type ? null : t.card));
+  }
+
+  // A tab that can become the active panel (not disabled, not an action tab).
+  private _isContentTab(tab: TabdeckTabConfig | undefined): boolean {
+    return !!tab && !tab.disabled && !isActionTab(tab);
+  }
+
+  // Keep `index` if it's a content tab, else the first content tab.
+  private _ensureContentTab(index: number): number {
+    const visible = this._visibleTabs();
+    if (!visible[index] || !isActionTab(visible[index])) return index;
+    const first = visible.findIndex((t) => !isActionTab(t));
+    return first >= 0 ? first : index;
+  }
+
+  // Step from `from` in `dir`, skipping non-content tabs. Wraps or clamps
+  // (returning `from` when the end is reached without a content tab).
+  private _stepContent(from: number, dir: 1 | -1, wrap: boolean): number {
+    const visible = this._visibleTabs();
+    const n = visible.length;
+    for (let i = 1; i < n; i++) {
+      let idx = from + dir * i;
+      if (wrap) idx = ((idx % n) + n) % n;
+      else if (idx < 0 || idx >= n) return from;
+      if (this._isContentTab(visible[idx])) return idx;
+    }
+    return from;
+  }
 
   // Effective tab list: static tabs first, generated tabs appended.
   private _allTabs(): TabdeckTabConfig[] {
@@ -361,7 +389,7 @@ export class TabdeckCard extends LitElement {
     // Restore selection synchronously, before awaiting the (internally sync)
     // rebuild, so the panel never renders the new tab set against a stale index.
     this._restoreSelection(prevName);
-    await this._manager.build(this._allTabs().map((t) => t.card));
+    await this._manager.build(this._cardConfigs());
     if (this._hass) this._manager.setHass(this._hass);
     this._syncTemplates();
     this.requestUpdate();
@@ -420,7 +448,20 @@ export class TabdeckCard extends LitElement {
   }
 
   private _onSelect(e: CustomEvent<{ index: number }>): void {
+    const tab = this._visibleTabs()[e.detail.index];
+    if (isActionTab(tab)) {
+      this._runAction(tab!.tap_action, "tap");
+      return;
+    }
     this._selectIndex(e.detail.index);
+  }
+
+  // Fire an HA action via the standard handler. handleAction reads `entity`
+  // from the top-level config (for more-info/toggle), so surface the action's.
+  private _runAction(action: any, key: "tap" | "hold"): void {
+    if (!action || !this._hass) return;
+    const cfg = { entity: action?.entity, [`${key}_action`]: action };
+    handleAction(this, this._hass as any, cfg as any, key as any);
   }
 
   // Tab long-press (kind="hold") or badge click (kind="badge") → fire the tab's
@@ -430,10 +471,7 @@ export class TabdeckCard extends LitElement {
     const tab = this._visibleTabs()[e.detail.index];
     if (!tab || !this._hass) return;
     const action = e.detail.kind === "badge" ? tab.badge_action : tab.hold_action;
-    if (!action) return;
-    const key = e.detail.kind === "badge" ? "tap" : "hold";
-    const cfg = { entity: action?.entity, [`${key}_action`]: action };
-    handleAction(this, this._hass as any, cfg as any, key as any);
+    this._runAction(action, e.detail.kind === "badge" ? "tap" : "hold");
   }
 
   // `persist: false` for automatic switches (rotation, idle return, entity
@@ -514,13 +552,13 @@ export class TabdeckCard extends LitElement {
   private _applySwipe(start: SwipePoint, end: SwipePoint): void {
     const dir = detectSwipe(start, end);
     if (!dir || !this._config) return;
-    const len = this._visibleTabs().length;
-    const last = len - 1;
-    const raw = dir === "next" ? this._selected + 1 : this._selected - 1;
-    // Wrap around the ends when swipe_wrap is on; otherwise clamp.
-    const target = this._config.swipe_wrap
-      ? (raw + len) % len
-      : Math.max(0, Math.min(last, raw));
+    // Wrap around the ends when swipe_wrap is on; otherwise clamp. Disabled
+    // and action tabs are stepped over.
+    const target = this._stepContent(
+      this._selected,
+      dir === "next" ? 1 : -1,
+      this._config.swipe_wrap,
+    );
     if (target !== this._selected) this._selectIndex(target);
   }
 
@@ -593,6 +631,7 @@ export class TabdeckCard extends LitElement {
           badgeColor: t.badge_color,
           holdAction: !!t.hold_action,
           badgeAction: !!t.badge_action,
+          action: isActionTab(t),
           badge: this._resolveBadgeFinal(t),
           alert: this._isAlerting(t),
         }))}
