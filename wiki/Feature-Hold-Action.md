@@ -38,6 +38,8 @@ tabs:
 
 The badge shows a pointer cursor when it has an action. Configured via the **Badge tap action** picker in the editor.
 
+> To make a tab's **tap** run an action (e.g. navigate) instead of opening it, see [Navigation & action tabs](Feature-Navigation-Tabs).
+
 ## Supported actions
 
 All the usual HA actions: `more-info`, `navigate`, `url`, `toggle`, `call-service`, `fire-dom-event`, `none`.

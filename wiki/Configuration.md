@@ -42,7 +42,7 @@ Each item in `tabs`:
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `card` | card config | **required**\* | Any Lovelace card configuration. |
+| `card` | card config | **required**\* | Any Lovelace card configuration. (\*Not needed for a `tap_action` tab.) |
 | `cards` | list of card configs | — | Multiple cards, auto-stacked. See [Multiple cards per tab](Feature-Multiple-Cards). \*Either `card` or `cards`. |
 | `name` | string | — | Tab label. Falls back to `Tab N` when omitted. |
 | `subtitle` | string | — | Secondary text under the label. See [Tab subtitles](Feature-Subtitle). |
@@ -53,6 +53,7 @@ Each item in `tabs`:
 | `badge_format` | `{precision, unit, max}` | — | Numeric badge formatting (overrides the top-level default). See [Badges](Badges#numeric-formatting-badge_format). |
 | `disabled` | boolean | `false` | Show the tab greyed-out and non-selectable. See [Disabled tabs](Feature-Disabled-Tabs). |
 | `card_size` | number | — | `getCardSize()` hint (rows) for this tab, so masonry sizing is stable across tab switches. |
+| `tap_action` | action | — | Tap runs this action *instead of* opening the tab (navigation tabs; no `card` needed). See [Navigation & action tabs](Feature-Navigation-Tabs). |
 | `hold_action` / `badge_action` | action | — | HA action on tab long-press / badge click. See [Tab & badge actions](Feature-Hold-Action). |
 | `visibility` | list of conditions | — | Conditions for showing the tab (supports and/or/not). See [Tab Visibility](Tab-Visibility). |
 | `alert` | list of conditions | — | While all are met, the tab pulses in the alert colour. See [Alert pulse](Feature-Alert). |

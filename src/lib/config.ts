@@ -26,6 +26,9 @@ export interface TabdeckTabConfig {
   hold_action?: any;
   // HA action fired when the tab's badge is clicked (does not select the tab).
   badge_action?: any;
+  // HA action fired when the tab is tapped, *instead of* selecting it — turns
+  // the tab into a navigation link / button. Such a tab needs no card.
+  tap_action?: any;
   // Switch to this tab when the entity enters the given state (or becomes
   // active when no state is given). Edge-triggered.
   auto_select?: { entity: string; state?: string };
@@ -153,12 +156,21 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     card_size: typeof raw?.card_size === "number" ? raw.card_size : undefined,
     hold_action: raw?.hold_action ?? undefined,
     badge_action: raw?.badge_action ?? undefined,
+    tap_action:
+      raw?.tap_action && typeof raw.tap_action === "object" && raw.tap_action.action !== "none"
+        ? raw.tap_action
+        : undefined,
     auto_select: normalizeAutoSelect(raw?.auto_select),
     default_if: raw?.default_if ?? undefined,
     visibility: raw?.visibility ?? undefined,
     alert: Array.isArray(raw?.alert) && raw.alert.length > 0 ? raw.alert : undefined,
     card,
   };
+}
+
+// A tab whose tap runs an action rather than showing a panel.
+export function isActionTab(tab: TabdeckTabConfig | undefined): boolean {
+  return !!tab?.tap_action;
 }
 
 function normalizeAutoTabs(raw: any): AutoTabsConfig | undefined {

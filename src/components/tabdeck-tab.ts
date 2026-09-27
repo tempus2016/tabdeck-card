@@ -31,15 +31,30 @@ export class TabdeckTab extends LitElement {
   @property({ type: Boolean, reflect: true }) disabled = false;
   // Pulses to draw attention while the tab's alert conditions are met.
   @property({ type: Boolean, reflect: true }) alert = false;
+  // Action (navigation) tab: always focusable, Enter/Space activates it.
+  @property({ type: Boolean, reflect: true }) action = false;
 
   connectedCallback(): void {
     super.connectedCallback();
     this.setAttribute("role", "tab");
+    this.addEventListener("keydown", this._onKeydown);
   }
+
+  disconnectedCallback(): void {
+    this.removeEventListener("keydown", this._onKeydown);
+    super.disconnectedCallback();
+  }
+
+  private _onKeydown = (e: KeyboardEvent): void => {
+    if (this.action && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      this.click();
+    }
+  };
 
   updated(): void {
     this.setAttribute("aria-selected", this.selected ? "true" : "false");
-    this.tabIndex = this.selected ? 0 : -1;
+    this.tabIndex = this.selected || this.action ? 0 : -1;
     if (this.accent) this.style.setProperty("--tabdeck-accent", this.accent);
     // A per-tab `color` overrides the label/icon colour in every state (inline
     // host colour beats the :host([selected]) accent rule).

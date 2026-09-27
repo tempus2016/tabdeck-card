@@ -16,6 +16,8 @@ interface TabItem {
   holdAction?: boolean;
   badgeAction?: boolean;
   alert?: boolean;
+  // Tap runs an action instead of selecting (navigation tab).
+  action?: boolean;
 }
 
 const HOLD_MS = 500;
@@ -132,13 +134,20 @@ export class TabdeckTabbar extends LitElement {
     this._select(index);
   }
 
+  // Arrow/Home/End only land on real panels: not disabled, not action tabs
+  // (arrowing onto a navigate tab would otherwise leave the page).
+  private _selectable(index: number): boolean {
+    const item = this.items[index];
+    return !!item && !item.disabled && !item.action;
+  }
+
   // Step from `from` in `dir` (+1/-1), wrapping, skipping disabled tabs. Returns
   // the original index if every other tab is disabled.
   private _step(from: number, dir: number): number {
     const n = this.items.length;
     for (let i = 1; i <= n; i++) {
       const idx = (from + dir * i + n * i) % n;
-      if (!this.items[idx]?.disabled) return idx;
+      if (this._selectable(idx)) return idx;
     }
     return from;
   }
@@ -147,7 +156,7 @@ export class TabdeckTabbar extends LitElement {
     const n = this.items.length;
     for (let i = 0; i < n; i++) {
       const idx = fromEnd ? n - 1 - i : i;
-      if (!this.items[idx]?.disabled) return idx;
+      if (this._selectable(idx)) return idx;
     }
     return 0;
   }
@@ -318,6 +327,7 @@ export class TabdeckTabbar extends LitElement {
               .color=${item.color}
               .disabled=${!!item.disabled}
               .alert=${!!item.alert}
+              .action=${!!item.action}
               .display=${this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"
