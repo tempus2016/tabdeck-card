@@ -21,6 +21,39 @@ auto_tabs:
       entity: "{{ item }}"
 ```
 
+## Built-in sources: a tab per area or label
+
+No Jinja needed. Set `source` and Tabdeck builds **one tab per Home Assistant area** (or **label**), each listing that area's entities:
+
+```yaml
+type: custom:tabdeck-card
+auto_tabs:
+  source: areas            # or: labels
+  domains: [light, switch, climate]   # optional: only these entity domains
+  exclude: [garage]        # optional: area / label ids to skip
+```
+
+![A tab per area, with each area's icon](images/feature-area-tabs.png)
+
+- Membership comes from HA's own `area_entities()` / `label_entities()`, so entities that belong to an area **through their device** are included, exactly as in HA.
+- Areas or labels left with no matching entities are skipped.
+- Areas use their **icon from the area registry** (falling back to `mdi:texture-box`). Labels use `mdi:label-outline`.
+- Tabs follow HA's area / label order and update live when areas, labels or assignments change.
+- Each item is `{ id, name, icon, entities }`, so you can supply your own `tab_template` instead of the default entities card. For example, HA's **area card**:
+
+```yaml
+auto_tabs:
+  source: areas
+  tab_template:
+    name: "{{ item.name }}"
+    icon: "{{ item.icon }}"
+    card:
+      type: area
+      area: "{{ item.id }}"
+```
+
+- `source` replaces `template` (if both are set, `source` wins). The visual editor keeps the short `source` form in your YAML; the generated Jinja is never written out.
+
 ## Options
 
 | Key | Type | Description |

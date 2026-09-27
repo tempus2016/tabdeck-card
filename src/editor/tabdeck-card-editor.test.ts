@@ -519,4 +519,13 @@ describe("tabdeck-card-editor", () => {
     expect(handler).not.toHaveBeenCalled();
     expect(el.shadowRoot.querySelector(".import-error").textContent).toMatch(/tab/i);
   });
+
+  it("doesn't write a source's generated template back into the config", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }], auto_tabs: { source: "areas", domains: ["light"] } });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    formChange(el.shadowRoot.querySelector(".globals-form"), { ...globalsData(), lazy: true });
+    const cfg = handler.mock.calls.at(-1)![0].detail.config;
+    expect(cfg.auto_tabs).toEqual({ source: "areas", domains: ["light"] });
+  });
 });

@@ -1157,3 +1157,26 @@ describe("responsive: split & tab_display_narrow", () => {
     expect(el.shadowRoot.querySelector("tabdeck-tabbar").display).toBe("both");
   });
 });
+
+describe("auto_tabs source: areas", () => {
+  it("builds a tab per area with the registry icon", async () => {
+    const { hass, push } = hassWithTemplates();
+    (hass as any).areas = { kitchen: { area_id: "kitchen", name: "Kitchen", icon: "mdi:stove" } };
+    const el = await mountWith({ auto_tabs: { source: "areas" } }, hass);
+    push("areas()", {
+      result: [
+        { id: "kitchen", name: "Kitchen", icon: "mdi:texture-box", entities: ["light.k", "sensor.t"] },
+        { id: "den", name: "Den", icon: "mdi:texture-box", entities: ["light.d"] },
+      ],
+    });
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+    const items = el.shadowRoot.querySelector("tabdeck-tabbar").items;
+    expect(items.map((i: any) => [i.name, i.icon])).toEqual([
+      ["Kitchen", "mdi:stove"],
+      ["Den", "mdi:texture-box"],
+    ]);
+    expect(el.shadowRoot.querySelectorAll('[data-type="entities"]')).toHaveLength(2);
+  });
+});
