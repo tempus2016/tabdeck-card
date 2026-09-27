@@ -42,7 +42,7 @@ The badge shows a pointer cursor when it has an action. Configured via the **Bad
 
 ## Supported actions
 
-All the usual HA actions: `more-info`, `navigate`, `url`, `toggle`, `call-service`, `fire-dom-event`, `none`.
+All the usual HA actions: `perform-action`, `more-info`, `navigate`, `url`, `toggle`, `call-service`, `fire-dom-event`, `none`.
 
 ## Behaviour
 

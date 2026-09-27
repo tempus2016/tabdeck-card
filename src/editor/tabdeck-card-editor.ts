@@ -39,6 +39,8 @@ const TAB_SCHEMA = [
   { name: "hold_action", selector: { ui_action: {} } },
   { name: "badge_action", selector: { ui_action: {} } },
   { name: "tap_action", selector: { ui_action: {} } },
+  { name: "enter_action", selector: { ui_action: {} } },
+  { name: "leave_action", selector: { ui_action: {} } },
 ];
 
 // Common built-in Lovelace card types offered when choosing/changing a tab's
@@ -82,6 +84,8 @@ const TAB_LABELS: Record<string, string> = {
   hold_action: "Long-press action",
   badge_action: "Badge tap action",
   tap_action: "Tap action (replaces opening the tab, e.g. navigate)",
+  enter_action: "Action when this tab is opened",
+  leave_action: "Action when leaving this tab",
 };
 
 const GLOBAL_LABELS: Record<string, string> = {
@@ -482,6 +486,10 @@ export class TabdeckCardEditor extends LitElement {
       badge_action: v.badge_action ?? undefined,
       tap_action:
         v.tap_action && v.tap_action.action !== "none" ? v.tap_action : undefined,
+      enter_action:
+        v.enter_action && v.enter_action.action !== "none" ? v.enter_action : undefined,
+      leave_action:
+        v.leave_action && v.leave_action.action !== "none" ? v.leave_action : undefined,
     });
   }
 
@@ -715,6 +723,8 @@ export class TabdeckCardEditor extends LitElement {
                           hold_action: tab.hold_action,
                           badge_action: tab.badge_action,
                           tap_action: tab.tap_action,
+                          enter_action: tab.enter_action,
+                          leave_action: tab.leave_action,
                         }}
                         .schema=${TAB_SCHEMA}
                         .computeLabel=${this._computeTabLabel}

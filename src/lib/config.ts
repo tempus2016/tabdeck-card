@@ -29,6 +29,9 @@ export interface TabdeckTabConfig {
   // HA action fired when the tab is tapped, *instead of* selecting it — turns
   // the tab into a navigation link / button. Such a tab needs no card.
   tap_action?: any;
+  // HA actions fired when this tab becomes / stops being the active tab.
+  enter_action?: any;
+  leave_action?: any;
   // Switch to this tab when the entity enters the given state (or becomes
   // active when no state is given). Edge-triggered.
   auto_select?: { entity: string; state?: string };
@@ -132,6 +135,10 @@ function normalizeAutoSelect(raw: any): { entity: string; state?: string } | und
   return undefined;
 }
 
+function actionOrUndefined(raw: any): any {
+  return raw && typeof raw === "object" && raw.action && raw.action !== "none" ? raw : undefined;
+}
+
 export function normalizeTab(raw: any): TabdeckTabConfig {
   const attrs = raw?.attributes ?? {};
   // `cards: [...]` is a shorthand: wrap multiple cards in a stack so a tab can
@@ -162,6 +169,8 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
       raw?.tap_action && typeof raw.tap_action === "object" && raw.tap_action.action !== "none"
         ? raw.tap_action
         : undefined,
+    enter_action: actionOrUndefined(raw?.enter_action),
+    leave_action: actionOrUndefined(raw?.leave_action),
     auto_select: normalizeAutoSelect(raw?.auto_select),
     default_if: raw?.default_if ?? undefined,
     visibility: raw?.visibility ?? undefined,
