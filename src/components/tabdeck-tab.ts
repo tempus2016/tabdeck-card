@@ -9,7 +9,10 @@ const INACTIVE_BADGE = new Set([
 ]);
 export function isActiveBadge(value?: string): boolean {
   if (value === undefined || value === null) return false;
-  return !INACTIVE_BADGE.has(String(value).trim().toLowerCase());
+  const v = String(value).trim().toLowerCase();
+  // Any numeric zero ("0.0", "-0") is inactive too, not just the literal "0".
+  if (v !== "" && Number(v) === 0) return false;
+  return !INACTIVE_BADGE.has(v);
 }
 
 @customElement("tabdeck-tab")

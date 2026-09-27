@@ -1,4 +1,5 @@
 import type { LovelaceCardConfig } from "../types";
+import { normalizeBadgeFormat, type BadgeFormat } from "./badge";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
 export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text" | "rail";
@@ -16,6 +17,8 @@ export interface TabdeckTabConfig {
   color?: string;
   badge?: string;
   badge_color?: string;
+  // Numeric badge formatting (precision / unit / max → "99+").
+  badge_format?: BadgeFormat;
   disabled?: boolean;
   // Optional getCardSize() hint for this tab (masonry layout sizing).
   card_size?: number;
@@ -53,6 +56,8 @@ export interface TabdeckCardConfig {
   align: TabAlign;
   badge_display: BadgeDisplay;
   hide_inactive_badge: boolean;
+  // Default numeric badge format for every tab (a tab's own badge_format wins).
+  badge_format?: BadgeFormat;
   transition: PanelTransition;
   indicator_size: number;
   indicator_radius?: number;
@@ -131,6 +136,7 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     color: raw?.color ?? undefined,
     badge: raw?.badge ?? undefined,
     badge_color: raw?.badge_color ?? undefined,
+    badge_format: normalizeBadgeFormat(raw?.badge_format),
     disabled: raw?.disabled ? true : undefined,
     card_size: typeof raw?.card_size === "number" ? raw.card_size : undefined,
     hold_action: raw?.hold_action ?? undefined,
@@ -168,6 +174,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     align: pick(raw?.align, ALIGNS, "start"),
     badge_display: pick(raw?.badge_display, BADGE_DISPLAYS, "text"),
     hide_inactive_badge: Boolean(raw?.hide_inactive_badge),
+    badge_format: normalizeBadgeFormat(raw?.badge_format),
     transition: pick(raw?.transition, TRANSITIONS, "none"),
     indicator_size: clampNumber(raw?.indicator_size, 1, 16, 3),
     indicator_radius:

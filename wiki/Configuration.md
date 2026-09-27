@@ -14,6 +14,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `tab_display` | `both` \| `icon` \| `label` | `both` | Show icons, labels, or both. See [Tab display mode](Feature-Tab-Display). |
 | `align` | `start` \| `center` \| `end` \| `justify` | `start` | How tabs are distributed along the bar. See [Tab alignment](Feature-Tab-Alignment). |
 | `badge_display` | `text` \| `dot` | `text` | Render badges as text or a dot. See [Badge display mode](Feature-Badge-Display). |
+| `badge_format` | `{precision, unit, max}` | — | Default numeric badge formatting for every tab. See [Badges](Badges#numeric-formatting-badge_format). |
 | `transition` | `none` \| `fade` \| `slide` | `none` | Animate content on tab switch. See [Panel transitions](Feature-Panel-Transition). |
 | `indicator_size` | number (1–16) | `3` | Underline indicator thickness in px. See [Indicator thickness](Feature-Indicator-Size). |
 | `accent_indicator` | boolean | `true` | Colour the indicator by the selected tab's `accent`. See [Accent indicator](Feature-Accent-Indicator). |
@@ -47,6 +48,7 @@ Each item in `tabs`:
 | `accent` | string (CSS colour) | — | Accent colour for the tab (indicator + selected state). |
 | `color` | string (CSS colour) | — | Fixed label/icon colour for the tab. See [Per-tab colour](Feature-Tab-Color). |
 | `badge` | string | — | An entity id (shows its state) or a Jinja template. See [Badges](Badges). |
+| `badge_format` | `{precision, unit, max}` | — | Numeric badge formatting (overrides the top-level default). See [Badges](Badges#numeric-formatting-badge_format). |
 | `disabled` | boolean | `false` | Show the tab greyed-out and non-selectable. See [Disabled tabs](Feature-Disabled-Tabs). |
 | `card_size` | number | — | `getCardSize()` hint (rows) for this tab, so masonry sizing is stable across tab switches. |
 | `hold_action` / `badge_action` | action | — | HA action on tab long-press / badge click. See [Tab & badge actions](Feature-Hold-Action). |

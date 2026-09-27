@@ -14,6 +14,7 @@ import { isTabVisible } from "./lib/conditions";
 import { loadInitialIndex, persistIndex } from "./lib/persistence";
 import { CardManager, getCreateCardElement } from "./lib/card-lifecycle";
 import { isTemplate, TemplateRenderer, type SubscribeFn } from "./lib/templates";
+import { formatBadge } from "./lib/badge";
 import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import "./components/tabdeck-tabbar";
 import { isActiveBadge } from "./components/tabdeck-tab";
@@ -511,7 +512,7 @@ export class TabdeckCard extends LitElement {
           badgeColor: t.badge_color,
           holdAction: !!t.hold_action,
           badgeAction: !!t.badge_action,
-          badge: this._resolveBadgeFinal(t.badge),
+          badge: this._resolveBadgeFinal(t),
         }))}
         .selected=${this._selected}
         @tabdeck-action=${this._onTabAction}
@@ -584,10 +585,13 @@ export class TabdeckCard extends LitElement {
 
   // Resolve a badge, then drop it if hide_inactive_badge is on and the value is
   // inactive (0/off/etc) — so e.g. a count badge only shows when > 0.
-  private _resolveBadgeFinal(badge?: string): string | undefined {
-    const value = this._resolveBadge(badge);
+  // Numeric values are then formatted per badge_format (text badges only —
+  // dots show no text, and must keep seeing the raw value).
+  private _resolveBadgeFinal(tab: TabdeckTabConfig): string | undefined {
+    const value = this._resolveBadge(tab.badge);
     if (this._config?.hide_inactive_badge && !isActiveBadge(value)) return undefined;
-    return value;
+    if (this._config?.badge_display === "dot") return value;
+    return formatBadge(value, tab.badge_format ?? this._config?.badge_format);
   }
 
   private _resolveBadge(badge?: string): string | undefined {
