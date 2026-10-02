@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "jsdom": "^30.0.0",
-    "terser": "^5.49.0",
+    "terser": "^5.51.2",
     "typescript": "^7.0.2",
     "vite": "^8.1.5",
     "vitest": "^4.1.10"
