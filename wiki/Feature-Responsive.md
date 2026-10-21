@@ -34,7 +34,7 @@ Use a different [tab display mode](Feature-Tab-Display) when the card is narrow.
 ```yaml
 type: custom:tabdeck-card
 tab_display: both
-tab_display_narrow: icon    # both | icon | label
+tab_display_narrow: icon    # both | icon | label | active
 narrow_width: 450           # "narrow" = card width below this (default 450)
 tabs: [ ... ]
 ```

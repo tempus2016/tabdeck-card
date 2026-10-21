@@ -271,6 +271,10 @@ export class TabdeckTabbar extends LitElement {
     this._applyAccent();
     this._applySticky();
     this._position();
+    // Tab widths can change in the tabs' own (later) update — e.g. display
+    // "active" expands the newly selected tab — so measure again once they settle.
+    const tabs = [...this.renderRoot.querySelectorAll("tabdeck-tab")] as LitElement[];
+    Promise.all(tabs.map((t) => t.updateComplete)).then(() => this._position());
     this._updateOverflow();
     if (!this._ready) {
       requestAnimationFrame(() => {

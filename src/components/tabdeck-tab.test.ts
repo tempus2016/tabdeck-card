@@ -50,6 +50,25 @@ describe("tabdeck-tab", () => {
     expect(el.shadowRoot.querySelector(".label")?.textContent).toContain("Lights");
   });
 
+  it("display=active shows only the icon on an unselected tab", async () => {
+    const el = await mount({ label: "Lights", subtitle: "3 on", icon: "mdi:lightbulb", display: "active" });
+    expect(el.shadowRoot.querySelector("ha-icon")).toBeTruthy();
+    expect(el.shadowRoot.querySelector(".label")).toBeNull();
+    expect(el.shadowRoot.querySelector(".subtitle")).toBeNull();
+  });
+
+  it("display=active shows icon, label and subtitle on the selected tab", async () => {
+    const el = await mount({ label: "Lights", subtitle: "3 on", icon: "mdi:lightbulb", display: "active", selected: true });
+    expect(el.shadowRoot.querySelector("ha-icon")).toBeTruthy();
+    expect(el.shadowRoot.querySelector(".label")?.textContent).toBe("Lights");
+    expect(el.shadowRoot.querySelector(".subtitle")?.textContent).toBe("3 on");
+  });
+
+  it("display=active keeps the label on an unselected tab with no icon", async () => {
+    const el = await mount({ label: "Lights", display: "active" });
+    expect(el.shadowRoot.querySelector(".label")?.textContent).toBe("Lights");
+  });
+
   it("display=label hides the icon", async () => {
     const el = await mount({ label: "Lights", icon: "mdi:lightbulb", display: "label" });
     expect(el.shadowRoot.querySelector("ha-icon")).toBeNull();
