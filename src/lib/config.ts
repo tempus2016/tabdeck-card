@@ -6,7 +6,8 @@ import { buildSourceTemplate, SOURCES, SOURCE_TAB_TEMPLATE, type AutoTabsSource 
 export type TabPosition = "top" | "bottom" | "left" | "right";
 export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text" | "rail";
 export type RememberMode = "none" | "browser" | "url" | "entity";
-export type TabDisplay = "both" | "icon" | "label";
+// "active": icon only, except the selected tab, which shows icon + label + subtitle.
+export type TabDisplay = "both" | "icon" | "label" | "active";
 export type TabAlign = "start" | "center" | "end" | "justify";
 export type BadgeDisplay = "text" | "dot";
 export type PanelTransition = "none" | "fade" | "slide";
@@ -132,7 +133,7 @@ export interface TabdeckCardConfig {
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
 const STYLES: TabStyle[] = ["underline", "pill", "segmented", "boxed", "text", "rail"];
 const REMEMBER: RememberMode[] = ["none", "browser", "url", "entity"];
-const DISPLAYS: TabDisplay[] = ["both", "icon", "label"];
+const DISPLAYS: TabDisplay[] = ["both", "icon", "label", "active"];
 const ALIGNS: TabAlign[] = ["start", "center", "end", "justify"];
 const BADGE_DISPLAYS: BadgeDisplay[] = ["text", "dot"];
 const TRANSITIONS: PanelTransition[] = ["none", "fade", "slide"];

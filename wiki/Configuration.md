@@ -12,8 +12,8 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `preset` | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` | — | A bundle of styling options; explicit keys override it. See [Style presets](Feature-Presets). |
 | `position` | `top` \| `bottom` \| `left` \| `right` | `top` | Where the tab bar sits relative to the content. |
 | `style` | `underline` \| `pill` \| `segmented` \| `boxed` \| `text` | `underline` | Visual style of the tab bar. See [Extra bar styles](Feature-Bar-Styles). |
-| `tab_display` | `both` \| `icon` \| `label` | `both` | Show icons, labels, or both. See [Tab display mode](Feature-Tab-Display). |
-| `tab_display_narrow` / `narrow_width` | `both` \| `icon` \| `label` / px | — / `450` | Display mode when the card is narrower than `narrow_width`. See [Responsive layouts](Feature-Responsive). |
+| `tab_display` | `both` \| `icon` \| `label` \| `active` | `both` | Show icons, labels, both — or icons with only the selected tab expanded. See [Tab display mode](Feature-Tab-Display). |
+| `tab_display_narrow` / `narrow_width` | `both` \| `icon` \| `label` \| `active` / px | — / `450` | Display mode when the card is narrower than `narrow_width`. See [Responsive layouts](Feature-Responsive). |
 | `split` | number \| `{min_width, columns}` | — | At or above this card width, show all tabs side by side (no bar). See [Responsive layouts](Feature-Responsive). |
 | `align` | `start` \| `center` \| `end` \| `justify` | `start` | How tabs are distributed along the bar. See [Tab alignment](Feature-Tab-Alignment). |
 | `badge_display` | `text` \| `dot` | `text` | Render badges as text or a dot. See [Badge display mode](Feature-Badge-Display). |

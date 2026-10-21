@@ -38,7 +38,7 @@ A nested map card rendering correctly the moment its tab is selected — no
 
 - **Visual GUI editor** — add, remove, **drag-to-reorder**, duplicate, **copy & import** tabs without YAML; collapsible tab blocks, native HA card editor, HA's native **condition builder** for visibility/alert/default, style **presets**, duplicate-name warnings.
 - **Keep-alive content** (or opt-in `unmount_hidden`) — maps/cameras/graphs render correctly without navigating away.
-- **Tab bar styling** — `top`/`bottom`/`left`/`right` positions; `underline`/`pill`/`segmented`/`boxed`/`text` styles; `tab_display` (icon/label/both); `align`; `indicator_size`; `sticky`; `elevation`; `bar_background`; per-tab `accent`/`color`.
+- **Tab bar styling** — `top`/`bottom`/`left`/`right` positions; `underline`/`pill`/`segmented`/`boxed`/`text` styles; `tab_display` (icon/label/both/active); `align`; `indicator_size`; `sticky`; `elevation`; `bar_background`; per-tab `accent`/`color`.
 - **Per-tab** — `subtitle`, `badge` (text or `dot`, `badge_color`, `badge_format`, hide-inactive), `disabled`, multiple `cards`/`columns`, per-tab `styles`; `icon`/`name`/`color` can be **live templates**; pulsing `alert` conditions.
 - **Actions** — `tap_action` turns a tab into a **navigation link/button**; `hold_action`, `badge_action`, and `enter_action`/`leave_action` when a tab opens or closes (incl. `perform-action`).
 - **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`, generated tabs via `auto_tabs` (Jinja, or **one tab per area/label**).
@@ -118,7 +118,7 @@ A ready-to-paste dashboard showcasing many features lives in
 | `default_tab` | number \| string  | `0`          | Index or tab `name` shown first. Overridden by persistence. |
 | `position`    | string            | `top`        | `top` \| `bottom` \| `left` \| `right`. |
 | `style`       | string            | `underline`  | `underline` \| `pill` \| `segmented` \| `boxed` \| `text`. |
-| `tab_display` | string            | `both`       | `both` \| `icon` \| `label`. |
+| `tab_display` | string            | `both`       | `both` \| `icon` \| `label` \| `active` (icons, plus name + subtitle on the selected tab). |
 | `align`       | string            | `start`      | `start` \| `center` \| `end` \| `justify`. |
 | `indicator_size` | number         | `3`          | Underline thickness (1–16 px). |
 | `accent_indicator` | boolean      | `true`       | Colour the indicator by the selected tab's accent. |

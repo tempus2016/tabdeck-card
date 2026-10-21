@@ -65,9 +65,12 @@ export class TabdeckTab extends LitElement {
   render() {
     // Honour the display mode, but never render an empty tab: fall back to the
     // label when icon-only is requested on a tab that has no icon.
+    // "active" is icon-only for unselected tabs and "both" for the selected one.
+    const display =
+      this.display === "active" ? (this.selected ? "both" : "icon") : this.display;
     const hasIcon = !!this.icon;
-    const showIcon = this.display !== "label" && hasIcon;
-    const showLabel = this.display !== "icon" || !hasIcon;
+    const showIcon = display !== "label" && hasIcon;
+    const showLabel = display !== "icon" || !hasIcon;
     return html`
       <div class="inner">
         ${showIcon ? html`<ha-icon icon=${this.icon}></ha-icon>` : nothing}
