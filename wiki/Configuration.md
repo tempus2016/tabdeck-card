@@ -12,8 +12,8 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `preset` | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` | — | A bundle of styling options; explicit keys override it. See [Style presets](Feature-Presets). |
 | `position` | `top` \| `bottom` \| `left` \| `right` | `top` | Where the tab bar sits relative to the content. |
 | `style` | `underline` \| `pill` \| `segmented` \| `boxed` \| `text` | `underline` | Visual style of the tab bar. See [Extra bar styles](Feature-Bar-Styles). |
-| `tab_display` | `both` \| `icon` \| `label` \| `active` | `both` | Show icons, labels, both — or icons with only the selected tab expanded. See [Tab display mode](Feature-Tab-Display). |
-| `tab_display_narrow` / `narrow_width` | `both` \| `icon` \| `label` \| `active` / px | — / `450` | Display mode when the card is narrower than `narrow_width`. See [Responsive layouts](Feature-Responsive). |
+| `tab_display` | `both` \| `icon` \| `label` \| `active` \| `dots` | `both` | Show icons, labels, both — or icons with only the selected tab expanded. See [Tab display mode](Feature-Tab-Display). |
+| `tab_display_narrow` / `narrow_width` | `both` \| `icon` \| `label` \| `active` \| `dots` / px | — / `450` | Display mode when the card is narrower than `narrow_width`. See [Responsive layouts](Feature-Responsive). |
 | `split` | number \| `{min_width, columns}` | — | At or above this card width, show all tabs side by side (no bar). See [Responsive layouts](Feature-Responsive). |
 | `align` | `start` \| `center` \| `end` \| `justify` | `start` | How tabs are distributed along the bar. See [Tab alignment](Feature-Tab-Alignment). |
 | `badge_display` | `text` \| `dot` | `text` | Render badges as text or a dot. See [Badge display mode](Feature-Badge-Display). |
@@ -39,6 +39,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `idle_return` | number (seconds) | — | Return to the default tab after inactivity. See [Auto-rotate & idle return](Feature-Kiosk). |
 | `edit_mode_reveal` | boolean | `true` | Show hidden tabs (faded) and pause rotation while editing the dashboard. See [Edit mode helpers](Feature-Edit-Mode). |
 | `dock` | boolean | `false` | Pin the bar to the bottom of the screen as phone-style navigation. See [Dock](Feature-Dock). |
+| `content_arrows` | boolean | `false` | ‹ › buttons beside the content to step between tabs. See [Dots & arrows](Feature-Dots-Arrows). |
 | `styles` | map | — | CSS variables/properties applied to the card. See [Theming](Feature-Theming). |
 
 > **Legacy:** `options.defaultTabIndex` is still accepted as a fallback for `default_tab`.

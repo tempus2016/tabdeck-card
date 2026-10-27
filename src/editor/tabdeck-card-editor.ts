@@ -685,7 +685,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "preset", selector: { select: { mode: "dropdown", options: opts(["", ...PRESET_NAMES]) } } },
       { name: "position", selector: { select: { mode: "dropdown", options: opts(["top", "bottom", "left", "right"], "position") } } },
       { name: "style", selector: { select: { mode: "dropdown", options: opts(["underline", "pill", "segmented", "boxed", "text", "rail"]) } } },
-      { name: "tab_display", selector: { select: { mode: "dropdown", options: opts(["both", "icon", "label", "active"], "tab_display") } } },
+      { name: "tab_display", selector: { select: { mode: "dropdown", options: opts(["both", "icon", "label", "active", "dots"], "tab_display") } } },
       { name: "align", selector: { select: { mode: "dropdown", options: opts(["start", "center", "end", "justify"], "align") } } },
       { name: "badge_display", selector: { select: { mode: "dropdown", options: opts(["text", "dot"], "badge_display") } } },
       { name: "hide_inactive_badge", selector: { boolean: {} } },
@@ -711,7 +711,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "bar_background", selector: { text: {} } },
       { name: "swipe", selector: { boolean: {} } },
       { name: "swipe_mouse", selector: { boolean: {} } },
-      { name: "tab_display_narrow", selector: { select: { mode: "dropdown", options: opts(["", "both", "icon", "label", "active"], "tab_display") } } },
+      { name: "tab_display_narrow", selector: { select: { mode: "dropdown", options: opts(["", "both", "icon", "label", "active", "dots"], "tab_display") } } },
       { name: "narrow_width", selector: { number: { min: 100, max: 4000, step: 10, mode: "box" } } },
       { name: "split", selector: { number: { min: 0, max: 4000, step: 10, mode: "box" } } },
       { name: "collapsible", selector: { boolean: {} } },
@@ -720,6 +720,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "auto_rotate", selector: { number: { min: 0, max: 3600, step: 1, mode: "box" } } },
       { name: "idle_return", selector: { number: { min: 0, max: 86400, step: 1, mode: "box" } } },
       { name: "dock", selector: { boolean: {} } },
+      { name: "content_arrows", selector: { boolean: {} } },
       { name: "edit_mode_reveal", selector: { boolean: {} } },
     ];
   }
@@ -765,6 +766,7 @@ export class TabdeckCardEditor extends LitElement {
       auto_rotate: cfg.auto_rotate?.interval ?? 0,
       idle_return: cfg.idle_return ?? 0,
       dock: cfg.dock,
+      content_arrows: cfg.content_arrows,
       edit_mode_reveal: cfg.edit_mode_reveal,
     };
   }
@@ -828,6 +830,7 @@ export class TabdeckCardEditor extends LitElement {
           : undefined,
       idle_return: Number(v.idle_return) > 0 ? Math.max(5, Number(v.idle_return)) : undefined,
       dock: !!v.dock,
+      content_arrows: !!v.content_arrows,
       edit_mode_reveal: v.edit_mode_reveal !== false,
     });
   }

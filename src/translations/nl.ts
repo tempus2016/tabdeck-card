@@ -200,5 +200,9 @@ const nl: Record<string, string> = {
   "convert.note.dashboard": "Elke weergave is een tab geworden. Grote dashboards kunnen een zware kaart opleveren; overweeg lazy: true.",
   "editor.global.dock": "Dock: balk onderaan het scherm vastzetten (telefoonnavigatie)",
   "editor.tab.fab": "Als zwevende actieknop",
+  "editor.global.content_arrows": "Vorige/volgende-pijlen over de inhoud",
+  "editor.opt.tab_display.dots": "Stippen",
+  "card.prev_tab": "Vorige tab",
+  "card.next_tab": "Volgende tab",
 };
 export default nl;

@@ -200,5 +200,9 @@ const fr: Record<string, string> = {
   "convert.note.dashboard": "Chaque vue est devenue un onglet. Les grands tableaux de bord peuvent alourdir la carte ; envisagez lazy: true.",
   "editor.global.dock": "Dock : épingler la barre en bas de l'écran (navigation mobile)",
   "editor.tab.fab": "Style bouton d'action flottant",
+  "editor.global.content_arrows": "Flèches précédent / suivant sur le contenu",
+  "editor.opt.tab_display.dots": "Points",
+  "card.prev_tab": "Onglet précédent",
+  "card.next_tab": "Onglet suivant",
 };
 export default fr;

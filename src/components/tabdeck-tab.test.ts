@@ -189,3 +189,18 @@ describe("tabdeck-tab stacked & fab", () => {
     expect(el.hasAttribute("fab")).toBe(true);
   });
 });
+
+describe("tabdeck-tab dots", () => {
+  it("renders only a dot, labelled for screen readers", async () => {
+    const el = document.createElement("tabdeck-tab") as any;
+    el.label = "Kitchen";
+    el.icon = "mdi:fridge";
+    el.display = "dots";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".dot")).toBeTruthy();
+    expect(el.shadowRoot.querySelector("ha-icon")).toBeNull();
+    expect(el.shadowRoot.querySelector(".label")).toBeNull();
+    expect(el.getAttribute("aria-label")).toBe("Kitchen");
+  });
+});

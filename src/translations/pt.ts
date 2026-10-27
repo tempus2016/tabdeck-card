@@ -200,5 +200,9 @@ const pt: Record<string, string> = {
   "convert.note.dashboard": "Cada vista passou a um separador. Painéis grandes podem gerar um cartão pesado; considere lazy: true.",
   "editor.global.dock": "Dock: fixar a barra no fundo do ecrã (navegação de telemóvel)",
   "editor.tab.fab": "Estilo de botão de ação flutuante",
+  "editor.global.content_arrows": "Setas anterior / seguinte sobre o conteúdo",
+  "editor.opt.tab_display.dots": "Pontos",
+  "card.prev_tab": "Separador anterior",
+  "card.next_tab": "Separador seguinte",
 };
 export default pt;

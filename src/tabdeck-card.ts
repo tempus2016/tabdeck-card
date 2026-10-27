@@ -16,7 +16,7 @@ import { loadInitialIndex, persistIndex } from "./lib/persistence";
 import { CardManager, getCreateCardElement } from "./lib/card-lifecycle";
 import { isTemplate, makeHassSubscribe, TemplateRenderer, type SubscribeFn } from "./lib/templates";
 import { formatBadge } from "./lib/badge";
-import { hassLanguage } from "./lib/i18n";
+import { hassLanguage, localize } from "./lib/i18n";
 import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import "./components/tabdeck-tabbar";
 import { isActiveBadge } from "./components/tabdeck-tab";
@@ -891,7 +891,7 @@ export class TabdeckCard extends LitElement {
     `;
     const panels = html`
       <div
-        class="content"
+        class="content ${cfg.content_arrows && !cfg.scroll_spy ? "with-arrows" : ""}"
         id="tabdeck-panel"
         role="tabpanel"
         ?hidden=${this._collapsed}
@@ -900,6 +900,7 @@ export class TabdeckCard extends LitElement {
         @pointerdown=${this._onPointerDown}
         @pointerup=${this._onPointerUp}
       >
+        ${cfg.content_arrows && !cfg.scroll_spy ? this._renderArrows() : nothing}
         ${cfg.header && !cfg.scroll_spy && visible[this._selected]
           ? html`<div class="content-header">
               <span class="content-title">${this._text(visible[this._selected].name) ?? ""}</span>
@@ -932,6 +933,23 @@ export class TabdeckCard extends LitElement {
       <div class="root pos-${docked ? "bottom" : cfg.position} ${docked ? "docked" : ""}">
         ${docked || cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
       </div>
+    `;
+  }
+
+  // content_arrows: ‹ › over the content. An arrow that can't move (at an end,
+  // without swipe_wrap) isn't rendered.
+  private _renderArrows() {
+    const wrap = !!this._config?.swipe_wrap;
+    const prev = this._stepContent(this._selected, -1, wrap);
+    const next = this._stepContent(this._selected, 1, wrap);
+    const lang = hassLanguage(this._hass);
+    return html`
+      ${prev !== this._selected
+        ? html`<button class="nav-arrow prev" aria-label=${localize(lang, "card.prev_tab")} @click=${() => this._selectIndex(prev)}>‹</button>`
+        : nothing}
+      ${next !== this._selected
+        ? html`<button class="nav-arrow next" aria-label=${localize(lang, "card.next_tab")} @click=${() => this._selectIndex(next)}>›</button>`
+        : nothing}
     `;
   }
 
@@ -985,6 +1003,40 @@ export class TabdeckCard extends LitElement {
     }
     .content {
       padding-top: 8px;
+      position: relative;
+    }
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      z-index: 3;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+      color: var(--primary-text-color);
+      background: var(--secondary-background-color, rgba(127, 127, 127, 0.15));
+      opacity: var(--tabdeck-arrow-opacity, 0.7);
+      transition: opacity 120ms ease;
+    }
+    .nav-arrow:hover,
+    .nav-arrow:focus-visible {
+      opacity: 1;
+    }
+    /* Arrows live in their own gutters so they never cover the card's
+       controls. */
+    .content.with-arrows {
+      padding-left: var(--tabdeck-arrow-gutter, 40px);
+      padding-right: var(--tabdeck-arrow-gutter, 40px);
+    }
+    .nav-arrow.prev {
+      left: 2px;
+    }
+    .nav-arrow.next {
+      right: 2px;
     }
     /* Room for the fixed dock so the last card isn't hidden behind it. */
     .root.docked .content {

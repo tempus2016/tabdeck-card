@@ -327,7 +327,7 @@ export class TabdeckTabbar extends LitElement {
         ? html`<button class="scroll-btn left" aria-label=${localize(this.language, "card.scroll_left")} @click=${() => this._scrollBy(-1)}>‹</button>`
         : ""}
       <div
-        class="bar ${this.position} style-${this.tabStyle} align-${this.align} ${this.elevation ? "elevated" : ""}"
+        class="bar ${this.position} style-${this.tabStyle} align-${this.align} ${this.elevation ? "elevated" : ""} ${this.display === "dots" ? "dots" : ""}"
         part="bar"
         style=${this.barBackground ? `background:${this.barBackground}` : ""}
       >
@@ -400,6 +400,16 @@ export class TabdeckTabbar extends LitElement {
   static styles = css`
     :host {
       display: block;
+    }
+    /* dots: a centred, borderless row of pagination dots, no indicator. */
+    .bar.dots {
+      justify-content: center;
+      border: none;
+      padding: 4px 0;
+      gap: 0;
+    }
+    .bar.dots .indicator {
+      display: none;
     }
     /* dock: a phone-style navigation bar fixed to the bottom of the screen. */
     :host([dock]) {

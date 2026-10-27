@@ -200,5 +200,9 @@ const es: Record<string, string> = {
   "convert.note.dashboard": "Cada vista se ha convertido en una pestaña. Los paneles de control grandes pueden generar una tarjeta pesada; considera lazy: true.",
   "editor.global.dock": "Dock: fijar la barra en la parte inferior de la pantalla (navegación móvil)",
   "editor.tab.fab": "Estilo de botón de acción flotante",
+  "editor.global.content_arrows": "Flechas anterior / siguiente sobre el contenido",
+  "editor.opt.tab_display.dots": "Puntos",
+  "card.prev_tab": "Pestaña anterior",
+  "card.next_tab": "Pestaña siguiente",
 };
 export default es;

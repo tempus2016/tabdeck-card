@@ -200,5 +200,9 @@ const de: Record<string, string> = {
   "convert.note.dashboard": "Jede Ansicht wurde zu einem Tab. Große Dashboards können eine schwere Karte ergeben; lazy: true erwägen.",
   "editor.global.dock": "Dock: Leiste unten am Bildschirm fixieren (Handy-Navigation)",
   "editor.tab.fab": "Als schwebende Aktionsschaltfläche",
+  "editor.global.content_arrows": "Zurück-/Weiter-Pfeile über dem Inhalt",
+  "editor.opt.tab_display.dots": "Punkte",
+  "card.prev_tab": "Vorheriger Tab",
+  "card.next_tab": "Nächster Tab",
 };
 export default de;

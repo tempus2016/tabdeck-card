@@ -26,7 +26,7 @@ export class TabdeckTab extends LitElement {
   @property() badgeDisplay: BadgeDisplay = "text";
   @property() accent?: string;
   @property() color?: string;
-  @property() display: TabDisplay = "both";
+  @property({ reflect: true }) display: TabDisplay = "both";
   @property({ type: Boolean, reflect: true }) selected = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
   // Pulses to draw attention while the tab's alert conditions are met.
@@ -72,9 +72,15 @@ export class TabdeckTab extends LitElement {
     else this.style.removeProperty("color");
     if (this.ghost) this.title = this.ghostLabel;
     else this.removeAttribute("title");
+    // Dots have no visible text, so name the tab for assistive tech.
+    if (this.display === "dots" && this.label) this.setAttribute("aria-label", this.label);
+    else this.removeAttribute("aria-label");
   }
 
   render() {
+    if (this.display === "dots") {
+      return html`<span class="dot" part="dot"></span>`;
+    }
     // Honour the display mode, but never render an empty tab: fall back to the
     // label when icon-only is requested on a tab that has no icon.
     // "active" is icon-only for unselected tabs and "both" for the selected one.
@@ -175,6 +181,29 @@ export class TabdeckTab extends LitElement {
           transparent
         );
       }
+    }
+    /* dots: pagination dots; the selected one stretches into a pill. */
+    :host([display="dots"]) {
+      padding: 0 4px;
+      height: var(--tabdeck-dot-area, 24px);
+    }
+    .dot {
+      display: block;
+      width: var(--tabdeck-dot-size, 8px);
+      height: var(--tabdeck-dot-size, 8px);
+      border-radius: 999px;
+      background: var(--secondary-text-color);
+      opacity: 0.5;
+      transition: width 160ms ease, opacity 160ms ease, background 160ms ease;
+    }
+    :host([selected]) .dot {
+      width: calc(var(--tabdeck-dot-size, 8px) * 2.5);
+      opacity: 1;
+      background: var(--tabdeck-accent, var(--primary-color));
+    }
+    :host([alert]) .dot {
+      background: var(--tabdeck-alert-color, var(--error-color, #db4437));
+      opacity: 1;
     }
     :host([stacked]) {
       flex-direction: column;

@@ -200,5 +200,9 @@ const pl: Record<string, string> = {
   "convert.note.dashboard": "Każdy widok stał się zakładką. Duże dashboardy mogą dać ciężką kartę; rozważ lazy: true.",
   "editor.global.dock": "Dock: przypnij pasek do dołu ekranu (nawigacja jak w telefonie)",
   "editor.tab.fab": "Styl pływającego przycisku akcji",
+  "editor.global.content_arrows": "Strzałki poprzednia / następna nad zawartością",
+  "editor.opt.tab_display.dots": "Kropki",
+  "card.prev_tab": "Poprzednia zakładka",
+  "card.next_tab": "Następna zakładka",
 };
 export default pl;
