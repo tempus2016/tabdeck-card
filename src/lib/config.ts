@@ -50,10 +50,29 @@ export interface TabdeckTabConfig {
   // CSS properties applied to the card while this tab is active (over the
   // top-level `styles`).
   styles?: Record<string, string>;
+  // Grouped tab: the children (for the parent's menu) and how they show.
+  group?: TabGroup;
+  // The source keys of a grouped tab, kept so the editor round-trips them.
+  children?: any[];
+  children_display?: "row" | "menu";
+  children_options?: Record<string, any>;
   // A single resolved card. When the source config supplies `cards: [...]`,
   // it is collapsed into one `vertical-stack` card here.
   card: LovelaceCardConfig;
 }
+
+export interface TabGroup {
+  // "row": a second-level tab row under the bar; "menu": a dropdown on the tab.
+  display: "row" | "menu";
+  items: { name?: string; icon?: string }[];
+}
+
+// Look of the second-level row a grouped tab gets (children_options win).
+const SUB_DECK_DEFAULTS = {
+  style: "text",
+  align: "start",
+  styles: { "--tabdeck-tab-height": "36px", "--tabdeck-tab-font-size": "13px" },
+};
 
 export interface AutoTabsConfig {
   // HA Jinja template, server-rendered, must yield a JSON list.
@@ -138,6 +157,9 @@ export interface TabdeckCardConfig {
   dock: boolean;
   // ‹ › buttons over the content to step to the previous / next tab.
   content_arrows: boolean;
+  // Content only, no tab bar (menu-driven groups, or decks driven by
+  // selectTab / remember: entity).
+  hide_bar: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -181,7 +203,24 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
   // hold more than one card without hand-writing it. With `columns: N` (>1) they
   // go in a grid instead of a vertical-stack.
   let card = raw?.card ?? {};
-  if (Array.isArray(raw?.cards) && raw.cards.length > 0) {
+  let group: TabGroup | undefined;
+  if (Array.isArray(raw?.children) && raw.children.length > 0) {
+    // `children: [...]` — a group: the content is a nested deck of the
+    // children (a sub-row, or bar-less behind a menu on this tab).
+    const display = raw.children_display === "menu" ? "menu" : "row";
+    const opts = raw.children_options && typeof raw.children_options === "object" ? raw.children_options : {};
+    card = {
+      type: "custom:tabdeck-card",
+      ...SUB_DECK_DEFAULTS,
+      ...opts,
+      hide_bar: display === "menu",
+      tabs: raw.children,
+    };
+    group = {
+      display,
+      items: raw.children.map((c: any) => ({ name: c?.name ?? c?.attributes?.label, icon: c?.icon })),
+    };
+  } else if (Array.isArray(raw?.cards) && raw.cards.length > 0) {
     const cols = Number(raw?.columns);
     card =
       Number.isFinite(cols) && cols > 1
@@ -216,6 +255,10 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
       raw?.styles && typeof raw.styles === "object" && !Array.isArray(raw.styles)
         ? raw.styles
         : undefined,
+    group,
+    children: group ? raw.children : undefined,
+    children_display: group ? group.display : undefined,
+    children_options: group && raw.children_options && typeof raw.children_options === "object" ? raw.children_options : undefined,
     card,
   };
 }
@@ -327,6 +370,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
       Number(raw?.idle_return) > 0 ? Math.max(5, Number(raw.idle_return)) : undefined,
     dock: Boolean(raw?.dock),
     content_arrows: Boolean(raw?.content_arrows),
+    hide_bar: Boolean(raw?.hide_bar),
     edit_mode_reveal: raw?.edit_mode_reveal === undefined ? true : Boolean(raw.edit_mode_reveal),
   };
 }

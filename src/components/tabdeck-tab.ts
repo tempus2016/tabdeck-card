@@ -40,6 +40,8 @@ export class TabdeckTab extends LitElement {
   @property({ type: Boolean, reflect: true }) stacked = false;
   // Raised round accent button (floating action tab).
   @property({ type: Boolean, reflect: true }) fab = false;
+  // Opens a menu of sub-tabs (grouped tab): shows a ▾ caret.
+  @property({ type: Boolean, reflect: true }) hasMenu = false;
   @property() ghostLabel = "Hidden: its visibility conditions aren't met (shown while editing)";
   // Accessible label for the badge (localised by the bar).
   @property() badgeLabel?: string;
@@ -101,6 +103,7 @@ export class TabdeckTab extends LitElement {
             </span>`
           : nothing}
         ${this._renderBadge()}
+        ${this.hasMenu ? html`<span class="caret" aria-hidden="true">▾</span>` : nothing}
         ${this.ghost
           ? html`<ha-icon class="ghost-mark" icon="mdi:eye-off-outline" aria-hidden="true"></ha-icon>`
           : nothing}
@@ -259,6 +262,11 @@ export class TabdeckTab extends LitElement {
       outline: 1px dashed currentColor;
       outline-offset: -6px;
       border-radius: 8px;
+    }
+    .caret {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-left: -2px;
     }
     .ghost-mark {
       --mdc-icon-size: 14px;

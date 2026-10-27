@@ -648,3 +648,20 @@ describe("localisation", () => {
     expect(el.shadowRoot.querySelector(".add-tab").textContent).toContain("Add tab");
   });
 });
+
+describe("grouped tabs round-trip", () => {
+  it("keeps children / children_display and drops the derived nested card", async () => {
+    const el = await mount({
+      tabs: [{ name: "Rooms", children_display: "menu", children: [{ name: "Kitchen", card: { type: "light" } }] }],
+    });
+    const fired: any[] = [];
+    el.addEventListener("config-changed", (e: any) => fired.push(e.detail.config));
+    el.shadowRoot.querySelector(".expand-all")?.click();
+    el._patchTab(0, { subtitle: "x" });
+    const out = fired.at(-1)!.tabs[0];
+    expect(out.children).toEqual([{ name: "Kitchen", card: { type: "light" } }]);
+    expect(out.children_display).toBe("menu");
+    expect(out.card).toBeUndefined();
+    expect(out.group).toBeUndefined();
+  });
+});

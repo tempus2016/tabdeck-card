@@ -31,6 +31,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Content header](Feature-Header)** — show the active tab's title above the content (`header`); icon-rail recipe.
 
 ## Navigation & interaction
+- **[Grouped tabs](Feature-Grouped-Tabs)** — `children:` as a second-level row or a ▾ dropdown menu (`children_display`); `hide_bar`; `selectTab()` API and `tabdeck-tab-changed` event.
 - **[Collapsible deck](Feature-Collapsible)** — tap the active tab to fold the content away (`collapsible`, `start_collapsed`).
 - **[Scroll-spy (anchor mode)](Feature-Scroll-Spy)** — stack every tab as a section; the bar scrolls to and tracks sections (`scroll_spy`).
 - **[Panel transitions](Feature-Panel-Transition)** — fade or slide when switching tabs (`transition`).

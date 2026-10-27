@@ -40,6 +40,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `edit_mode_reveal` | boolean | `true` | Show hidden tabs (faded) and pause rotation while editing the dashboard. See [Edit mode helpers](Feature-Edit-Mode). |
 | `dock` | boolean | `false` | Pin the bar to the bottom of the screen as phone-style navigation. See [Dock](Feature-Dock). |
 | `content_arrows` | boolean | `false` | ‹ › buttons beside the content to step between tabs. See [Dots & arrows](Feature-Dots-Arrows). |
+| `hide_bar` | boolean | `false` | Render only the content, no tab bar. See [Grouped tabs](Feature-Grouped-Tabs#related-hide_bar-and-the-public-api). |
 | `styles` | map | — | CSS variables/properties applied to the card. See [Theming](Feature-Theming). |
 
 > **Legacy:** `options.defaultTabIndex` is still accepted as a fallback for `default_tab`.
@@ -61,6 +62,7 @@ Each item in `tabs`:
 | `badge_format` | `{precision, unit, max}` | — | Numeric badge formatting (overrides the top-level default). See [Badges](Badges#numeric-formatting-badge_format). |
 | `disabled` | boolean | `false` | Show the tab greyed-out and non-selectable. See [Disabled tabs](Feature-Disabled-Tabs). |
 | `fab` | boolean | `false` | Render the tab as a raised round action button. See [Floating action tabs](Feature-Dock#floating-action-tabs). |
+| `children` / `children_display` / `children_options` | list / string / object | — / `row` / — | Sub-tabs as a second row or a ▾ menu. See [Grouped tabs](Feature-Grouped-Tabs). |
 | `card_size` | number | — | `getCardSize()` hint (rows) for this tab, so masonry sizing is stable across tab switches. |
 | `tap_action` | action | — | Tap runs this action *instead of* opening the tab (navigation tabs; no `card` needed). See [Navigation & action tabs](Feature-Navigation-Tabs). |
 | `enter_action` / `leave_action` | action | — | HA action when the tab becomes / stops being active. See [Tab-change actions](Feature-Enter-Leave-Actions). |
