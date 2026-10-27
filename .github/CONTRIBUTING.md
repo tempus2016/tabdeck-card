@@ -39,11 +39,45 @@ Home Assistant instance:
 3. Add it as a dashboard resource (`/local/tabdeck-card.js`, JavaScript Module).
 4. Hard-refresh the browser and check the console for errors.
 
+`npm run test:ha` automates this check against an instance you already have
+(it makes a `tabdeck-compat` dashboard and an `input_boolean.tabdeck_compat`
+helper, and removes them with `--cleanup`):
+
+```
+npm run build   # then copy dist/tabdeck-card.js to config/www/ as above
+npx playwright install chromium
+npm run test:ha -- --url http://homeassistant.local:8123 --token <long-lived token> --cleanup
+```
+
+The **HA compatibility** workflow runs the same check once a month against
+fresh Home Assistant `stable` and `beta` containers and updates the
+"works with Home Assistant" badge in the README.
+
+## Visual regression tests
+
+`npm run test:visual` screenshots every example of the demo site (desktop,
+phone and light theme) and compares them with the baselines in
+`tests/visual/linux/`, which CI uses (fonts differ between systems, so local
+runs keep their own baselines in an ignored folder):
+
+```
+npx playwright install chromium
+npm run build:demo
+npm run test:visual              # compare
+npm run test:visual -- --update  # write baselines for this machine
+```
+
+Changed shots, with a diff image highlighting the changes, are written to
+`tests/visual/output/`. When a change to the look is intended, run the
+**Visual regression** workflow by hand with *update baselines* ticked and
+commit the `visual-baselines-linux` artifact into `tests/visual/linux/`.
+
 ## Pull requests
 
 - Keep PRs focused — one logical change per PR.
 - Match the existing code style and patterns.
 - Make sure `npm run typecheck`, `npm test`, and `npm run build` all pass.
+  If the look changes on purpose, update the visual baselines (see above).
 - Do **not** add AI/Claude co-author attribution to commits or files.
 
 ## Reporting bugs and requesting features

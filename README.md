@@ -14,6 +14,7 @@
 <p align="center">
   <a href="https://github.com/tempus2016/tabdeck-card/actions/workflows/ci.yml"><img src="https://github.com/tempus2016/tabdeck-card/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/tempus2016/tabdeck-card/actions/workflows/validate.yml"><img src="https://github.com/tempus2016/tabdeck-card/actions/workflows/validate.yml/badge.svg" alt="HACS Validation"></a>
+  <a href="https://github.com/tempus2016/tabdeck-card/actions/workflows/ha-compat.yml"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Ftempus2016%2Ftabdeck-card%2Fbadges%2Fha-compat.json" alt="Works with Home Assistant"></a>
   <a href="https://github.com/tempus2016/tabdeck-card/wiki"><img src="https://img.shields.io/badge/docs-wiki-blue" alt="Wiki"></a>
   <a href="https://community.home-assistant.io/t/tabdeck-card-a-modern-tabbed-card-with-a-visual-editor-alerts-dock-split-view-and-more/1030544"><img src="https://img.shields.io/badge/community-forum-41BDF5?logo=home-assistant&logoColor=white" alt="Community Forum"></a>
 </p>
