@@ -204,5 +204,10 @@ const nl: Record<string, string> = {
   "editor.opt.tab_display.dots": "Stippen",
   "card.prev_tab": "Vorige tab",
   "card.next_tab": "Volgende tab",
+  "editor.global.search": "Snel zoeken (🔍-knop)",
+  "editor.global.hotkeys": "Sneltoetsen (1–9, [ ], /)",
+  "card.search": "Tab zoeken",
+  "card.search_placeholder": "Typ om te filteren…",
+  "card.search_none": "Geen overeenkomende tabs",
 };
 export default nl;

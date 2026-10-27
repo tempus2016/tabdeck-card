@@ -48,3 +48,4 @@
 - [Dock & floating action tabs](Feature-Dock)
 - [Dots & content arrows](Feature-Dots-Arrows)
 - [Grouped tabs](Feature-Grouped-Tabs)
+- [Search & shortcuts](Feature-Search-Hotkeys)

@@ -67,6 +67,11 @@ export class TabdeckTabbar extends LitElement {
   @property() language = "en";
   // Optional custom bar background colour.
   @property() barBackground?: string;
+  // A 🔍 button that opens a quick-switch filter over the tabs.
+  @property({ type: Boolean }) searchable = false;
+  @state() private _searchOpen = false;
+  @state() private _query = "";
+  @state() private _active = 0;
   // Pinned to the bottom of the viewport, phone-navigation style.
   @property({ type: Boolean, reflect: true }) dock = false;
 
@@ -99,6 +104,7 @@ export class TabdeckTabbar extends LitElement {
   disconnectedCallback(): void {
     this.removeEventListener("keydown", this._onKeydown);
     window.removeEventListener("pointerdown", this._onOutside, true);
+    window.removeEventListener("pointerdown", this._onSearchOutside, true);
     this._resizeObserver?.disconnect();
     super.disconnectedCallback();
   }
@@ -153,6 +159,97 @@ export class TabdeckTabbar extends LitElement {
       return;
     }
     this._select(index);
+  }
+
+  // --- quick-switch search -------------------------------------------------
+  // Case- and accent-insensitive match on name and subtitle; disabled tabs
+  // can't be opened, so they're left out.
+  private _matches(query: string): { index: number; item: TabItem }[] {
+    const norm = (s?: string) =>
+      (s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const q = norm(query).trim();
+    return this.items
+      .map((item, index) => ({ index, item }))
+      .filter(({ item }) => !item.disabled)
+      .filter(({ item }) => !q || norm(item.name).includes(q) || norm(item.subtitle).includes(q));
+  }
+
+  openSearch(): void {
+    this._query = "";
+    this._active = 0;
+    this._searchOpen = true;
+    window.addEventListener("pointerdown", this._onSearchOutside, true);
+    this.updateComplete.then(() =>
+      ((this.renderRoot as ParentNode).querySelector(".search-input") as HTMLInputElement | null)?.focus(),
+    );
+  }
+
+  private _closeSearch(): void {
+    this._searchOpen = false;
+    window.removeEventListener("pointerdown", this._onSearchOutside, true);
+  }
+
+  private _onSearchOutside = (e: Event): void => {
+    const panel = (this.renderRoot as ParentNode).querySelector(".search-panel");
+    const btn = (this.renderRoot as ParentNode).querySelector(".search-btn");
+    const path = e.composedPath();
+    if ((panel && path.includes(panel)) || (btn && path.includes(btn))) return;
+    this._closeSearch();
+  };
+
+  private _pickSearch(index: number): void {
+    this._closeSearch();
+    this._select(index);
+  }
+
+  private _onSearchKeydown(e: KeyboardEvent): void {
+    // Keep arrows/Home/End from also driving the tablist.
+    e.stopPropagation();
+    const matches = this._matches(this._query);
+    if (e.key === "Escape") {
+      this._closeSearch();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const m = matches[this._active] ?? matches[0];
+      if (m) this._pickSearch(m.index);
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const n = matches.length || 1;
+      this._active = (this._active + (e.key === "ArrowDown" ? 1 : -1) + n) % n;
+    }
+  }
+
+  private _renderSearch() {
+    const matches = this._matches(this._query);
+    const lang = this.language;
+    return html`<div class="search-panel" role="dialog" aria-label=${localize(lang, "card.search")}>
+      <input
+        class="search-input"
+        type="search"
+        placeholder=${localize(lang, "card.search_placeholder")}
+        aria-label=${localize(lang, "card.search")}
+        .value=${this._query}
+        @input=${(e: Event) => {
+          this._query = (e.target as HTMLInputElement).value;
+          this._active = 0;
+        }}
+        @keydown=${(e: KeyboardEvent) => this._onSearchKeydown(e)}
+      />
+      <div class="search-results" role="listbox">
+        ${matches.length
+          ? matches.map(
+              (m, i) => html`<button
+                class="group-item ${i === this._active ? "active" : ""}"
+                role="option"
+                aria-selected=${i === this._active ? "true" : "false"}
+                @click=${() => this._pickSearch(m.index)}
+              >
+                ${m.item.icon ? html`<ha-icon .icon=${m.item.icon}></ha-icon>` : ""}<span>${m.item.name ?? ""}</span>
+              </button>`,
+            )
+          : html`<div class="search-empty">${localize(lang, "card.search_none")}</div>`}
+      </div>
+    </div>`;
   }
 
   // --- grouped-tab menu -----------------------------------------------------
@@ -406,7 +503,7 @@ export class TabdeckTabbar extends LitElement {
     const arrows = this.scrollButtons && this._horizontal && this._overflow;
     const menu = this.overflowMenu && this._horizontal && this._overflow;
     return html`
-      <div class="bar-wrap ${arrows || menu ? "has-arrows" : ""}">
+      <div class="bar-wrap ${arrows || menu || this.searchable ? "has-arrows" : ""}">
       ${arrows
         ? html`<button class="scroll-btn left" aria-label=${localize(this.language, "card.scroll_left")} @click=${() => this._scrollBy(-1)}>‹</button>`
         : ""}
@@ -453,6 +550,17 @@ export class TabdeckTabbar extends LitElement {
         )}
       </div>
       ${this._groupOpen >= 0 ? this._renderGroupMenu() : ""}
+      ${this.searchable
+        ? html`<button
+            class="search-btn"
+            aria-label=${localize(this.language, "card.search")}
+            aria-expanded=${this._searchOpen ? "true" : "false"}
+            @click=${() => (this._searchOpen ? this._closeSearch() : this.openSearch())}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"></path></svg>
+          </button>`
+        : ""}
+      ${this._searchOpen ? this._renderSearch() : ""}
       ${arrows
         ? html`<button class="scroll-btn right" aria-label=${localize(this.language, "card.scroll_right")} @click=${() => this._scrollBy(1)}>›</button>`
         : ""}
@@ -558,6 +666,68 @@ export class TabdeckTabbar extends LitElement {
     .group-item:focus-visible {
       background: var(--secondary-background-color, #f5f5f5);
       outline: none;
+    }
+    .search-btn {
+      flex-shrink: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0 8px;
+      color: var(--secondary-text-color);
+      display: inline-flex;
+      align-items: center;
+    }
+    .search-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+    .search-panel {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      z-index: 4;
+      width: min(320px, 100%);
+      background: var(--card-background-color, #fff);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      padding: 6px;
+      box-sizing: border-box;
+    }
+    :host([dock]) .search-panel {
+      top: auto;
+      bottom: 100%;
+    }
+    .search-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--divider-color, #e0e0e0);
+      background: var(--secondary-background-color, transparent);
+      color: var(--primary-text-color);
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--tabdeck-accent, var(--primary-color));
+    }
+    .search-results {
+      display: flex;
+      flex-direction: column;
+      max-height: 280px;
+      overflow: auto;
+      margin-top: 4px;
+    }
+    .search-results .group-item.active {
+      background: var(--secondary-background-color, #f5f5f5);
+    }
+    .search-empty {
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--secondary-text-color);
     }
     .group-item ha-icon {
       --mdc-icon-size: 20px;

@@ -39,6 +39,8 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Grouped tabs** — a tab with `children:` holds sub-tabs, shown as a compact second-level row or, with `children_display: menu`, as a ▾ dropdown on the tab (keyboard accessible; the parent's subtitle shows the open child). `children_options` styles the inner deck; the editor round-trips `children`.
 - **`hide_bar`** — content only, no tab bar.
 - **Public API** — `selectTab(nameOrIndex)`, `selectedTab`, and a `tabdeck-tab-changed` event on every tab change, for browser_mod, scripts and other cards.
+- **Quick-switch search** — `search: true` adds a 🔍 filter (case/accent-insensitive, names and subtitles, ↑↓/Enter/Esc).
+- **Keyboard shortcuts** — `hotkeys: true`: 1–9 open tabs, [ ] step, / opens search; ignored while typing, with modifiers, or when the deck isn't visible.
 
 ### Fixed
 - Editor button icons (Add tab) render on current WebAwesome-based HA builds.

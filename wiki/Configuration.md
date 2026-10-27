@@ -41,6 +41,8 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `dock` | boolean | `false` | Pin the bar to the bottom of the screen as phone-style navigation. See [Dock](Feature-Dock). |
 | `content_arrows` | boolean | `false` | ‹ › buttons beside the content to step between tabs. See [Dots & arrows](Feature-Dots-Arrows). |
 | `hide_bar` | boolean | `false` | Render only the content, no tab bar. See [Grouped tabs](Feature-Grouped-Tabs#related-hide_bar-and-the-public-api). |
+| `search` | boolean | `false` | 🔍 quick-switch filter over the tabs. See [Search & shortcuts](Feature-Search-Hotkeys). |
+| `hotkeys` | boolean | `false` | Keyboard shortcuts: 1–9, [ ], /. See [Search & shortcuts](Feature-Search-Hotkeys#keyboard-shortcuts). |
 | `styles` | map | — | CSS variables/properties applied to the card. See [Theming](Feature-Theming). |
 
 > **Legacy:** `options.defaultTabIndex` is still accepted as a fallback for `default_tab`.

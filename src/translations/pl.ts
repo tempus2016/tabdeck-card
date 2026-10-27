@@ -204,5 +204,10 @@ const pl: Record<string, string> = {
   "editor.opt.tab_display.dots": "Kropki",
   "card.prev_tab": "Poprzednia zakładka",
   "card.next_tab": "Następna zakładka",
+  "editor.global.search": "Szybkie wyszukiwanie (przycisk 🔍)",
+  "editor.global.hotkeys": "Skróty klawiaturowe (1–9, [ ], /)",
+  "card.search": "Znajdź zakładkę",
+  "card.search_placeholder": "Wpisz, aby filtrować…",
+  "card.search_none": "Brak pasujących zakładek",
 };
 export default pl;

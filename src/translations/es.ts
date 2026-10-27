@@ -204,5 +204,10 @@ const es: Record<string, string> = {
   "editor.opt.tab_display.dots": "Puntos",
   "card.prev_tab": "Pestaña anterior",
   "card.next_tab": "Pestaña siguiente",
+  "editor.global.search": "Búsqueda rápida (botón 🔍)",
+  "editor.global.hotkeys": "Atajos de teclado (1–9, [ ], /)",
+  "card.search": "Buscar una pestaña",
+  "card.search_placeholder": "Escribe para filtrar…",
+  "card.search_none": "No hay pestañas que coincidan",
 };
 export default es;

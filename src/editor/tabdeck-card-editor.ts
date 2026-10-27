@@ -737,6 +737,8 @@ export class TabdeckCardEditor extends LitElement {
       { name: "idle_return", selector: { number: { min: 0, max: 86400, step: 1, mode: "box" } } },
       { name: "dock", selector: { boolean: {} } },
       { name: "content_arrows", selector: { boolean: {} } },
+      { name: "search", selector: { boolean: {} } },
+      { name: "hotkeys", selector: { boolean: {} } },
       { name: "edit_mode_reveal", selector: { boolean: {} } },
     ];
   }
@@ -783,6 +785,8 @@ export class TabdeckCardEditor extends LitElement {
       idle_return: cfg.idle_return ?? 0,
       dock: cfg.dock,
       content_arrows: cfg.content_arrows,
+      search: cfg.search,
+      hotkeys: cfg.hotkeys,
       edit_mode_reveal: cfg.edit_mode_reveal,
     };
   }
@@ -847,6 +851,8 @@ export class TabdeckCardEditor extends LitElement {
       idle_return: Number(v.idle_return) > 0 ? Math.max(5, Number(v.idle_return)) : undefined,
       dock: !!v.dock,
       content_arrows: !!v.content_arrows,
+      search: !!v.search,
+      hotkeys: !!v.hotkeys,
       edit_mode_reveal: v.edit_mode_reveal !== false,
     });
   }

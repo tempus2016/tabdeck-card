@@ -204,5 +204,10 @@ const it: Record<string, string> = {
   "editor.opt.tab_display.dots": "Punti",
   "card.prev_tab": "Tab precedente",
   "card.next_tab": "Tab successiva",
+  "editor.global.search": "Ricerca rapida (pulsante 🔍)",
+  "editor.global.hotkeys": "Scorciatoie da tastiera (1–9, [ ], /)",
+  "card.search": "Cerca una tab",
+  "card.search_placeholder": "Digita per filtrare…",
+  "card.search_none": "Nessuna tab corrispondente",
 };
 export default it;
