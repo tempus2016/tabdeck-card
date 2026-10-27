@@ -6,6 +6,7 @@ import { normalizeConfig, normalizeTab, type TabdeckCardConfig } from "../lib/co
 import { isTemplate, makeHassSubscribe, TemplateRenderer } from "../lib/templates";
 import { conditionsSignature, explainConditions, type ConditionExplanation } from "../lib/explain";
 import { hassLanguage, localize } from "../lib/i18n";
+import { applyStarter, buildStarter, STARTERS, type StarterKind } from "../lib/starters";
 import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
 import { SOURCE_TAB_TEMPLATE } from "../lib/sources";
 import "../components/tabdeck-tabbar";
@@ -25,6 +26,8 @@ const MDI_EXPORT =
   "M23,12L19,8V11H10V13H19V16M1,18V6C1,4.89 1.9,4 3,4H15A2,2 0 0,1 17,6V9H15V6H3V18H15V15H17V18A2,2 0 0,1 15,20H3A2,2 0 0,1 1,18Z";
 const MDI_IMPORT =
   "M14,12L10,8V11H2V13H10V16M20,18V6C20,4.89 19.1,4 18,4H6A2,2 0 0,0 4,6V9H6V6H18V18H6V15H4V18A2,2 0 0,0 6,20H18A2,2 0 0,0 20,18Z";
+const MDI_CREATION =
+  "M19,1L17.74,3.75L15,5L17.74,6.26L19,9L20.25,6.26L23,5L20.25,3.75M9,4L6.5,9.5L1,12L6.5,14.5L9,20L11.5,14.5L17,12L11.5,9.5M19,15L17.74,17.74L15,19L17.74,20.25L19,23L20.25,20.25L23,19L20.25,17.74";
 const MDI_CHEVRON_DOWN = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z";
 
 // Fallback icon shown in a collapsed tab header when the tab has no icon set.
@@ -181,6 +184,9 @@ export class TabdeckCardEditor extends LitElement {
   @state() private _importOpen = false;
   @state() private _importError = "";
   private _importValue: any;
+  // Starter-template panel.
+  @state() private _starterOpen = false;
+  @state() private _starterKind: StarterKind = "rooms";
   // Transient status line (e.g. "Copied tab …").
   @state() private _status = "";
   private _statusTimer?: ReturnType<typeof setTimeout>;
@@ -385,6 +391,66 @@ export class TabdeckCardEditor extends LitElement {
     }
     const label = tab.name || `Tab ${index + 1}`;
     this._flash(ok ? `Copied tab "${label}" — paste it into Import tab.` : "Couldn't access the clipboard.");
+  }
+
+  private _toggleStarter(): void {
+    this._starterOpen = !this._starterOpen;
+  }
+
+  private _applyStarter(mode: "replace" | "append"): void {
+    if (!this._config) return;
+    const kind = this._starterKind;
+    const label = this._t(`starter.kind.${kind}`);
+    const starter = buildStarter(kind, this._hass, (k) => this._t(k));
+    if (starter.count === 0) {
+      this._flash(this._t("starter.none", { name: label }));
+      return;
+    }
+    const next = normalizeConfig(applyStarter(this._config, starter, mode));
+    this._expanded = new Set();
+    this._starterOpen = false;
+    this._flash(this._t("starter.done", { name: label }));
+    this._emit(next);
+  }
+
+  private _renderStarter() {
+    const schema = [
+      {
+        name: "kind",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: STARTERS.map((k) => ({ value: k, label: this._t(`starter.kind.${k}`) })),
+          },
+        },
+      },
+    ];
+    return html`
+      <div class="import-panel starter-panel">
+        <div class="import-hint">${this._t("starter.hint")}</div>
+        <ha-form
+          class="starter-form"
+          .hass=${this.hass}
+          .data=${{ kind: this._starterKind }}
+          .schema=${schema}
+          .computeLabel=${() => this._t("starter.pick")}
+          @value-changed=${(e: CustomEvent) => {
+            e.stopPropagation();
+            const k = (e.detail as any)?.value?.kind;
+            if (STARTERS.includes(k)) this._starterKind = k;
+          }}
+        ></ha-form>
+        <div class="import-actions">
+          <ha-button class="starter-replace" @click=${() => this._applyStarter("replace")}
+            >${this._t("starter.replace")}</ha-button
+          >
+          <ha-button class="starter-append" @click=${() => this._applyStarter("append")}
+            >${this._t("starter.append")}</ha-button
+          >
+          <ha-button class="starter-cancel" @click=${this._toggleStarter}>${this._t("starter.cancel")}</ha-button>
+        </div>
+      </div>
+    `;
   }
 
   private _toggleImport(): void {
@@ -1187,7 +1253,13 @@ export class TabdeckCardEditor extends LitElement {
             <ha-svg-icon slot="icon" .path=${MDI_IMPORT}></ha-svg-icon>
             Import tab
           </ha-button>
+          <ha-button class="starter-tab" @click=${this._toggleStarter}>
+            <ha-svg-icon slot="start" .path=${MDI_CREATION}></ha-svg-icon>
+            <ha-svg-icon slot="icon" .path=${MDI_CREATION}></ha-svg-icon>
+            ${this._t("starter.button")}
+          </ha-button>
         </div>
+        ${this._starterOpen ? this._renderStarter() : nothing}
         ${this._importOpen ? this._renderImport() : nothing}
         ${this._status ? html`<div class="editor-status" role="status">${this._status}</div>` : nothing}
       </div>

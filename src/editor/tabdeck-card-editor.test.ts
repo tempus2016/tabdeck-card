@@ -584,3 +584,55 @@ describe("why-hidden condition check", () => {
     expect(spy).toHaveBeenCalled();
   });
 });
+
+describe("starter templates", () => {
+  const hass = {
+    states: {
+      "climate.hall": { state: "heat", attributes: { friendly_name: "Hall" } },
+      "climate.loft": { state: "off", attributes: { friendly_name: "Loft" } },
+    },
+  };
+
+  it("replaces the tabs with a starter built from hass", async () => {
+    const el = await mount({ tabs: [{ name: "Old", card: { type: "markdown" } }] });
+    el.hass = hass;
+    const fired: any[] = [];
+    el.addEventListener("config-changed", (e: any) => fired.push(e.detail.config));
+    el.shadowRoot.querySelector(".starter-tab").click();
+    await el.updateComplete;
+    formChange(el.shadowRoot.querySelector(".starter-form"), { kind: "climate" });
+    await el.updateComplete;
+    el.shadowRoot.querySelector(".starter-replace").click();
+    await el.updateComplete;
+    expect(fired.at(-1)!.tabs.map((t: any) => t.name)).toEqual(["Hall", "Loft"]);
+    expect(el.shadowRoot.querySelector(".starter-panel")).toBeNull();
+  });
+
+  it("appends, and writes rooms as an areas source", async () => {
+    const el = await mount({ tabs: [{ name: "Old", card: { type: "markdown" } }] });
+    el.hass = { states: {}, areas: { kitchen: {} } };
+    const fired: any[] = [];
+    el.addEventListener("config-changed", (e: any) => fired.push(e.detail.config));
+    el.shadowRoot.querySelector(".starter-tab").click();
+    await el.updateComplete;
+    el.shadowRoot.querySelector(".starter-append").click();
+    const out = fired.at(-1)!;
+    expect(out.tabs.map((t: any) => t.name)).toEqual(["Old"]);
+    expect(out.auto_tabs).toEqual({ source: "areas" });
+  });
+
+  it("explains when nothing matches instead of emptying the deck", async () => {
+    const el = await mount({ tabs: [{ name: "Old", card: { type: "markdown" } }] });
+    el.hass = { states: {} };
+    const fired: any[] = [];
+    el.addEventListener("config-changed", (e: any) => fired.push(e.detail.config));
+    el.shadowRoot.querySelector(".starter-tab").click();
+    await el.updateComplete;
+    formChange(el.shadowRoot.querySelector(".starter-form"), { kind: "media" });
+    await el.updateComplete;
+    el.shadowRoot.querySelector(".starter-replace").click();
+    await el.updateComplete;
+    expect(fired).toHaveLength(0);
+    expect(el.shadowRoot.querySelector(".editor-status")?.textContent).toContain("no matching entities");
+  });
+});
