@@ -5,53 +5,95 @@ section below as its release notes (see `.github/workflows/release.yml`).
 
 ## v1.1.0 — 2026-10-27
 
-### Added
-- **Live `remember: entity` sync** — the card now follows its helper entity when it changes elsewhere (another device, an automation, Node-RED), so the helper doubles as a remote control for wall panels. Echoes of the card's own writes are ignored.
-- **State-driven tab fields** — a tab's `icon`, `name`, `subtitle`, `color` and `accent` can be Jinja templates rendered live by Home Assistant (e.g. an open-garage icon in red).
-- **Numeric badge formatting** — `badge_format: { precision, unit, max }` per tab or as a top-level default (`21.456` → `21.5°`, `150` → `99+`).
-- **Alert pulse** — per-tab `alert` conditions (visibility syntax, incl. templates) make a tab pulse in `--tabdeck-alert-color` while met; steady tint under reduced motion.
-- **Auto-rotate** — `auto_rotate: 15` (or `{ interval, resume_after }`) cycles enabled tabs for wall panels, pausing after any interaction. Rotations are not persisted.
-- **Idle return** — `idle_return: 120` goes back to the default tab after inactivity.
-- **Navigation & action tabs** — per-tab `tap_action` runs an HA action (e.g. `navigate`) instead of opening the tab; such tabs need no card and are skipped by arrows, swipe and auto-rotate.
-- **Scroll-spy (anchor mode)** — `scroll_spy: true` stacks every tab as a section; the (auto-sticky) bar scrolls to sections and highlights the one in view.
-- **Tab-change actions** — per-tab `enter_action` / `leave_action` run an HA action when a tab becomes / stops being active (any source; not on initial load).
-- **Collapsible deck** — `collapsible: true` folds the content away when the active tab is tapped again; `start_collapsed` opens folded.
-- **Split view** — `split: 900` (or `{ min_width, columns }`) shows every tab side by side as titled columns when the card is wide enough.
-- **Responsive tab display** — `tab_display_narrow` (+ `narrow_width`) switches e.g. to icon-only tabs on narrow cards.
-- **Style presets** — `preset: ios | material | glass | minimal | rail | default` applies a bundle of styling options (explicit keys win); the editor's preset picker writes the values into the form. New `--tabdeck-bar-backdrop` variable for frosted bars.
-- **Editor condition builders** — each tab's Visibility, Alert and Default-when conditions are editable with Home Assistant's native condition editor (tabdeck-only types like `template` edit as YAML in place).
-- **Copy & import tabs** — the editor can copy a tab's config to the clipboard (works on http too) and import one or several pasted tabs.
-- **A tab per area or label** — `auto_tabs: { source: areas | labels, domains, exclude }` builds a tab per area (with its registry icon) or label, listing its entities; no Jinja required.
-- **Expand the selected tab** — `tab_display: active` shows icons only, except the selected tab, which also shows its name and subtitle (also valid for `tab_display_narrow`). Suggested in discussion #93.
-- **Per-tab styles** — a tab's own `styles` apply over the top-level ones while it's active (e.g. a different accent per tab).
-- **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
-- **Edit mode helpers** — while the dashboard is being edited (and in the editor preview), tabs hidden by `visibility` appear faded with an eye-off marker so they can be reached; `auto_rotate` / `idle_return` pause and selections aren't persisted. Opt out with `edit_mode_reveal: false`.
-- **Why is this tab hidden?** — the editor checks each tab's visibility / alert / default conditions against live state: *Hidden now* / *Alerting* chips on the tab list, and a ✅/❌ breakdown per condition (with current values, missing entities and live template results).
-- **Starter templates** — *Start from a template* in the editor builds a working deck from your own entities: Rooms, Lights, Security, Media, Climate, Energy or Family. Replace the current tabs or add to them.
-- **Convert from another card** — paste a `tabbed-card`, `swipe-card`, `state-switch`, Bubble Card pop-ups, a stack / grid (split at `heading` cards), `conditional` cards, a sections view or a whole dashboard into the editor and get Tabdeck tabs, with options mapped and any lossy bits explained.
-- **Translations** — the editor and the card's built-in text follow the Home Assistant language: English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português (regional variants fall back to the base language, missing strings to English). Editor dropdowns show readable option names.
-- **Live demo** — a browser playground (https://tempus2016.github.io/tabdeck-card/) with example decks, an editable YAML box and pretend devices (guest mode, garage door, lights) that drive visibility, badges and alerts live. Built from `demo/` by the new Pages workflow.
-- **Showcase** — a Showcase wiki page of community decks and starter ideas, plus a *Show and tell* discussion form (screenshot, description, YAML, consent to feature) linked from the issue chooser.
-- **Dock** — `dock: true` pins the bar to the bottom of the screen as phone-style navigation (icon over label, badges on the icon, safe-area aware, follows HA's sidebar); it reverts to a normal bar while editing.
-- **Floating action tabs** — per-tab `fab: true` renders a raised round accent button (floats above the dock); pair it with `tap_action`.
-- **Pagination dots** — `tab_display: dots` shows a centred row of dots (current one stretched, alerts in red; names still read to screen readers).
-- **Content arrows** — `content_arrows: true` adds ‹ › buttons in side gutters to step between tabs (skips disabled/action tabs; wraps with `swipe_wrap`).
-- **Grouped tabs** — a tab with `children:` holds sub-tabs, shown as a compact second-level row or, with `children_display: menu`, as a ▾ dropdown on the tab (keyboard accessible; the parent's subtitle shows the open child). `children_options` styles the inner deck; the editor round-trips `children`.
-- **`hide_bar`** — content only, no tab bar.
-- **Public API** — `selectTab(nameOrIndex)`, `selectedTab`, and a `tabdeck-tab-changed` event on every tab change, for browser_mod, scripts and other cards.
-- **Quick-switch search** — `search: true` adds a 🔍 filter (case/accent-insensitive, names and subtitles, ↑↓/Enter/Esc).
-- **Keyboard shortcuts** — `hotkeys: true`: 1–9 open tabs, [ ] step, / opens search; ignored while typing, with modifiers, or when the deck isn't visible.
-- **Back button** — `history: true` makes each tab you open a browser history entry, so Back / the phone's back gesture returns to the previous tab. Automatic switches add no entries; HA's own history (dialogs, views) is untouched.
-- **Arrange tabs** — `customize: true` adds a button that lets each person reorder and hide tabs for themselves, saved in their browser (never changes the config; Reset restores it).
-- **Expanding side rail** — `rail_expand: true` keeps a left/right bar as an icon rail that slides its labels out over the content on hover or keyboard focus.
+The biggest Tabdeck release yet: **nearly 40 new features**. Tabs can now **react to your home** (live icons, alerts, formatted badges), the card can **run a wall panel** by itself, the deck can be a **phone-style dock**, a **dropdown menu** or a **side-by-side split view**, and the editor can **build a deck for you** from your own entities or **convert one from another card**. It also speaks **eight languages**, and there's a **[live demo](https://tempus2016.github.io/tabdeck-card/)** to try everything in the browser before you install it.
 
-### Fixed
-- Content beside a `left` / `right` tab bar now fills the card's width instead of shrinking to its content.
-- Editor button icons (Add tab) render on current WebAwesome-based HA builds.
-- `perform-action` actions (what HA's action picker writes) now work for `hold_action`, `badge_action` and `tap_action`; previously only the legacy `call-service` ran.
-- `sticky` bars now pin below Home Assistant's app header (`--header-height`) instead of hiding underneath it; override with `--tabdeck-sticky-top`.
-- Swiping now steps over disabled tabs instead of landing on them.
-- Numeric zero badges such as `0.0` now count as inactive (hidden by `hide_inactive_badge`, no dot in dot mode).
+Every new feature is opt-in. **Nothing needs migrating** and existing dashboards look and behave exactly as before.
+
+---
+
+### 🎮 New: try it in your browser
+- **[Live demo](https://tempus2016.github.io/tabdeck-card/)**: a playground with example decks, a YAML box you can edit, and pretend devices (guest mode, a garage door, lights) that switch visibility, badges and alerts live. No Home Assistant needed.
+- **[Showcase](https://github.com/tempus2016/tabdeck-card/wiki/Showcase)**: a wiki page of community decks and starter ideas. Share yours with the new *Show and tell* discussion form (screenshot, YAML and a tick-box to agree to it being featured).
+
+### ✨ New: the editor builds decks for you
+- **[Starter templates](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Starter-Templates)**: *Start from a template* builds a working deck from **your own entities**: Rooms, Lights, Security, Media, Climate, Energy or Family. Replace the current tabs or add to them.
+- **[Convert from another card](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Convert)**: paste a `tabbed-card`, `swipe-card`, `state-switch`, Bubble Card pop-ups, a stack or grid (split at `heading` cards), `conditional` cards, a sections view or a whole dashboard, and get Tabdeck tabs back. Options are mapped across, and anything that couldn't be carried over is explained.
+- **[Why is this tab hidden?](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Condition-Check)**: the editor checks each tab's conditions against live state. *Hidden now* and *Alerting* chips show on the tab list, and each condition gets a ✅ or ❌ with the current value, any missing entity and live template results.
+- **Condition builders**: Visibility, Alert and Default-when conditions use Home Assistant's own condition editor. Tabdeck-only types such as `template` edit as YAML in place. (#110)
+- **Copy and import tabs**: copy a tab's config to the clipboard (works over plain http too) and paste one or several tabs back in. (#111)
+
+### 🏠 New: tabs that react to your home
+- **[Live icons, names and colours](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Templated-Fields)**: a tab's `icon`, `name`, `subtitle`, `color` and `accent` can be Jinja templates, so the Garage tab can turn red with an open-door icon while it's open. (#100)
+- **[Alert pulse](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Alert)**: per-tab `alert` conditions make a tab pulse in `--tabdeck-alert-color` while they're met. With reduced motion on, it's a steady tint instead. (#102)
+- **[Badge formatting](https://github.com/tempus2016/tabdeck-card/wiki/Badges)**: `badge_format: { precision, unit, max }` turns `21.456` into `21.5°` and `150` into `99+`. Set it per tab or once for the whole card. (#101)
+- **[A tab per area or label](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Dynamic-Tabs)**: `auto_tabs: { source: areas | labels }` builds a tab for every area (with its icon) or label, listing its entities. No Jinja needed. (#112)
+- **[Tab-change actions](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Enter-Leave-Actions)**: `enter_action` / `leave_action` run any HA action when a tab opens or closes, for example turning a camera stream on only while its tab is showing. (#106)
+
+  ```yaml
+  - name: Garage
+    icon: "{{ 'mdi:garage-open' if is_state('cover.garage', 'open') else 'mdi:garage' }}"
+    color: "{{ 'var(--error-color)' if is_state('cover.garage', 'open') else '' }}"
+    alert:
+      - condition: state
+        entity: cover.garage
+        state: open
+  ```
+
+### 🖥️ New: wall panels and kiosks
+- **[Auto-rotate](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Kiosk)**: `auto_rotate: 15` cycles through the tabs and pauses whenever someone touches the screen. (#103)
+- **Idle return**: `idle_return: 120` goes back to the default tab after two minutes with nobody using it. (#103)
+- **[Remote control from HA](https://github.com/tempus2016/tabdeck-card/wiki/Navigation-and-Persistence)**: with `remember: entity`, the card now follows its helper entity live, so an automation or Node-RED flow can change the tab on every panel at once. (#99)
+- **[Edit mode helpers](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Edit-Mode)**: while you edit the dashboard, hidden tabs appear faded with an eye-off marker so you can still reach them, and rotation and idle return pause.
+
+### 🧭 New: more ways to lay out a deck
+- **[Dock](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Dock)**: `dock: true` pins the bar to the bottom of the screen like a phone app's navigation, with the icon over the label, badges on the icon, and room left for the home bar and HA's sidebar.
+- **Floating action tabs**: `fab: true` makes a tab a raised round button that floats above the dock. Pair it with `tap_action`.
+- **[Grouped tabs](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Grouped-Tabs)**: a tab with `children:` holds sub-tabs, shown as a second row or, with `children_display: menu`, as a ▾ dropdown on the tab.
+- **[Split view](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Responsive)**: `split: 900` shows every tab side by side as columns once the card is at least 900 px wide. (#108)
+- **Narrow screens**: `tab_display_narrow` switches to, say, icon-only tabs when the card is narrow. (#108)
+- **Expand the selected tab**: `tab_display: active` shows icons only, except the selected tab, which also shows its name. Suggested by the community in discussion #93.
+- **[Pagination dots and content arrows](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Dots-Arrows)**: `tab_display: dots` swaps the tabs for a row of dots, and `content_arrows: true` adds ‹ › buttons beside the content.
+- **Expanding side rail**: `rail_expand: true` keeps a left or right bar as an icon rail that slides its labels out on hover or keyboard focus.
+- **[Scroll-spy](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Scroll-Spy)**: `scroll_spy: true` stacks every tab as one long page. The bar jumps to each section and highlights the one you're reading. (#105)
+- **[Collapsible](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Collapsible)**: `collapsible: true` folds the content away when you tap the open tab again. `start_collapsed` starts folded. (#107)
+- **`hide_bar`**: content only, no tab bar.
+
+### 🎨 New: styling
+- **[Style presets](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Presets)**: `preset: ios | material | glass | minimal | rail` applies a whole look in one line. Anything you set yourself still wins, and the editor's preset picker fills the values into the form so you can tweak from there. A new `--tabdeck-bar-backdrop` variable gives frosted bars. (#109)
+- **Per-tab styles**: a tab's own `styles` apply while it's open, for example a different accent colour per room. (#113)
+
+### ⌨️ New: getting around faster
+- **[Quick-switch search](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Search-Hotkeys)**: `search: true` adds a 🔍 filter that ignores case and accents and searches names and subtitles. Use ↑ ↓ and Enter to pick a tab.
+- **Keyboard shortcuts**: `hotkeys: true` gives 1 to 9 for tabs, `[` `]` to step and `/` to search. They're ignored while you're typing.
+- **Back button**: `history: true` makes the browser's Back button, or the phone's back gesture, return to the previous tab.
+- **[Arrange your own tabs](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Customize)**: `customize: true` lets each person reorder and hide tabs for themselves. It's saved in their browser and never changes the dashboard config.
+- **[Navigation tabs](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Navigation-Tabs)**: a tab with `tap_action` runs an action, such as `navigate` to another view, instead of opening. (#104)
+- **Friendlier deep links**: `#tab=living-room` now matches the *Living Room* tab, ignoring case. (#99)
+
+### 🌍 New: eight languages
+The editor and the card's own text follow your Home Assistant language: **English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português**. Regional variants use the base language, and anything not yet translated shows in English. See [Languages](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Languages) if you'd like to help translate.
+
+### 🔌 New: for scripts and other cards
+- `selectTab(nameOrIndex)`, `selectedTab`, and a `tabdeck-tab-changed` event on every tab change, for browser_mod, scripts and other cards.
+
+---
+
+### 🐛 Fixed
+- **Sticky bars no longer hide under Home Assistant's header.** They now pin just below it. Override the position with `--tabdeck-sticky-top`. (#105)
+- **Actions picked in HA's action editor now run.** `perform-action` (what the picker writes) works for `hold_action`, `badge_action` and `tap_action`; before, only the older `call-service` did. (#106)
+- **Content beside a left or right tab bar fills the card** instead of shrinking to fit its content.
+- **The editor's Add tab icon shows** on current Home Assistant builds.
+- **Swiping skips disabled tabs** instead of landing on them.
+- **A `0.0` badge counts as zero**, so `hide_inactive_badge` hides it and dot mode shows no dot.
+
+---
+
+### Upgrading
+Update via **HACS**, then **hard-refresh your browser** (Ctrl/Cmd + Shift + R) so the new card loads. Nothing needs changing in your config.
+
+Full details for each feature are on the [Wiki](https://github.com/tempus2016/tabdeck-card/wiki).
+
+**Full changelog:** https://github.com/tempus2016/tabdeck-card/compare/v1.0.0...v1.1.0
 
 ## v1.0.0 — 2026-06-24
 
