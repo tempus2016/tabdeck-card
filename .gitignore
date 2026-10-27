@@ -3,3 +3,6 @@ dist/*
 !dist/tabdeck-card.js
 *.log
 .DS_Store
+
+# Built demo site (published by the Pages workflow)
+site/

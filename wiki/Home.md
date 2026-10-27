@@ -6,6 +6,8 @@
 
 ![Tabdeck card editor](images/editor-collapsed.png)
 
+> 🎮 **[Try the live demo](https://tempus2016.github.io/tabdeck-card/)**: no Home Assistant needed.
+
 ## Contents
 
 - **[Installation](Installation)** — HACS and manual install.

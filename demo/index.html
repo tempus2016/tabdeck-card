@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabdeck Card — live demo</title>
+    <meta name="description" content="Try Tabdeck, the tabbed card for Home Assistant dashboards, in your browser." />
+    <link rel="icon" href="icon.png" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --primary-color: #03a9f4;
+        --primary-text-color: #e1e1e1;
+        --secondary-text-color: #9b9b9b;
+        --text-primary-color: #fff;
+        --divider-color: rgba(225, 225, 225, 0.12);
+        --card-background-color: #1c1c1c;
+        --ha-card-background: #1c1c1c;
+        --secondary-background-color: #282828;
+        --primary-background-color: #111;
+        --error-color: #db4437;
+        --success-color: #43a047;
+        --state-icon-color: #44739e;
+        --code-font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      :root.light {
+        color-scheme: light;
+        --primary-text-color: #212121;
+        --secondary-text-color: #727272;
+        --divider-color: rgba(0, 0, 0, 0.12);
+        --card-background-color: #fff;
+        --ha-card-background: #fff;
+        --secondary-background-color: #f0f0f0;
+        --primary-background-color: #fafafa;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: var(--primary-background-color);
+        color: var(--primary-text-color);
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--divider-color);
+      }
+      header img {
+        width: 40px;
+        height: 40px;
+      }
+      header h1 {
+        font-size: 20px;
+        margin: 0;
+        font-weight: 500;
+      }
+      header p {
+        margin: 2px 0 0;
+        color: var(--secondary-text-color);
+        font-size: 14px;
+      }
+      header nav {
+        margin-left: auto;
+        display: flex;
+        gap: 14px;
+        font-size: 14px;
+      }
+      a {
+        color: var(--primary-color);
+      }
+      main {
+        display: grid;
+        grid-template-columns: minmax(300px, 440px) 1fr;
+        gap: 24px;
+        padding: 24px;
+      }
+      @media (max-width: 860px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+      .panel h2 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--secondary-text-color);
+        margin: 0 0 8px;
+        font-weight: 500;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .chips button {
+        border: 1px solid var(--divider-color);
+        background: var(--card-background-color);
+        color: var(--primary-text-color);
+        border-radius: 16px;
+        padding: 6px 12px;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .chips button.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+      }
+      textarea {
+        width: 100%;
+        min-height: 420px;
+        resize: vertical;
+        font-family: var(--code-font-family);
+        font-size: 13px;
+        line-height: 1.5;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid var(--divider-color);
+        background: var(--card-background-color);
+        color: var(--primary-text-color);
+        tab-size: 2;
+      }
+      #error {
+        color: var(--error-color);
+        font-size: 13px;
+        margin-top: 6px;
+        white-space: pre-wrap;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        margin: 16px 0 0;
+        font-size: 14px;
+      }
+      .controls label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+      .stage-wrap {
+        background: var(--primary-background-color);
+      }
+      #stage {
+        max-width: 100%;
+        background: var(--card-background-color);
+        border-radius: 12px;
+        border: 1px solid var(--divider-color);
+        padding: 8px 12px 12px;
+        transition: max-width 0.2s ease;
+      }
+      .note {
+        color: var(--secondary-text-color);
+        font-size: 13px;
+        margin-top: 16px;
+        line-height: 1.5;
+      }
+      code {
+        font-family: var(--code-font-family);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="icon.png" alt="" />
+      <div>
+        <h1>Tabdeck Card</h1>
+        <p>A modern tabbed card for Home Assistant. This is a live demo with fake devices.</p>
+      </div>
+      <nav>
+        <a href="https://github.com/tempus2016/tabdeck-card">GitHub</a>
+        <a href="https://github.com/tempus2016/tabdeck-card/wiki">Docs</a>
+        <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=tempus2016&repository=tabdeck-card&category=plugin">Install with HACS</a>
+      </nav>
+    </header>
+    <main>
+      <section class="panel">
+        <h2>Examples</h2>
+        <div class="chips" id="examples"></div>
+        <h2>Card YAML (edit me)</h2>
+        <textarea id="yaml" spellcheck="false" aria-label="Card YAML"></textarea>
+        <div id="error" role="alert" hidden></div>
+      </section>
+      <section class="panel stage-wrap">
+        <h2>Preview</h2>
+        <div class="chips">
+          <button data-width="100%" class="active">Desktop</button>
+          <button data-width="390px">Phone</button>
+        </div>
+        <div id="stage"></div>
+        <h2 style="margin-top: 20px">Pretend devices</h2>
+        <div class="controls">
+          <label><input type="checkbox" data-entity="input_boolean.guest_mode" /> Guest mode</label>
+          <label><input type="checkbox" data-entity="binary_sensor.garage_door" /> Garage door open</label>
+          <label><input type="checkbox" data-entity="light.kitchen" /> Kitchen light</label>
+          <label><input type="checkbox" data-entity="light.porch" /> Porch light</label>
+          <label><input type="checkbox" id="dark" checked /> Dark theme</label>
+        </div>
+        <p class="note">
+          Cards inside the tabs are simplified stand-ins for Home Assistant's own cards. Tabdeck itself is the
+          real card from this release. Templates only work for the ones used in the examples; in Home Assistant
+          any Jinja template works.
+        </p>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
