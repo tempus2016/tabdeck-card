@@ -156,6 +156,38 @@ tabs:
 `,
   },
   {
+    id: "layout",
+    title: "Masonry, backgrounds & full screen",
+    yaml: `type: custom:tabdeck-card
+content_height: tallest
+fullscreen: true
+swipe: true
+swipe_peek: true
+swipe_mouse: true
+transition: scale
+header_cards:
+  - type: markdown
+    content: "Good evening · shown on every tab"
+tabs:
+  - name: Overview
+    icon: mdi:view-dashboard
+    background: "linear-gradient(135deg, rgba(3,169,244,.22), rgba(156,39,176,.22))"
+    layout: masonry
+    min_column_width: 260
+    cards:
+      - { type: weather-forecast, entity: weather.home }
+      - { type: tile, entity: light.kitchen }
+      - { type: sensor, entity: sensor.power }
+      - { type: tile, entity: lock.front_door }
+  - name: Cameras
+    icon: mdi:cctv
+    card: { type: picture-entity, entity: camera.driveway }
+  - name: People
+    icon: mdi:account-multiple
+    card: { type: entities, entities: [person.alex, person.sam] }
+`,
+  },
+  {
     id: "panel",
     title: "Wall panel",
     yaml: `type: custom:tabdeck-card

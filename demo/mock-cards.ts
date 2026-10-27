@@ -167,6 +167,12 @@ class DemoCard extends LitElement {
           ${(c.cards ?? []).map((cc: any) => html`<demo-card .config=${cc} .hass=${this.hass}></demo-card>`)}
         </div>`;
       }
+      case "custom:tabdeck-masonry-card": {
+        const el = document.createElement("tabdeck-masonry-card") as any;
+        el.setConfig(c);
+        el.hass = this.hass;
+        return html`${el}`;
+      }
       case "custom:tabdeck-card": {
         const el = document.createElement("tabdeck-card") as any;
         el.setConfig(c);
