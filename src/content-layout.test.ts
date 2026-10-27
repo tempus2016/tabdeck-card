@@ -66,6 +66,41 @@ describe("transitions", () => {
   });
 });
 
+describe("transition_narrow", () => {
+  async function switchAnimations(raw: any, width: number) {
+    const el = await mount({ tabs, ...raw });
+    el._width = width;
+    await settle(el);
+    const calls: any[] = [];
+    (HTMLElement.prototype as any).animate = function (frames: any, opts: any) {
+      calls.push({ frames, opts });
+      return {};
+    };
+    try {
+      el.selectTab(1);
+      await settle(el);
+    } finally {
+      delete (HTMLElement.prototype as any).animate;
+    }
+    return calls;
+  }
+
+  it("uses the narrow transition below narrow_width", async () => {
+    expect(await switchAnimations({ transition: "slide", transition_narrow: "none" }, 380)).toHaveLength(0);
+    const fade = await switchAnimations({ transition: "slide", transition_narrow: "fade" }, 380);
+    expect(fade[0].frames[0].transform).toBeUndefined();
+  });
+
+  it("keeps the normal transition on wide cards and before the width is known", async () => {
+    expect(await switchAnimations({ transition: "slide", transition_narrow: "none" }, 900)).toHaveLength(1);
+    expect(await switchAnimations({ transition: "slide", transition_narrow: "none" }, 0)).toHaveLength(1);
+  });
+
+  it("respects narrow_width", async () => {
+    expect(await switchAnimations({ transition: "slide", transition_narrow: "none", narrow_width: 1000 }, 900)).toHaveLength(0);
+  });
+});
+
 describe("content height", () => {
   it("tallest stacks the panels so the content keeps the tallest height", async () => {
     const el = await mount({ tabs, content_height: "tallest" });

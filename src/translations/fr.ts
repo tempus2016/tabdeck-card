@@ -232,5 +232,6 @@ const fr: Record<string, string> = {
   "editor.global.fullscreen": "Bouton plein écran",
   "editor.global.swipe_peek": "Aperçu au balayage (le contenu suit le doigt)",
   "editor.global.unload_after": "Libérer les onglets inutilisés après (minutes, 0 = jamais)",
+  "editor.global.transition_narrow": "Transition sur les cartes étroites (ex. téléphones)",
 };
 export default fr;

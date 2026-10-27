@@ -232,5 +232,6 @@ const pl: Record<string, string> = {
   "editor.global.fullscreen": "Przycisk pełnego ekranu",
   "editor.global.swipe_peek": "Podgląd przy przesuwaniu (treść podąża za palcem)",
   "editor.global.unload_after": "Zwalniaj nieużywane zakładki po (minuty, 0 = nigdy)",
+  "editor.global.transition_narrow": "Przejście na wąskich kartach (np. telefony)",
 };
 export default pl;

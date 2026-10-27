@@ -232,5 +232,6 @@ const de: Record<string, string> = {
   "editor.global.fullscreen": "Vollbild-Schaltfläche",
   "editor.global.swipe_peek": "Wisch-Vorschau (Inhalt folgt dem Finger)",
   "editor.global.unload_after": "Unbenutzte Tabs freigeben nach (Minuten, 0 = nie)",
+  "editor.global.transition_narrow": "Übergang auf schmalen Karten (z. B. Handys)",
 };
 export default de;

@@ -232,5 +232,6 @@ const nl: Record<string, string> = {
   "editor.global.fullscreen": "Knop voor volledig scherm",
   "editor.global.swipe_peek": "Veegvoorbeeld (inhoud volgt de vinger)",
   "editor.global.unload_after": "Ongebruikte tabs vrijgeven na (minuten, 0 = nooit)",
+  "editor.global.transition_narrow": "Overgang op smalle kaarten (bijv. telefoons)",
 };
 export default nl;

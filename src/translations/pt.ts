@@ -232,5 +232,6 @@ const pt: Record<string, string> = {
   "editor.global.fullscreen": "Botão de ecrã inteiro",
   "editor.global.swipe_peek": "Pré-visualização ao deslizar (o conteúdo segue o dedo)",
   "editor.global.unload_after": "Libertar separadores sem uso após (minutos, 0 = nunca)",
+  "editor.global.transition_narrow": "Transição em cartões estreitos (ex. telemóveis)",
 };
 export default pt;

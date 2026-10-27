@@ -130,7 +130,7 @@ export class TabdeckCard extends LitElement {
   // Only measure when a responsive option needs the width.
   private _syncWidthObserver(): void {
     const want =
-      !!(this._config?.split || this._config?.tab_display_narrow) &&
+      !!(this._config?.split || this._config?.tab_display_narrow || this._config?.transition_narrow) &&
       this.isConnected &&
       typeof ResizeObserver !== "undefined";
     if (want && !this._widthObserver) {
@@ -150,11 +150,14 @@ export class TabdeckCard extends LitElement {
     return !!split && this._width >= split.min_width;
   }
 
+  // Narrower than narrow_width (once measured).
+  private get _isNarrow(): boolean {
+    return this._width > 0 && this._width < this._config!.narrow_width;
+  }
+
   private get _effectiveDisplay() {
     const cfg = this._config!;
-    if (cfg.tab_display_narrow && this._width > 0 && this._width < cfg.narrow_width) {
-      return cfg.tab_display_narrow;
-    }
+    if (cfg.tab_display_narrow && this._isNarrow) return cfg.tab_display_narrow;
     return cfg.tab_display;
   }
 
@@ -1135,11 +1138,13 @@ export class TabdeckCard extends LitElement {
   // skipped for `none`, in jsdom, and under prefers-reduced-motion.
   private _animatePanel(dir: 1 | -1): void {
     const cfg = this._config;
-    if (!cfg || cfg.transition === "none" || cfg.transition_duration <= 0) return;
+    if (!cfg) return;
+    const mode = cfg.transition_narrow && this._isNarrow ? cfg.transition_narrow : cfg.transition;
+    if (mode === "none" || cfg.transition_duration <= 0) return;
     if (this._reducedMotion()) return;
     const panel = this._panelEl(this._selected);
     if (!panel || typeof panel.animate !== "function") return;
-    panel.animate(transitionFrames(cfg.transition, dir), {
+    panel.animate(transitionFrames(mode, dir), {
       duration: cfg.transition_duration,
       easing: cfg.transition_easing,
     });
