@@ -48,6 +48,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Conditional default tab](Feature-Conditional-Default)** — pick the starting tab by state (`default_if`).
 
 ## Editor
+- **[Edit mode helpers](Feature-Edit-Mode)** — hidden tabs appear faded while editing the dashboard; rotation pauses (`edit_mode_reveal`).
 - **[Copy & import tabs](Editor#copy--import-tabs)** — copy a tab to the clipboard and import tabs into another deck.
 - **[Duplicate tab](Feature-Duplicate-Tab)** — one-click deep copy of a tab in the editor.
 - **[Expand all / Collapse all](Feature-Editor-Expand-Collapse)** — bulk-toggle tab blocks; new tabs auto-expand.

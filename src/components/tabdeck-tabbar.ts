@@ -18,6 +18,8 @@ interface TabItem {
   alert?: boolean;
   // Tap runs an action instead of selecting (navigation tab).
   action?: boolean;
+  // Hidden tab revealed in edit mode.
+  ghost?: boolean;
 }
 
 const HOLD_MS = 500;
@@ -339,6 +341,7 @@ export class TabdeckTabbar extends LitElement {
               .disabled=${!!item.disabled}
               .alert=${!!item.alert}
               .action=${!!item.action}
+              .ghost=${!!item.ghost}
               .display=${this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"

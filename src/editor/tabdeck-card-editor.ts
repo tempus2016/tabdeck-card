@@ -132,6 +132,7 @@ const GLOBAL_LABELS: Record<string, string> = {
   scroll_spy: "Scroll-spy: stack tabs as sections",
   auto_rotate: "Auto-rotate tabs every (seconds, 0 = off)",
   idle_return: "Return to default tab after idle (seconds, 0 = off)",
+  edit_mode_reveal: "Show hidden tabs while editing the dashboard",
 };
 
 interface ConditionSection {
@@ -537,6 +538,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "scroll_spy", selector: { boolean: {} } },
       { name: "auto_rotate", selector: { number: { min: 0, max: 3600, step: 1, mode: "box" } } },
       { name: "idle_return", selector: { number: { min: 0, max: 86400, step: 1, mode: "box" } } },
+      { name: "edit_mode_reveal", selector: { boolean: {} } },
     ];
   }
 
@@ -580,6 +582,7 @@ export class TabdeckCardEditor extends LitElement {
       scroll_spy: cfg.scroll_spy,
       auto_rotate: cfg.auto_rotate?.interval ?? 0,
       idle_return: cfg.idle_return ?? 0,
+      edit_mode_reveal: cfg.edit_mode_reveal,
     };
   }
 
@@ -641,6 +644,7 @@ export class TabdeckCardEditor extends LitElement {
             }
           : undefined,
       idle_return: Number(v.idle_return) > 0 ? Math.max(5, Number(v.idle_return)) : undefined,
+      edit_mode_reveal: v.edit_mode_reveal !== false,
     });
   }
 

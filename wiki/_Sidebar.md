@@ -38,3 +38,4 @@
 - [Panel transitions](Feature-Panel-Transition)
 - [Duplicate tab](Feature-Duplicate-Tab)
 - [Expand/Collapse all](Feature-Editor-Expand-Collapse)
+- [Edit mode helpers](Feature-Edit-Mode)

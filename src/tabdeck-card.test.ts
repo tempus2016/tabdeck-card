@@ -1201,3 +1201,85 @@ describe("per-tab styles", () => {
     expect(el.style.getPropertyValue("--only-a")).toBe("");
   });
 });
+
+describe("edit mode helpers", () => {
+  const tabs = [
+    { name: "A", card: { type: "markdown" } },
+    {
+      name: "Hidden",
+      card: { type: "light" },
+      visibility: [{ condition: "state", entity: "input_boolean.guest", state: "on" }],
+    },
+    { name: "C", card: { type: "light" } },
+  ];
+  const bar = (el: any) => el.shadowRoot.querySelector("tabdeck-tabbar");
+
+  it("shows hidden tabs ghosted while the dashboard is in edit mode", async () => {
+    const el = await mount({ tabs });
+    expect(bar(el).items.map((i: any) => i.name)).toEqual(["A", "C"]);
+    el.editMode = true;
+    await el.updateComplete;
+    const items = bar(el).items;
+    expect(items.map((i: any) => i.name)).toEqual(["A", "Hidden", "C"]);
+    expect(items.map((i: any) => !!i.ghost)).toEqual([false, true, false]);
+    el.editMode = false;
+    await el.updateComplete;
+    expect(bar(el).items.map((i: any) => i.name)).toEqual(["A", "C"]);
+  });
+
+  it("also reveals in the card editor preview", async () => {
+    const el = await mount({ tabs });
+    el.preview = true;
+    await el.updateComplete;
+    expect(bar(el).items).toHaveLength(3);
+  });
+
+  it("keeps the same tab selected when edit mode toggles", async () => {
+    const el = await mount({ tabs });
+    bar(el).dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 } }));
+    await el.updateComplete;
+    expect(bar(el).items[el._selected].name).toBe("C");
+    el.editMode = true;
+    await el.updateComplete;
+    expect(bar(el).items[el._selected].name).toBe("C");
+    el.editMode = false;
+    await el.updateComplete;
+    expect(bar(el).items[el._selected].name).toBe("C");
+  });
+
+  it("can be turned off with edit_mode_reveal: false", async () => {
+    const el = await mount({ tabs, edit_mode_reveal: false });
+    el.editMode = true;
+    await el.updateComplete;
+    expect(bar(el).items).toHaveLength(2);
+  });
+
+  it("pauses auto_rotate and idle_return while editing", async () => {
+    const el = await mount({ tabs, auto_rotate: 10 });
+    el.editMode = true;
+    const t0 = el._lastInteraction;
+    el._tick(t0 + 30_000);
+    expect(el._selected).toBe(0);
+    const el2 = await mount({ tabs, idle_return: 10 });
+    bar(el2).dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 } }));
+    el2.editMode = true;
+    el2._tick(el2._lastInteraction + 60_000);
+    await el2.updateComplete;
+    expect(bar(el2).items[el2._selected].name).toBe("C");
+  });
+
+  it("does not persist selections made while editing", async () => {
+    const store: Record<string, string> = {};
+    const orig = globalThis.localStorage.setItem;
+    globalThis.localStorage.setItem = (k: string, v: string) => void (store[k] = v);
+    try {
+      const el = await mount({ tabs, remember: "browser" });
+      el.editMode = true;
+      await el.updateComplete;
+      bar(el).dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 } }));
+      expect(Object.keys(store)).toHaveLength(0);
+    } finally {
+      globalThis.localStorage.setItem = orig;
+    }
+  });
+});
