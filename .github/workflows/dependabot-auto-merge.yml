@@ -1,0 +1,89 @@
+name: Dependabot auto-merge
+
+# Patch and minor bumps of test-only development dependencies are chores. CI still has
+# to pass - this only removes the click, not the gate. For the gate to be real, `main`
+# must have a ruleset requiring the "Typecheck, test & build" and "Dependency review"
+# checks: without required checks, `gh pr merge --auto` merges the moment the PR opens,
+# before CI has run.
+#
+# Anything that writes the bundle every install downloads - vite and what it drives,
+# terser, TypeScript - waits for a person whatever its version step. dependabot.yml
+# groups those as bundle-tooling, so what is left to merge on its own is tooling only
+# the test jobs run.
+#
+# Plain pull_request, not pull_request_target: Dependabot's runs honour the permissions
+# block below, while a fork's runs of this file only ever get a read-only token.
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    # Who opened the PR, not `github.actor`: the actor is whoever last triggered a run,
+    # which a re-run or a push by somebody else can change.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check the lockfile only re-resolves the bumped packages' own trees
+        # The name checks below look at what Dependabot says it bumped. The lockfile can
+        # change more than that: a vitest bump can move a copy of a package vite loads too,
+        # and the cooldown in dependabot.yml does not apply to those. So the diff of
+        # package-lock.json is read, and any package path outside the bumped packages' own
+        # node_modules trees leaves the PR for a person.
+        id: lock
+        run: |
+          changed=$(gh pr diff "$PR_URL" | grep -E '^[-+][[:space:]]+"node_modules/' | sed -E 's/^[-+][[:space:]]+"(node_modules\/[^"]+)".*/\1/' | sort -u || true)
+          outside=""
+          for path in $changed; do
+            own=false
+            IFS=',' read -ra names <<< "$NAMES"
+            for name in "${names[@]}"; do
+              name=$(echo "$name" | xargs)
+              case "$path" in
+                "node_modules/$name"|"node_modules/$name/"*) own=true ;;
+              esac
+            done
+            if [ "$own" = false ]; then outside="$outside $path"; fi
+          done
+          if [ -n "$outside" ]; then
+            echo "left for a person: the lockfile also changes$outside"
+            echo "own_tree=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "own_tree=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          NAMES: ${{ steps.meta.outputs.dependency-names }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Let it merge itself once the checks are green
+        # Only patch and minor bumps of development dependencies merge unattended. A runtime
+        # dependency ends up in the bundle every install loads, and a major bump can change
+        # behaviour - both want a person to look, whatever the version step.
+        #
+        # The name checks are substring matches over a comma-separated list, so each one
+        # covers a family: 'rollup' also catches @rollup/*. vite is the exception, matched
+        # as a whole entry of the ", "-separated list so that vitest still merges. They must
+        # keep matching the bundle-tooling patterns in dependabot.yml.
+        if: >-
+          steps.lock.outputs.own_tree == 'true' &&
+          steps.meta.outputs.dependency-type == 'direct:development' &&
+          (steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+           steps.meta.outputs.update-type == 'version-update:semver-minor') &&
+          !contains(format(', {0},', steps.meta.outputs.dependency-names), ', vite,') &&
+          !contains(steps.meta.outputs.dependency-names, 'rolldown') &&
+          !contains(steps.meta.outputs.dependency-names, 'rollup') &&
+          !contains(steps.meta.outputs.dependency-names, 'esbuild') &&
+          !contains(steps.meta.outputs.dependency-names, 'terser') &&
+          !contains(steps.meta.outputs.dependency-names, 'typescript')
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
