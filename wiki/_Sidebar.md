@@ -49,3 +49,4 @@
 - [Dots & content arrows](Feature-Dots-Arrows)
 - [Grouped tabs](Feature-Grouped-Tabs)
 - [Search & shortcuts](Feature-Search-Hotkeys)
+- [Arrange tabs](Feature-Customize)

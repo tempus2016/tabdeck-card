@@ -210,5 +210,13 @@ const pl: Record<string, string> = {
   "card.search_placeholder": "Wpisz, aby filtrować…",
   "card.search_none": "Brak pasujących zakładek",
   "editor.global.history": "Przycisk Wstecz wraca do poprzedniej zakładki",
+  "editor.global.customize": "Pozwól każdemu zmieniać kolejność i ukrywać zakładki (na przeglądarkę)",
+  "card.customize": "Ułóż zakładki",
+  "card.move_up": "Przesuń {name} w górę",
+  "card.move_down": "Przesuń {name} w dół",
+  "card.hide_tab": "Ukryj {name}",
+  "card.show_tab": "Pokaż {name}",
+  "card.reset": "Resetuj",
+  "card.done": "Gotowe",
 };
 export default pl;

@@ -210,5 +210,13 @@ const it: Record<string, string> = {
   "card.search_placeholder": "Digita per filtrare…",
   "card.search_none": "Nessuna tab corrispondente",
   "editor.global.history": "Il tasto Indietro torna alla tab precedente",
+  "editor.global.customize": "Consenti a ciascuno di riordinare e nascondere le tab (per browser)",
+  "card.customize": "Organizza le tab",
+  "card.move_up": "Sposta su {name}",
+  "card.move_down": "Sposta giù {name}",
+  "card.hide_tab": "Nascondi {name}",
+  "card.show_tab": "Mostra {name}",
+  "card.reset": "Ripristina",
+  "card.done": "Fatto",
 };
 export default it;

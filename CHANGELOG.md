@@ -42,6 +42,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Quick-switch search** — `search: true` adds a 🔍 filter (case/accent-insensitive, names and subtitles, ↑↓/Enter/Esc).
 - **Keyboard shortcuts** — `hotkeys: true`: 1–9 open tabs, [ ] step, / opens search; ignored while typing, with modifiers, or when the deck isn't visible.
 - **Back button** — `history: true` makes each tab you open a browser history entry, so Back / the phone's back gesture returns to the previous tab. Automatic switches add no entries; HA's own history (dialogs, views) is untouched.
+- **Arrange tabs** — `customize: true` adds a button that lets each person reorder and hide tabs for themselves, saved in their browser (never changes the config; Reset restores it).
 
 ### Fixed
 - Editor button icons (Add tab) render on current WebAwesome-based HA builds.

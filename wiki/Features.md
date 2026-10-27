@@ -31,6 +31,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Content header](Feature-Header)** — show the active tab's title above the content (`header`); icon-rail recipe.
 
 ## Navigation & interaction
+- **[Arrange tabs](Feature-Customize)** — each person reorders and hides tabs for themselves, saved per browser (`customize`).
 - **[Back button](Navigation-and-Persistence#back-button-history)** — tab switches become history entries; Back returns to the previous tab (`history`).
 - **[Search & keyboard shortcuts](Feature-Search-Hotkeys)** — 🔍 quick-switch filter (`search`); 1–9, [ ], / shortcuts (`hotkeys`).
 - **[Grouped tabs](Feature-Grouped-Tabs)** — `children:` as a second-level row or a ▾ dropdown menu (`children_display`); `hide_bar`; `selectTab()` API and `tabdeck-tab-changed` event.

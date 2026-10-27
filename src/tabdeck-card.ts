@@ -18,6 +18,7 @@ import { isTemplate, makeHassSubscribe, TemplateRenderer, type SubscribeFn } fro
 import { formatBadge } from "./lib/badge";
 import { hassLanguage, localize } from "./lib/i18n";
 import { detectSwipe, type SwipePoint } from "./lib/swipe";
+import { hideTabs, loadLayout, orderTabs, saveLayout, type UserLayout } from "./lib/customize";
 import "./components/tabdeck-tabbar";
 import { isActiveBadge } from "./components/tabdeck-tab";
 
@@ -318,6 +319,7 @@ export class TabdeckCard extends LitElement {
 
   private async _build(): Promise<void> {
     if (!this._config) return;
+    this._layout = this._config.customize ? loadLayout(this._cardKey) : { order: [], hidden: [] };
     const create = await getCreateCardElement();
     this._manager = new CardManager(create);
     this._manager.addEventListener("ll-rebuild-done", () => this.requestUpdate());
@@ -456,7 +458,35 @@ export class TabdeckCard extends LitElement {
   private _visibleTabs() {
     if (!this._config) return [];
     if (this._editing) return this._allTabs();
-    return this._allTabs().filter((t) => !this._isHidden(t));
+    const shown = this._allTabs().filter((t) => !this._isHidden(t));
+    if (!this._config.customize) return shown;
+    return hideTabs(orderTabs(shown, this._layout), this._layout);
+  }
+
+  // --- customize (per-browser order & hidden tabs) ---------------------------
+  @state() private _layout: UserLayout = { order: [], hidden: [] };
+
+  // Every tab the conditions allow, in the person's order, flagged if hidden.
+  private _customItems() {
+    const shown = this._allTabs().filter((t) => !this._isHidden(t));
+    return orderTabs(shown, this._layout).map((t) => ({
+      name: this._text(t.name),
+      icon: this._text(t.icon),
+      key: t.name,
+      hidden: t.name !== undefined && this._layout.hidden.includes(t.name),
+    }));
+  }
+
+  private _onCustomize(e: CustomEvent<{ order?: string[]; hidden?: string[]; reset?: boolean }>): void {
+    const prevName = this._visibleTabs()[this._selected]?.name;
+    const d = e.detail ?? {};
+    this._layout = d.reset ? { order: [], hidden: [] } : { order: d.order ?? [], hidden: d.hidden ?? [] };
+    saveLayout(this._cardKey, d.reset ? null : this._layout);
+    this._restoreSelection(prevName);
+    if (!this._isContentTab(this._visibleTabs()[this._selected])) {
+      this._selected = this._ensureContentTab(this._computeDefaultIndex());
+    }
+    this.requestUpdate();
   }
 
   private _isHidden(t: TabdeckTabConfig): boolean {
@@ -994,6 +1024,9 @@ export class TabdeckCard extends LitElement {
         .elevation=${cfg.elevation}
         .scrollButtons=${cfg.scroll_buttons}
         .searchable=${cfg.search}
+        .customizable=${cfg.customize && !this._editing}
+        .customItems=${cfg.customize ? this._customItems() : []}
+        @tabdeck-customize=${this._onCustomize}
         .overflowMenu=${cfg.overflow_menu}
         .barLabel=${cfg.aria_label}
         .language=${hassLanguage(this._hass)}

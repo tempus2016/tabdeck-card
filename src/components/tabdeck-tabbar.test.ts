@@ -395,3 +395,22 @@ describe("tabdeck-tabbar search", () => {
     expect(el.shadowRoot.querySelector(".search-panel")).toBeNull();
   });
 });
+
+describe("tabdeck-tabbar customize panel", () => {
+  it("moves and hides tabs, never hiding the last one", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "A" }, { name: "B" }];
+    el.customizable = true;
+    el.customItems = [{ name: "A", key: "A" }, { name: "B", key: "B", hidden: true }];
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const seen: any[] = [];
+    el.addEventListener("tabdeck-customize", (e: any) => seen.push(e.detail));
+    el.shadowRoot.querySelector(".custom-btn").click();
+    await el.updateComplete;
+    el.shadowRoot.querySelectorAll(".custom-down")[0].click();
+    el.shadowRoot.querySelectorAll(".custom-eye")[0].click();
+    el.shadowRoot.querySelector(".custom-reset").click();
+    expect(seen).toEqual([{ order: ["B", "A"], hidden: ["B"] }, { reset: true }]);
+  });
+});

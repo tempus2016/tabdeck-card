@@ -210,5 +210,13 @@ const en: Record<string, string> = {
   "card.search_placeholder": "Type to filter…",
   "card.search_none": "No matching tabs",
   "editor.global.history": "Back button returns to the previous tab",
+  "editor.global.customize": "Let people reorder and hide tabs for themselves (per browser)",
+  "card.customize": "Arrange tabs",
+  "card.move_up": "Move {name} up",
+  "card.move_down": "Move {name} down",
+  "card.hide_tab": "Hide {name}",
+  "card.show_tab": "Show {name}",
+  "card.reset": "Reset",
+  "card.done": "Done",
 };
 export default en;
