@@ -35,6 +35,7 @@ import {
   snooze,
   snoozedUntil,
 } from "./lib/smart";
+import { loadEditor } from "./editor-loader";
 import "./components/tabdeck-tabbar";
 import "./components/tabdeck-masonry-card";
 import "./components/tabdeck-sections-card";
@@ -117,7 +118,7 @@ export class TabdeckCard extends LitElement {
   }
 
   static async getConfigElement() {
-    await import("./editor/tabdeck-card-editor");
+    await loadEditor();
     return document.createElement("tabdeck-card-editor");
   }
 

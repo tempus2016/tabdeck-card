@@ -68,7 +68,7 @@ jobs:
               ``,
               isPrerelease
                 ? `This is a pre-release — it may contain bugs. Install via a HACS custom repository or manually if you want to test early.`
-                : `Update via **HACS**, or download \`tabdeck-card.js\` from the [latest release](${url}) and copy it to \`/config/www/\`.`,
+                : `Update via **HACS**, or download \`tabdeck-card.js\` and \`tabdeck-card-editor-….js\` from the [latest release](${url}) and copy both to \`/config/www/\`.`,
               ``,
               `After updating, **hard-refresh your browser** (Ctrl/Cmd+Shift+R) so the new card module loads instead of a cached one.`,
               ``,

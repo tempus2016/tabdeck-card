@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { defineOnce } from "../lib/define";
 import type { HomeAssistant, LovelaceCardConfig } from "../types";
 import { getCreateCardElement } from "../lib/card-lifecycle";
 import { distributeMasonry } from "../lib/layout";
@@ -7,7 +8,7 @@ import { distributeMasonry } from "../lib/layout";
 // Cards balanced into columns like HA's masonry view: each card goes into the
 // shortest column. A tab gets one with `layout: masonry` + `cards:`.
 // `columns: N` is fixed; `min_column_width: px` fits as many as the width allows.
-@customElement("tabdeck-masonry-card")
+@defineOnce("tabdeck-masonry-card")
 export class TabdeckMasonryCard extends LitElement {
   @state() private _cards: any[] = [];
   @state() private _width = 0;

@@ -1,5 +1,5 @@
-// Italian
-const it: Record<string, string> = {
+// Italian: visual editor strings (loaded with the editor).
+const itl: Record<string, string> = {
   // Editor
   "editor.tab.name": "Nome della tab",
   "editor.tab.subtitle": "Sottotitolo",
@@ -140,13 +140,6 @@ const it: Record<string, string> = {
   "check.group_or": "almeno una:",
   "check.group_not": "nessuna:",
   "check.unknown": "tipo di condizione sconosciuto",
-  // Card (runtime)
-  "card.tabs": "Tab",
-  "card.scroll_left": "Scorri a sinistra",
-  "card.scroll_right": "Scorri a destra",
-  "card.all_tabs": "Tutte le tab",
-  "card.badge": "badge: {value}",
-  "card.ghost": "Nascosta: le condizioni di visibilità non sono soddisfatte (mostrata durante la modifica)",
   // Starter templates
   "starter.button": "Parti da un modello",
   "starter.hint": "Crea un insieme di tab dalle tue entità. Sostituisci rimpiazza le tab attuali; Aggiungi le mantiene.",
@@ -202,25 +195,11 @@ const it: Record<string, string> = {
   "editor.tab.fab": "Stile pulsante d'azione flottante",
   "editor.global.content_arrows": "Frecce precedente / successiva sul contenuto",
   "editor.opt.tab_display.dots": "Punti",
-  "card.prev_tab": "Tab precedente",
-  "card.next_tab": "Tab successiva",
   "editor.global.search": "Ricerca rapida (pulsante 🔍)",
   "editor.global.hotkeys": "Scorciatoie da tastiera (1–9, [ ], /)",
-  "card.search": "Cerca una tab",
-  "card.search_placeholder": "Digita per filtrare…",
-  "card.search_none": "Nessuna tab corrispondente",
   "editor.global.history": "Il tasto Indietro torna alla tab precedente",
   "editor.global.customize": "Consenti a ciascuno di riordinare e nascondere le tab (per browser)",
-  "card.customize": "Organizza le tab",
-  "card.move_up": "Sposta su {name}",
-  "card.move_down": "Sposta giù {name}",
-  "card.hide_tab": "Nascondi {name}",
-  "card.show_tab": "Mostra {name}",
-  "card.reset": "Ripristina",
-  "card.done": "Fatto",
   "editor.global.rail_expand": "Barra laterale: solo icone, etichette al passaggio del mouse (sinistra/destra)",
-  "card.fullscreen": "Schermo intero",
-  "card.exit_fullscreen": "Esci da schermo intero",
   "editor.tab.background": "Sfondo (colore, gradiente o URL immagine)",
   "editor.opt.transition.scale": "Scala",
   "editor.opt.transition.flip": "Rotazione",
@@ -233,12 +212,6 @@ const it: Record<string, string> = {
   "editor.global.swipe_peek": "Anteprima allo scorrimento (il contenuto segue il dito)",
   "editor.global.unload_after": "Libera le tab inutilizzate dopo (minuti, 0 = mai)",
   "editor.global.transition_narrow": "Transizione sulle schede strette (es. telefoni)",
-  "card.no_entities": "Nessuna entità qui.",
-  "card.pin_title": "Inserisci il codice per {tab}",
-  "card.pin_label": "Codice",
-  "card.pin_wrong": "Codice errato",
-  "card.cancel": "Annulla",
-  "card.open": "Apri",
   "editor.tab.badge_icon": "Icona del badge",
   "editor.tab.ring": "Anello di avanzamento (entità, template o numero)",
   "editor.tab.ring_max": "Massimo dell'anello (predefinito 100)",
@@ -253,4 +226,4 @@ const it: Record<string, string> = {
   "editor.global.fire_event": "Genera eventi tabdeck_tab_changed (amministratori)",
   "editor.global.event_id": "Nome della scheda negli eventi",
 };
-export default it;
+export default itl;

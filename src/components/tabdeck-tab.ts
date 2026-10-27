@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
+import { defineOnce } from "../lib/define";
 import type { BadgeDisplay, TabDisplay } from "../lib/config";
 
 // A badge value counts as "active" (worth a dot) when it isn't an empty/zero/
@@ -15,7 +16,7 @@ export function isActiveBadge(value?: string): boolean {
   return !INACTIVE_BADGE.has(v);
 }
 
-@customElement("tabdeck-tab")
+@defineOnce("tabdeck-tab")
 export class TabdeckTab extends LitElement {
   @property() label?: string;
   @property() subtitle?: string;

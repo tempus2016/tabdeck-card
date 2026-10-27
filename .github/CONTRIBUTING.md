@@ -12,9 +12,15 @@ Requires Node.js 20+.
 npm install        # install dependencies
 npm test           # run the unit tests (Vitest + jsdom)
 npm run typecheck  # TypeScript type checking
-npm run build      # produce dist/tabdeck-card.js
+npm run build      # produce dist/tabdeck-card.js and dist/tabdeck-card-editor-<hash>.js
 npm run dev        # rebuild on change while iterating
 ```
+
+The build makes two files: the card (`vite.config.ts`) and, first, the visual
+editor as its own self-contained file (`vite.editor.config.ts`), which the card
+loads only when the editor is opened. Keep the editor self-contained (no
+imports from the card file), and register any custom element both use with
+`defineOnce` (`src/lib/define.ts`).
 
 The source lives in `src/`:
 
@@ -35,7 +41,7 @@ so changes that affect rendering or behaviour should be verified on a live
 Home Assistant instance:
 
 1. `npm run build`
-2. Copy `dist/tabdeck-card.js` into your HA `config/www/`.
+2. Copy `dist/tabdeck-card.js` and `dist/tabdeck-card-editor-*.js` into your HA `config/www/`.
 3. Add it as a dashboard resource (`/local/tabdeck-card.js`, JavaScript Module).
 4. Hard-refresh the browser and check the console for errors.
 
@@ -44,7 +50,7 @@ Home Assistant instance:
 helper, and removes them with `--cleanup`):
 
 ```
-npm run build   # then copy dist/tabdeck-card.js to config/www/ as above
+npm run build   # then copy dist/*.js to config/www/ as above
 npx playwright install chromium
 npm run test:ha -- --url http://homeassistant.local:8123 --token <long-lived token> --cleanup
 ```

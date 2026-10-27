@@ -48,7 +48,7 @@ jobs:
           CHANNEL: ${{ matrix.channel }}
         run: |
           mkdir -p ha-config/www
-          cp dist/tabdeck-card.js ha-config/www/
+          cp dist/*.js ha-config/www/
           docker run -d --name ha -p 8123:8123 -v "$PWD/ha-config:/config" "ghcr.io/home-assistant/home-assistant:${CHANNEL}"
           for _ in $(seq 1 90); do
             if curl -sf http://localhost:8123/api/onboarding > /dev/null; then exit 0; fi

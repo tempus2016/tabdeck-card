@@ -72,17 +72,17 @@ jobs:
           cat SHA256SUMS
 
       - name: Attest the bundle's provenance
-        # Signed statement that dist/tabdeck-card.js was built by this workflow from
+        # Signed statement that dist/*.js (card and editor) were built by this workflow from
         # this commit, checkable with `gh attestation verify`.
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: dist/tabdeck-card.js
+          subject-path: dist/*.js
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release
           path: |
-            dist/tabdeck-card.js
+            dist/*.js
             SHA256SUMS
             RELEASE_NOTES.md
           if-no-files-found: error
@@ -99,12 +99,14 @@ jobs:
         with:
           name: release
 
-      # The asset name must stay tabdeck-card.js — it is the filename in hacs.json,
-      # and HACS only counts downloads of an asset with that exact name.
+      # The card's asset name must stay tabdeck-card.js — it is the filename in
+      # hacs.json, and HACS only counts downloads of an asset with that exact
+      # name. HACS downloads every asset of a release, so the editor file
+      # (tabdeck-card-editor-<hash>.js) lands next to it.
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: |
-            dist/tabdeck-card.js
+            dist/*.js
             SHA256SUMS
           body_path: RELEASE_NOTES.md
 

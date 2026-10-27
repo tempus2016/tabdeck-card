@@ -1,3 +1,4 @@
+import "../translations/editor";
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { fireEvent } from "custom-card-helpers";

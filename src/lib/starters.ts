@@ -13,6 +13,7 @@ export interface StarterResult {
   count: number;
 }
 
+import "../translations/editor";
 import { localize } from "./i18n";
 
 type T = (key: string) => string;
