@@ -43,8 +43,10 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Keyboard shortcuts** — `hotkeys: true`: 1–9 open tabs, [ ] step, / opens search; ignored while typing, with modifiers, or when the deck isn't visible.
 - **Back button** — `history: true` makes each tab you open a browser history entry, so Back / the phone's back gesture returns to the previous tab. Automatic switches add no entries; HA's own history (dialogs, views) is untouched.
 - **Arrange tabs** — `customize: true` adds a button that lets each person reorder and hide tabs for themselves, saved in their browser (never changes the config; Reset restores it).
+- **Expanding side rail** — `rail_expand: true` keeps a left/right bar as an icon rail that slides its labels out over the content on hover or keyboard focus.
 
 ### Fixed
+- Content beside a `left` / `right` tab bar now fills the card's width instead of shrinking to its content.
 - Editor button icons (Add tab) render on current WebAwesome-based HA builds.
 - `perform-action` actions (what HA's action picker writes) now work for `hold_action`, `badge_action` and `tap_action`; previously only the legacy `call-service` ran.
 - `sticky` bars now pin below Home Assistant's app header (`--header-height`) instead of hiding underneath it; override with `--tabdeck-sticky-top`.

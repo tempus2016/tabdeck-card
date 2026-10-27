@@ -218,5 +218,6 @@ const de: Record<string, string> = {
   "card.show_tab": "{name} einblenden",
   "card.reset": "Zurücksetzen",
   "card.done": "Fertig",
+  "editor.global.rail_expand": "Seitenleiste: nur Symbole, Beschriftungen beim Überfahren (links/rechts)",
 };
 export default de;

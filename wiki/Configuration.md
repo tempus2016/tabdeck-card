@@ -45,6 +45,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `hotkeys` | boolean | `false` | Keyboard shortcuts: 1–9, [ ], /. See [Search & shortcuts](Feature-Search-Hotkeys#keyboard-shortcuts). |
 | `history` | boolean | `false` | Back button returns to the previous tab. See [Back button](Navigation-and-Persistence#back-button-history). |
 | `customize` | boolean | `false` | Each person can reorder/hide tabs, saved per browser. See [Arrange tabs](Feature-Customize). |
+| `rail_expand` | boolean | `false` | Left/right bars: icons until hovered or focused, then labels, over the content. See [Expanding side rail](Feature-Bar-Styles#expanding-side-rail-rail_expand). |
 | `styles` | map | — | CSS variables/properties applied to the card. See [Theming](Feature-Theming). |
 
 > **Legacy:** `options.defaultTabIndex` is still accepted as a fallback for `default_tab`.

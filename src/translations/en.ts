@@ -218,5 +218,6 @@ const en: Record<string, string> = {
   "card.show_tab": "Show {name}",
   "card.reset": "Reset",
   "card.done": "Done",
+  "editor.global.rail_expand": "Side rail: icons only, labels on hover (left/right)",
 };
 export default en;
