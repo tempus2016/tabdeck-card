@@ -9,3 +9,8 @@ site/
 
 # VitePress cache (docs site)
 docs-site/.vitepress/cache/
+
+# Visual regression: only the CI (linux) baselines are committed; local runs
+# and failed-shot output stay out.
+tests/visual/*
+!tests/visual/linux/
