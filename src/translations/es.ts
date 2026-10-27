@@ -198,5 +198,7 @@ const es: Record<string, string> = {
   "convert.note.state_switch_mode": "Este modo de state-switch (usuario / media query / plantilla) no tiene equivalente directo; los estados se han convertido en pestañas normales. Añade condiciones de visibilidad si es necesario.",
   "convert.note.bubble": "Cada ventana emergente se ha convertido en una pestaña; no se usan el botón ni el estilo propios de la ventana emergente.",
   "convert.note.dashboard": "Cada vista se ha convertido en una pestaña. Los paneles de control grandes pueden generar una tarjeta pesada; considera lazy: true.",
+  "editor.global.dock": "Dock: fijar la barra en la parte inferior de la pantalla (navegación móvil)",
+  "editor.tab.fab": "Estilo de botón de acción flotante",
 };
 export default es;

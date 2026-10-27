@@ -1283,3 +1283,47 @@ describe("edit mode helpers", () => {
     }
   });
 });
+
+describe("dock & fab", () => {
+  const tabs = [
+    { name: "Home", icon: "mdi:home", card: { type: "markdown" } },
+    { name: "Add", icon: "mdi:plus", fab: true, tap_action: { action: "navigate", navigation_path: "/x" } },
+    { name: "Lights", icon: "mdi:lightbulb", card: { type: "light" } },
+  ];
+  const bar = (el: any) => el.shadowRoot.querySelector("tabdeck-tabbar");
+
+  it("dock pins a stacked bottom bar after the content", async () => {
+    const el = await mount({ dock: true, tabs });
+    const root = el.shadowRoot.querySelector(".root");
+    expect(root.classList.contains("docked")).toBe(true);
+    expect(root.lastElementChild.tagName).toBe("TABDECK-TABBAR");
+    expect(bar(el).dock).toBe(true);
+    expect(bar(el).position).toBe("bottom");
+  });
+
+  it("dock falls back to a normal bar while editing", async () => {
+    const el = await mount({ dock: true, tabs });
+    el.editMode = true;
+    await el.updateComplete;
+    expect(bar(el).dock).toBe(false);
+    expect(el.shadowRoot.querySelector(".root").classList.contains("docked")).toBe(false);
+  });
+
+  it("passes fab through to the tab item", async () => {
+    const el = await mount({ tabs });
+    expect(bar(el).items.map((i: any) => !!i.fab)).toEqual([false, true, false]);
+  });
+});
+
+describe("dock reconnect", () => {
+  it("re-attaches its panel observer after HA moves the card", async () => {
+    const el = await mount({ dock: true, tabs: [{ name: "A", card: { type: "markdown" } }] });
+    const calls: string[] = [];
+    el._syncDock = () => calls.push("sync");
+    el.remove();
+    document.body.appendChild(el);
+    await el.updateComplete;
+    await Promise.resolve();
+    expect(calls).toContain("sync");
+  });
+});

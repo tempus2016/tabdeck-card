@@ -49,6 +49,7 @@ const TAB_SCHEMA = [
   { name: "badge", selector: { text: {} } },
   { name: "badge_color", selector: { text: {} } },
   { name: "disabled", selector: { boolean: {} } },
+  { name: "fab", selector: { boolean: {} } },
   { name: "card_size", selector: { number: { min: 1, max: 20, step: 1, mode: "box" } } },
   { name: "hold_action", selector: { ui_action: {} } },
   { name: "badge_action", selector: { ui_action: {} } },
@@ -718,6 +719,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "scroll_spy", selector: { boolean: {} } },
       { name: "auto_rotate", selector: { number: { min: 0, max: 3600, step: 1, mode: "box" } } },
       { name: "idle_return", selector: { number: { min: 0, max: 86400, step: 1, mode: "box" } } },
+      { name: "dock", selector: { boolean: {} } },
       { name: "edit_mode_reveal", selector: { boolean: {} } },
     ];
   }
@@ -762,6 +764,7 @@ export class TabdeckCardEditor extends LitElement {
       scroll_spy: cfg.scroll_spy,
       auto_rotate: cfg.auto_rotate?.interval ?? 0,
       idle_return: cfg.idle_return ?? 0,
+      dock: cfg.dock,
       edit_mode_reveal: cfg.edit_mode_reveal,
     };
   }
@@ -824,6 +827,7 @@ export class TabdeckCardEditor extends LitElement {
             }
           : undefined,
       idle_return: Number(v.idle_return) > 0 ? Math.max(5, Number(v.idle_return)) : undefined,
+      dock: !!v.dock,
       edit_mode_reveal: v.edit_mode_reveal !== false,
     });
   }
@@ -840,6 +844,7 @@ export class TabdeckCardEditor extends LitElement {
       badge: v.badge || undefined,
       badge_color: v.badge_color || undefined,
       disabled: v.disabled ? true : undefined,
+      fab: v.fab ? true : undefined,
       card_size: typeof v.card_size === "number" ? v.card_size : undefined,
       hold_action: v.hold_action ?? undefined,
       badge_action: v.badge_action ?? undefined,
@@ -1244,6 +1249,7 @@ export class TabdeckCardEditor extends LitElement {
                           badge: tab.badge ?? "",
                           badge_color: tab.badge_color ?? "",
                           disabled: !!tab.disabled,
+                          fab: !!tab.fab,
                           card_size: tab.card_size,
                           hold_action: tab.hold_action,
                           badge_action: tab.badge_action,

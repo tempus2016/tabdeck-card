@@ -198,5 +198,7 @@ const de: Record<string, string> = {
   "convert.note.state_switch_mode": "Dieser state-switch-Modus (Benutzer / Media Query / Template) hat keine direkte Entsprechung; die Zustände wurden zu normalen Tabs. Bei Bedarf Sichtbarkeitsbedingungen hinzufügen.",
   "convert.note.bubble": "Jedes Pop-up wurde zu einem Tab; Schaltfläche und Styling des Pop-ups werden nicht verwendet.",
   "convert.note.dashboard": "Jede Ansicht wurde zu einem Tab. Große Dashboards können eine schwere Karte ergeben; lazy: true erwägen.",
+  "editor.global.dock": "Dock: Leiste unten am Bildschirm fixieren (Handy-Navigation)",
+  "editor.tab.fab": "Als schwebende Aktionsschaltfläche",
 };
 export default de;

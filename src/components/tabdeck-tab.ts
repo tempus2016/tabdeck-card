@@ -36,6 +36,10 @@ export class TabdeckTab extends LitElement {
   // Edit mode only: the tab is normally hidden (visibility unmet) and is shown
   // faded so it can still be reached while editing.
   @property({ type: Boolean, reflect: true }) ghost = false;
+  // Icon above a small label (dock / bottom navigation layout).
+  @property({ type: Boolean, reflect: true }) stacked = false;
+  // Raised round accent button (floating action tab).
+  @property({ type: Boolean, reflect: true }) fab = false;
   @property() ghostLabel = "Hidden: its visibility conditions aren't met (shown while editing)";
   // Accessible label for the badge (localised by the bar).
   @property() badgeLabel?: string;
@@ -171,6 +175,55 @@ export class TabdeckTab extends LitElement {
           transparent
         );
       }
+    }
+    :host([stacked]) {
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 8px;
+      height: var(--tabdeck-dock-tab-height, 56px);
+      font-size: var(--tabdeck-dock-font-size, 11px);
+    }
+    :host([stacked]) .inner {
+      flex-direction: column;
+      gap: 2px;
+      position: relative;
+    }
+    :host([stacked]) .text {
+      align-items: center;
+    }
+    :host([stacked]) .subtitle {
+      display: none;
+    }
+    :host([stacked]) .badge,
+    :host([stacked]) .badge-dot {
+      position: absolute;
+      top: -4px;
+      left: calc(50% + 6px);
+    }
+    :host([fab]) {
+      color: var(--text-primary-color, #fff);
+      padding: 0;
+      align-self: center;
+      justify-content: center;
+      width: var(--tabdeck-fab-size, 48px);
+      height: var(--tabdeck-fab-size, 48px);
+      margin: 0 6px;
+      border-radius: 50%;
+      background: var(--tabdeck-fab-color, var(--tabdeck-accent, var(--primary-color)));
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+      flex: 0 0 auto !important;
+    }
+    :host([fab][stacked]) {
+      margin-top: -18px;
+      width: var(--tabdeck-fab-size, 56px);
+      height: var(--tabdeck-fab-size, 56px);
+    }
+    :host([fab]) .text,
+    :host([fab]) .badge {
+      display: none;
+    }
+    :host([fab]) ha-icon {
+      --mdc-icon-size: 26px;
     }
     :host([ghost]) {
       opacity: 0.55;

@@ -38,6 +38,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `auto_rotate` | number \| `{interval, resume_after}` | — | Cycle tabs every N seconds; pauses after interaction. See [Auto-rotate & idle return](Feature-Kiosk). |
 | `idle_return` | number (seconds) | — | Return to the default tab after inactivity. See [Auto-rotate & idle return](Feature-Kiosk). |
 | `edit_mode_reveal` | boolean | `true` | Show hidden tabs (faded) and pause rotation while editing the dashboard. See [Edit mode helpers](Feature-Edit-Mode). |
+| `dock` | boolean | `false` | Pin the bar to the bottom of the screen as phone-style navigation. See [Dock](Feature-Dock). |
 | `styles` | map | — | CSS variables/properties applied to the card. See [Theming](Feature-Theming). |
 
 > **Legacy:** `options.defaultTabIndex` is still accepted as a fallback for `default_tab`.
@@ -58,6 +59,7 @@ Each item in `tabs`:
 | `badge` | string | — | An entity id (shows its state) or a Jinja template. See [Badges](Badges). |
 | `badge_format` | `{precision, unit, max}` | — | Numeric badge formatting (overrides the top-level default). See [Badges](Badges#numeric-formatting-badge_format). |
 | `disabled` | boolean | `false` | Show the tab greyed-out and non-selectable. See [Disabled tabs](Feature-Disabled-Tabs). |
+| `fab` | boolean | `false` | Render the tab as a raised round action button. See [Floating action tabs](Feature-Dock#floating-action-tabs). |
 | `card_size` | number | — | `getCardSize()` hint (rows) for this tab, so masonry sizing is stable across tab switches. |
 | `tap_action` | action | — | Tap runs this action *instead of* opening the tab (navigation tabs; no `card` needed). See [Navigation & action tabs](Feature-Navigation-Tabs). |
 | `enter_action` / `leave_action` | action | — | HA action when the tab becomes / stops being active. See [Tab-change actions](Feature-Enter-Leave-Actions). |

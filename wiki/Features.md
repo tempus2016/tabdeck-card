@@ -5,6 +5,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 > This list grows over time. Each feature below has its own page with a description, config key, examples, and screenshots.
 
 ## Tab bar appearance
+- **[Dock & floating action tabs](Feature-Dock)** — phone-style bottom navigation pinned to the screen (`dock`); raised round action buttons (`fab`).
 - **[Tab display mode](Feature-Tab-Display)** — show icons, labels, both, or icons with the selected tab expanded (`tab_display`).
 - **[Responsive layouts](Feature-Responsive)** — side-by-side `split` view on wide cards; `tab_display_narrow` on narrow ones.
 - **[Accent-coloured indicator](Feature-Accent-Indicator)** — indicator adopts the selected tab's accent (`accent_indicator`).

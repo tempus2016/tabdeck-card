@@ -198,5 +198,7 @@ const it: Record<string, string> = {
   "convert.note.state_switch_mode": "Questa modalità di state-switch (utente / media query / modello) non ha un equivalente diretto; gli stati sono diventati tab semplici. Aggiungi condizioni di visibilità se necessario.",
   "convert.note.bubble": "Ogni pop-up è diventato una tab; il pulsante e lo stile propri del pop-up non vengono usati.",
   "convert.note.dashboard": "Ogni vista è diventata una tab. Plance di grandi dimensioni possono appesantire la scheda; valuta lazy: true.",
+  "editor.global.dock": "Dock: fissa la barra in fondo allo schermo (navigazione da telefono)",
+  "editor.tab.fab": "Stile pulsante d'azione flottante",
 };
 export default it;
