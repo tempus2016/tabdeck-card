@@ -237,6 +237,17 @@ export class TabdeckCardEditor extends LitElement {
   // Drop values the card derives itself, so they aren't baked into the YAML:
   // an auto_tabs `source` regenerates its template (and default blueprint).
   private _forOutput(cfg: TabdeckCardConfig): TabdeckCardConfig {
+    // A grouped tab's nested deck and menu data derive from `children`.
+    if (cfg.tabs.some((t) => t.group)) {
+      cfg = {
+        ...cfg,
+        tabs: cfg.tabs.map((t) => {
+          if (!t.group) return t;
+          const { group: _g, card: _c, ...rest } = t;
+          return rest as any;
+        }),
+      };
+    }
     const auto = cfg.auto_tabs;
     if (!auto?.source) return cfg;
     const { template: _t, ...rest } = auto;
@@ -631,6 +642,11 @@ export class TabdeckCardEditor extends LitElement {
     e.stopPropagation();
     const config = (e.detail as any)?.config;
     if (!config) return;
+    // Editing a grouped tab's nested deck edits its children.
+    if (this._config?.tabs[index]?.children && Array.isArray(config.tabs)) {
+      this._patchTab(index, normalizeTab({ ...this._config.tabs[index], children: config.tabs }));
+      return;
+    }
     this._patchTab(index, { card: config });
   }
 

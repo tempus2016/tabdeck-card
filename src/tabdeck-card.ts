@@ -540,8 +540,16 @@ export class TabdeckCard extends LitElement {
     return this._allTabs().indexOf(target);
   }
 
-  private _onSelect(e: CustomEvent<{ index: number }>): void {
+  private _onSelect(e: CustomEvent<{ index: number; child?: string }>): void {
     const tab = this._visibleTabs()[e.detail.index];
+    if (e.detail.child !== undefined) {
+      // A child picked from a grouped tab's menu: open the group, then the child.
+      this._collapsed = false;
+      if (e.detail.index !== this._selected) this._selectIndex(e.detail.index);
+      const nested = this._manager?.get(this._allTabs().indexOf(tab!));
+      this.updateComplete.then(() => nested?.selectTab?.(e.detail.child));
+      return;
+    }
     if (isActionTab(tab)) {
       this._runAction(tab!.tap_action, "tap");
       return;
@@ -646,6 +654,43 @@ export class TabdeckCard extends LitElement {
     this._runAction(action, e.detail.kind === "badge" ? "tap" : "hold");
   }
 
+  // --- public API -------------------------------------------------------------
+  // Select a visible tab by index, exact name, or slug ("living-room").
+  // Returns false when no such tab exists (or it can't be opened).
+  selectTab(target: number | string): boolean {
+    const visible = this._visibleTabs();
+    let i = -1;
+    if (typeof target === "number") i = target;
+    else {
+      const slug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      i = visible.findIndex((t) => t.name === target);
+      if (i < 0) i = visible.findIndex((t) => t.name !== undefined && slug(t.name) === slug(String(target)));
+    }
+    if (!this._isContentTab(visible[i])) return false;
+    this._collapsed = false;
+    if (i !== this._selected) this._selectIndex(i);
+    return true;
+  }
+
+  // Name of the active tab (undefined before the first build).
+  get selectedTab(): string | undefined {
+    return this._visibleTabs()[this._selected]?.name;
+  }
+
+  // The active child of each menu-grouped tab, for its subtitle.
+  private _groupChild = new WeakMap<TabdeckTabConfig, string>();
+
+  // A nested deck (grouped tab) changed tab: show the child as the subtitle.
+  private _onNestedChanged = (e: Event): void => {
+    const detail = (e as CustomEvent).detail;
+    if (!detail || detail.deck === this) return;
+    const owner = this._allTabs().find((t) => this._manager?.get(this._allTabs().indexOf(t)) === detail.deck);
+    if (owner?.group?.display === "menu" && detail.name) {
+      this._groupChild.set(owner, detail.name);
+      this.requestUpdate();
+    }
+  };
+
   // `persist: false` for automatic switches (rotation, idle return, entity
   // sync) that must not overwrite the remembered choice.
   private _selectIndex(index: number, persist = true): void {
@@ -658,6 +703,15 @@ export class TabdeckCard extends LitElement {
       this._runAction(visible[index]?.enter_action, "tap");
     }
     const tab = visible[this._selected];
+    if (changed) {
+      this.dispatchEvent(
+        new CustomEvent("tabdeck-tab-changed", {
+          detail: { index, name: tab?.name, deck: this },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }
     // Picks made while editing (possibly of a hidden tab) aren't remembered.
     if (this._config && persist && !this._editing) {
       const r = persistIndex({
@@ -851,7 +905,7 @@ export class TabdeckCard extends LitElement {
       <tabdeck-tabbar
         .items=${visible.map((t) => ({
           name: this._text(t.name),
-          subtitle: this._text(t.subtitle),
+          subtitle: this._text(t.subtitle) ?? (t.group?.display === "menu" ? this._groupChild.get(t) : undefined),
           icon: this._text(t.icon),
           accent: this._text(t.accent),
           color: this._text(t.color),
@@ -864,6 +918,7 @@ export class TabdeckCard extends LitElement {
           alert: this._isAlerting(t),
           ghost: this._editing && this._isHidden(t),
           fab: t.fab,
+          menu: t.group?.display === "menu" ? t.group.items : undefined,
         }))}
         .selected=${this._selected}
         @tabdeck-action=${this._onTabAction}
@@ -899,6 +954,7 @@ export class TabdeckCard extends LitElement {
         @touchend=${this._onTouchEnd}
         @pointerdown=${this._onPointerDown}
         @pointerup=${this._onPointerUp}
+        @tabdeck-tab-changed=${this._onNestedChanged}
       >
         ${cfg.content_arrows && !cfg.scroll_spy ? this._renderArrows() : nothing}
         ${cfg.header && !cfg.scroll_spy && visible[this._selected]
@@ -930,8 +986,8 @@ export class TabdeckCard extends LitElement {
       </div>
     `;
     return html`
-      <div class="root pos-${docked ? "bottom" : cfg.position} ${docked ? "docked" : ""}">
-        ${docked || cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
+      <div class="root pos-${docked ? "bottom" : cfg.position} ${docked ? "docked" : ""} ${cfg.hide_bar ? "no-bar" : ""}">
+        ${cfg.hide_bar ? panels : docked || cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
       </div>
     `;
   }
@@ -1004,6 +1060,9 @@ export class TabdeckCard extends LitElement {
     .content {
       padding-top: 8px;
       position: relative;
+    }
+    .root.no-bar .content {
+      padding-top: 0;
     }
     .nav-arrow {
       position: absolute;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeConfig, resolveDefaultIndex } from "./config";
+import { normalizeConfig, normalizeTab, resolveDefaultIndex } from "./config";
 
 describe("normalizeConfig", () => {
   it("applies defaults", () => {
@@ -325,5 +325,32 @@ describe("split / narrow normalization", () => {
     expect(c.tab_display_narrow).toBe("icon");
     expect(c.narrow_width).toBe(450);
     expect(normalizeConfig({ tabs, tab_display_narrow: "bogus" }).tab_display_narrow).toBeUndefined();
+  });
+});
+
+describe("grouped tabs (children)", () => {
+  const children = [
+    { name: "Kitchen", icon: "mdi:fridge", card: { type: "light" } },
+    { name: "Lounge", card: { type: "markdown" } },
+  ];
+
+  it("turns children into a nested sub-row deck", () => {
+    const t = normalizeTab({ name: "Downstairs", children });
+    expect(t.card.type).toBe("custom:tabdeck-card");
+    expect(t.card.tabs).toEqual(children);
+    expect(t.card.hide_bar).toBe(false);
+    expect(t.card.style).toBe("text");
+    expect(t.group).toEqual({ display: "row", items: [{ name: "Kitchen", icon: "mdi:fridge" }, { name: "Lounge", icon: undefined }] });
+  });
+
+  it("menu mode hides the nested bar; children_options merge in", () => {
+    const t = normalizeTab({ name: "Downstairs", children, children_display: "menu", children_options: { style: "pill", remember: "browser" } });
+    expect(t.card).toMatchObject({ hide_bar: true, style: "pill", remember: "browser" });
+    expect(t.group?.display).toBe("menu");
+  });
+
+  it("hide_bar is a card option", () => {
+    expect(normalizeConfig({ tabs: [{ card: {} }] }).hide_bar).toBe(false);
+    expect(normalizeConfig({ hide_bar: true, tabs: [{ card: {} }] }).hide_bar).toBe(true);
   });
 });

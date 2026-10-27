@@ -23,6 +23,8 @@ interface TabItem {
   ghost?: boolean;
   // Floating action button style.
   fab?: boolean;
+  // Grouped tab: its children, picked from a dropdown on the tab.
+  menu?: { name?: string; icon?: string }[];
 }
 
 const HOLD_MS = 500;
@@ -54,6 +56,9 @@ export class TabdeckTabbar extends LitElement {
   // fit all tabs.
   @property({ type: Boolean }) overflowMenu = false;
   @state() private _menuOpen = false;
+  // Index of the grouped tab whose child menu is open (-1 = none).
+  @state() private _groupOpen = -1;
+  private _groupLeft = 0;
   // Deck content is folded away (collapsible): dims the indicator.
   @property({ type: Boolean, reflect: true }) collapsed = false;
   // Accessible name for the tablist (defaults to a localised "Tabs").
@@ -93,6 +98,7 @@ export class TabdeckTabbar extends LitElement {
 
   disconnectedCallback(): void {
     this.removeEventListener("keydown", this._onKeydown);
+    window.removeEventListener("pointerdown", this._onOutside, true);
     this._resizeObserver?.disconnect();
     super.disconnectedCallback();
   }
@@ -136,13 +142,91 @@ export class TabdeckTabbar extends LitElement {
     this._holdTimer = undefined;
   }
 
-  private _onTabClick(index: number): void {
+  private _onTabClick(index: number, e?: Event): void {
     this._cancelHold();
     if (this._suppressClick) {
       this._suppressClick = false;
       return;
     }
+    if (this.items[index]?.menu?.length) {
+      this._toggleGroup(index, e?.currentTarget as HTMLElement | undefined);
+      return;
+    }
     this._select(index);
+  }
+
+  // --- grouped-tab menu -----------------------------------------------------
+  private _toggleGroup(index: number, tab?: HTMLElement): void {
+    if (this._groupOpen === index) {
+      this._closeGroup();
+      return;
+    }
+    const bar = (this.renderRoot as ParentNode).querySelector(".bar") as HTMLElement | null;
+    this._groupLeft = tab ? tab.offsetLeft - (bar?.scrollLeft ?? 0) : 0;
+    this._groupOpen = index;
+    window.addEventListener("pointerdown", this._onOutside, true);
+    this.updateComplete.then(() =>
+      ((this.renderRoot as ParentNode).querySelector(".group-item") as HTMLElement | null)?.focus(),
+    );
+  }
+
+  private _closeGroup(): void {
+    this._groupOpen = -1;
+    window.removeEventListener("pointerdown", this._onOutside, true);
+  }
+
+  private _onOutside = (e: Event): void => {
+    const menu = (this.renderRoot as ParentNode).querySelector(".group-menu");
+    if (menu && e.composedPath().includes(menu)) return;
+    // A press on the group's own tab is handled by its click (toggle).
+    const tabs = (this.renderRoot as ParentNode).querySelectorAll("tabdeck-tab");
+    if (e.composedPath().includes(tabs[this._groupOpen])) return;
+    this._closeGroup();
+  };
+
+  private _pickChild(index: number, child: string | undefined): void {
+    this._closeGroup();
+    this.dispatchEvent(
+      new CustomEvent("tabdeck-select", {
+        detail: { index, child },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
+  private _onGroupKeydown(e: KeyboardEvent): void {
+    const items = [...(this.renderRoot as ParentNode).querySelectorAll(".group-item")] as HTMLElement[];
+    const i = items.indexOf(e.composedPath()[0] as HTMLElement);
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      const tab = (this.renderRoot as ParentNode).querySelectorAll("tabdeck-tab")[this._groupOpen] as HTMLElement | undefined;
+      this._closeGroup();
+      tab?.focus();
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      e.stopPropagation();
+      const n = items.length;
+      items[(i + (e.key === "ArrowDown" ? 1 : -1) + n) % n]?.focus();
+    }
+  }
+
+  private _renderGroupMenu() {
+    const item = this.items[this._groupOpen];
+    if (!item?.menu) return "";
+    const index = this._groupOpen;
+    return html`<div
+      class="group-menu"
+      role="menu"
+      style="left:${this._groupLeft}px"
+      @keydown=${(e: KeyboardEvent) => this._onGroupKeydown(e)}
+    >
+      ${item.menu.map(
+        (c) => html`<button class="group-item" role="menuitem" @click=${() => this._pickChild(index, c.name)}>
+          ${c.icon ? html`<ha-icon .icon=${c.icon}></ha-icon>` : ""}<span>${c.name ?? ""}</span>
+        </button>`,
+      )}
+    </div>`;
   }
 
   // Arrow/Home/End only land on real panels: not disabled, not action tabs
@@ -350,13 +434,16 @@ export class TabdeckTabbar extends LitElement {
               .action=${!!item.action}
               .ghost=${!!item.ghost}
               .fab=${!!item.fab}
+              .hasMenu=${!!item.menu?.length}
+              aria-haspopup=${item.menu?.length ? "menu" : "false"}
+              aria-expanded=${item.menu?.length ? String(this._groupOpen === index) : "false"}
               .stacked=${this.dock}
               .ghostLabel=${localize(this.language, "card.ghost")}
               .badgeLabel=${localize(this.language, "card.badge", { value: item.badge ?? "" })}
               .display=${this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"
-              @click=${() => this._onTabClick(index)}
+              @click=${(e: Event) => this._onTabClick(index, e)}
               @pointerdown=${() => this._onPointerDown(index)}
               @pointerup=${() => this._cancelHold()}
               @pointerleave=${() => this._cancelHold()}
@@ -365,6 +452,7 @@ export class TabdeckTabbar extends LitElement {
           `,
         )}
       </div>
+      ${this._groupOpen >= 0 ? this._renderGroupMenu() : ""}
       ${arrows
         ? html`<button class="scroll-btn right" aria-label=${localize(this.language, "card.scroll_right")} @click=${() => this._scrollBy(1)}>›</button>`
         : ""}
@@ -429,6 +517,51 @@ export class TabdeckTabbar extends LitElement {
     :host([dock]) .bar tabdeck-tab:not([fab]) {
       flex: 1 1 0;
       justify-content: center;
+    }
+    .bar-wrap {
+      position: relative;
+    }
+    .group-menu {
+      position: absolute;
+      top: 100%;
+      z-index: 4;
+      min-width: 180px;
+      max-height: 320px;
+      overflow: auto;
+      background: var(--card-background-color, #fff);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+    }
+    :host([dock]) .group-menu,
+    .bar.bottom ~ .group-menu {
+      top: auto;
+      bottom: 100%;
+    }
+    .group-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 9px 12px;
+      border-radius: 6px;
+      color: var(--primary-text-color);
+      font-size: 14px;
+    }
+    .group-item:hover,
+    .group-item:focus-visible {
+      background: var(--secondary-background-color, #f5f5f5);
+      outline: none;
+    }
+    .group-item ha-icon {
+      --mdc-icon-size: 20px;
+      color: var(--secondary-text-color);
     }
     .bar-wrap.has-arrows {
       display: flex;

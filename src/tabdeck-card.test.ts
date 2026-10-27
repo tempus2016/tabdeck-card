@@ -1357,3 +1357,55 @@ describe("content arrows", () => {
     expect(bar(el).selected).toBe(2);
   });
 });
+
+describe("selectTab API & tab-changed event", () => {
+  const tabs = [
+    { name: "A", card: { type: "markdown" } },
+    { name: "Living Room", card: { type: "light" } },
+  ];
+  it("selects by name, slug or index and fires tabdeck-tab-changed", async () => {
+    const el = await mount({ tabs });
+    const seen: any[] = [];
+    el.addEventListener("tabdeck-tab-changed", (e: any) => seen.push(e.detail));
+    expect(el.selectTab("living-room")).toBe(true);
+    expect(el.selectedTab).toBe("Living Room");
+    expect(el.selectTab(0)).toBe(true);
+    expect(el.selectTab("nope")).toBe(false);
+    expect(seen.map((d) => d.name)).toEqual(["Living Room", "A"]);
+    expect(seen[0].index).toBe(1);
+  });
+
+  it("hide_bar renders only the content", async () => {
+    const el = await mount({ hide_bar: true, tabs });
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar")).toBeNull();
+    expect(el.shadowRoot.querySelector(".content")).toBeTruthy();
+  });
+});
+
+describe("grouped tab menu", () => {
+  it("picking a child from the menu selects the parent and the child", async () => {
+    const el = await mount({
+      tabs: [
+        { name: "Home", card: { type: "markdown" } },
+        {
+          name: "Rooms",
+          children_display: "menu",
+          children: [
+            { name: "Kitchen", card: { type: "light" } },
+            { name: "Lounge", card: { type: "markdown" } },
+          ],
+        },
+      ],
+    });
+    const bar = el.shadowRoot.querySelector("tabdeck-tabbar");
+    expect(bar.items[1].menu).toEqual([{ name: "Kitchen", icon: undefined }, { name: "Lounge", icon: undefined }]);
+    const nested = el._manager.get(1);
+    const picks: any[] = [];
+    nested.selectTab = (t: any) => picks.push(t);
+    bar.dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1, child: "Lounge" } }));
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(bar.selected).toBe(1);
+    expect(picks).toEqual(["Lounge"]);
+  });
+});
