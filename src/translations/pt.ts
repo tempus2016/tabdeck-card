@@ -209,5 +209,6 @@ const pt: Record<string, string> = {
   "card.search": "Procurar um separador",
   "card.search_placeholder": "Escreva para filtrar…",
   "card.search_none": "Nenhum separador corresponde",
+  "editor.global.history": "O botão Voltar regressa ao separador anterior",
 };
 export default pt;

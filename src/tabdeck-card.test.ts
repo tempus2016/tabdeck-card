@@ -1460,3 +1460,54 @@ describe("hotkeys", () => {
     el.remove();
   });
 });
+
+describe("history (back button)", () => {
+  const tabs = [
+    { name: "A", card: { type: "markdown" } },
+    { name: "B", card: { type: "light" } },
+    { name: "C", card: { type: "light" } },
+  ];
+  const bar = (el: any) => el.shadowRoot.querySelector("tabdeck-tabbar");
+  const pick = (el: any, i: number) =>
+    bar(el).dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: i } }));
+
+  it("pushes an entry per user switch and follows popstate", async () => {
+    history.replaceState(null, "", "/lovelace/0");
+    const before = history.length;
+    const el = await mount({ history: true, storage_key: "h1", tabs });
+    pick(el, 1);
+    pick(el, 2);
+    expect(history.length).toBe(before + 2);
+    expect(history.state.tabdeck.h1).toBe(2);
+    // Simulate Back to the entry for B.
+    window.dispatchEvent(new PopStateEvent("popstate", { state: { tabdeck: { h1: 1 } } }));
+    await el.updateComplete;
+    expect(bar(el).selected).toBe(1);
+    // A state that isn't ours (e.g. an HA dialog) is ignored.
+    window.dispatchEvent(new PopStateEvent("popstate", { state: { dialog: "more-info" } }));
+    await el.updateComplete;
+    expect(bar(el).selected).toBe(1);
+    el.remove();
+  });
+
+  it("doesn't push for automatic switches or without the option", async () => {
+    const el = await mount({ history: true, storage_key: "h2", auto_rotate: 10, tabs });
+    const before = history.length;
+    el._tick(el._lastInteraction + 10_000);
+    expect(history.length).toBe(before);
+    el.remove();
+    const plain = await mount({ storage_key: "h3", tabs });
+    const b2 = history.length;
+    pick(plain, 1);
+    expect(history.length).toBe(b2);
+    plain.remove();
+  });
+
+  it("with remember: url the pushed entry carries the #tab= hash", async () => {
+    const el = await mount({ history: true, remember: "url", storage_key: "h4", tabs });
+    pick(el, 2);
+    expect(location.hash).toBe("#tab=C");
+    expect(history.state.tabdeck.h4).toBe(2);
+    el.remove();
+  });
+});

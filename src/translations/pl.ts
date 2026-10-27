@@ -209,5 +209,6 @@ const pl: Record<string, string> = {
   "card.search": "Znajdź zakładkę",
   "card.search_placeholder": "Wpisz, aby filtrować…",
   "card.search_none": "Brak pasujących zakładek",
+  "editor.global.history": "Przycisk Wstecz wraca do poprzedniej zakładki",
 };
 export default pl;

@@ -209,5 +209,6 @@ const fr: Record<string, string> = {
   "card.search": "Rechercher un onglet",
   "card.search_placeholder": "Tapez pour filtrer…",
   "card.search_none": "Aucun onglet correspondant",
+  "editor.global.history": "Le bouton Retour revient à l'onglet précédent",
 };
 export default fr;

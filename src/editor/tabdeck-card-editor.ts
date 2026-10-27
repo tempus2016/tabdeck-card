@@ -739,6 +739,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "content_arrows", selector: { boolean: {} } },
       { name: "search", selector: { boolean: {} } },
       { name: "hotkeys", selector: { boolean: {} } },
+      { name: "history", selector: { boolean: {} } },
       { name: "edit_mode_reveal", selector: { boolean: {} } },
     ];
   }
@@ -787,6 +788,7 @@ export class TabdeckCardEditor extends LitElement {
       content_arrows: cfg.content_arrows,
       search: cfg.search,
       hotkeys: cfg.hotkeys,
+      history: cfg.history,
       edit_mode_reveal: cfg.edit_mode_reveal,
     };
   }
@@ -853,6 +855,7 @@ export class TabdeckCardEditor extends LitElement {
       content_arrows: !!v.content_arrows,
       search: !!v.search,
       hotkeys: !!v.hotkeys,
+      history: !!v.history,
       edit_mode_reveal: v.edit_mode_reveal !== false,
     });
   }

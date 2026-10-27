@@ -209,5 +209,6 @@ const en: Record<string, string> = {
   "card.search": "Find a tab",
   "card.search_placeholder": "Type to filter…",
   "card.search_none": "No matching tabs",
+  "editor.global.history": "Back button returns to the previous tab",
 };
 export default en;
