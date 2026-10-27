@@ -6,7 +6,7 @@
 - [Configuration](Configuration)
 - [The Visual Editor](Editor)
 - [Showcase](Showcase)
-- [Live demo](https://tempus2016.github.io/tabdeck-card/)
+- [Live demo](https://tempus2016.github.io/tabdeck-card/demo/)
 
 **Concepts**
 - [Tab Visibility](Tab-Visibility)

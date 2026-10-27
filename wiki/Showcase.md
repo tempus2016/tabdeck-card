@@ -4,7 +4,7 @@ Real decks from Tabdeck users. Copy the ideas you like. Every entry links back t
 
 > 🙌 **Share yours:** post it in [Show and tell](https://github.com/tempus2016/tabdeck-card/discussions/new?category=show-and-tell). The form asks for a screenshot, a sentence about what it does, and (optionally) the YAML. Ones that are ticked "OK to feature" get added here with credit.
 >
-> 🎮 Want to experiment first? The [live demo](https://tempus2016.github.io/tabdeck-card/) runs in your browser.
+> 🎮 Want to experiment first? The [live demo](https://tempus2016.github.io/tabdeck-card/demo/) runs in your browser.
 
 ## Community decks
 
@@ -19,7 +19,7 @@ Real decks from Tabdeck users. Copy the ideas you like. Every entry links back t
 
 ## Starter ideas
 
-Small, copyable patterns to start from (also in the [live demo](https://tempus2016.github.io/tabdeck-card/)).
+Small, copyable patterns to start from (also in the [live demo](https://tempus2016.github.io/tabdeck-card/demo/)).
 
 ### Phone: icons, with the selected tab spelled out
 

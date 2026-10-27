@@ -6,7 +6,7 @@
 
 ![Tabdeck card editor](images/editor-collapsed.png)
 
-> 🎮 **[Try the live demo](https://tempus2016.github.io/tabdeck-card/)**: no Home Assistant needed.
+> 🎮 **[Try the live demo](https://tempus2016.github.io/tabdeck-card/demo/)**: no Home Assistant needed.
 
 ## Contents
 

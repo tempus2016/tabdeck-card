@@ -6,3 +6,6 @@ dist/*
 
 # Built demo site (published by the Pages workflow)
 site/
+
+# VitePress cache (docs site)
+docs-site/.vitepress/cache/

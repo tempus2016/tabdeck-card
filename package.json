@@ -10,7 +10,10 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "build:demo": "vite build --config vite.demo.config.ts",
-    "demo": "vite --config vite.demo.config.ts"
+    "demo": "vite --config vite.demo.config.ts",
+    "docs:dev": "vitepress dev docs-site",
+    "docs:build": "vitepress build docs-site",
+    "build:site": "npm run docs:build && npm run build:demo"
   },
   "dependencies": {
     "custom-card-helpers": "^2.0.0",
@@ -22,6 +25,7 @@
     "terser": "^5.51.2",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
+    "vitepress": "2.0.0-alpha.21",
     "vitest": "^5.0.5",
     "yaml": "^2.9.1"
   }
