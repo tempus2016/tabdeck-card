@@ -14,6 +14,8 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Full screen** — `fullscreen: true` adds a button to the bar that opens the active tab over the whole window (Esc or the corner button closes it).
 - **Swipe peek** — `swipe_peek: true`: while swiping, the content follows the finger and the neighbouring tab slides in; release past a third (or flick) to change tab.
 - **More transitions** — `scale`, `flip` and `rise`, plus `transition_duration` and `transition_easing`; `slide` and `flip` now come in from the direction of travel. `transition_narrow` picks a different transition (e.g. `none`) on cards narrower than `narrow_width`.
+- **Visual regression tests** — CI screenshots every demo example (desktop, phone, light theme) and compares it pixel by pixel with saved baselines (`npm run test:visual`).
+- **Home Assistant compatibility check** — a monthly workflow runs the card in fresh Home Assistant `stable` and `beta` containers (dashboard, HA cards inside the deck, visual editor) and keeps a "works with Home Assistant" badge in the README up to date (`npm run test:ha` runs it against your own instance).
 - **Free unused tabs** — `unload_after: <minutes>` releases the card of a tab that hasn't been on screen for that long and rebuilds it when it's opened again.
 
 ## v1.1.0 — 2026-10-27

@@ -1,0 +1,136 @@
+name: HA compatibility
+
+# Once a month (and on demand), start fresh Home Assistant stable and beta
+# containers, load the built card on a dashboard and check that it works
+# (scripts/compat/ha-compat.mjs). On main, the result feeds the
+# "works with Home Assistant" badge in the README via the `badges` branch.
+on:
+  schedule:
+    - cron: "17 5 1 * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  check:
+    name: HA ${{ matrix.channel }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: [stable, beta]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build card
+        run: npm run build
+
+      - name: Start Home Assistant
+        env:
+          CHANNEL: ${{ matrix.channel }}
+        run: |
+          mkdir -p ha-config/www
+          cp dist/tabdeck-card.js ha-config/www/
+          docker run -d --name ha -p 8123:8123 -v "$PWD/ha-config:/config" "ghcr.io/home-assistant/home-assistant:${CHANNEL}"
+          for _ in $(seq 1 90); do
+            if curl -sf http://localhost:8123/api/onboarding > /dev/null; then exit 0; fi
+            sleep 5
+          done
+          docker logs ha | tail -50
+          exit 1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Check the card
+        env:
+          CHANNEL: ${{ matrix.channel }}
+        run: node scripts/compat/ha-compat.mjs --url http://localhost:8123 --onboard --out "result-${CHANNEL}.json"
+
+      - name: Home Assistant log (on failure)
+        if: failure()
+        run: docker logs ha 2>&1 | tail -100
+
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ha-compat-${{ matrix.channel }}
+          path: result-*.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+  badge:
+    name: Update badge
+    needs: check
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    # Writes only the badges branch; no repository code runs in this job.
+    permissions:
+      contents: write
+    steps:
+      - name: Download results
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: ha-compat-*
+          merge-multiple: true
+
+      - name: Write badge JSON
+        run: |
+          read_result() {
+            if [ -f "result-$1.json" ]; then
+              jq -r '"\(.version) \(.ok)"' "result-$1.json"
+            else
+              echo "unknown false"
+            fi
+          }
+          read -r stable_version stable_ok <<< "$(read_result stable)"
+          read -r beta_version beta_ok <<< "$(read_result beta)"
+          if [ "$stable_ok" = "true" ] && [ "$beta_ok" = "true" ]; then
+            color=brightgreen
+          elif [ "$stable_ok" = "true" ]; then
+            color=yellow
+          else
+            color=red
+          fi
+          message="$stable_version"
+          if [ "$stable_ok" != "true" ]; then message="$stable_version failing"; fi
+          if [ "$beta_version" != "$stable_version" ] && [ "$beta_version" != "unknown" ]; then
+            if [ "$beta_ok" = "true" ]; then message="$message · beta $beta_version"; else message="$message · beta failing"; fi
+          fi
+          mkdir -p badge
+          jq -n --arg m "$message" --arg c "$color" \
+            '{schemaVersion: 1, label: "works with Home Assistant", message: $m, color: $c, namedLogo: "homeassistant"}' \
+            > badge/ha-compat.json
+          cat badge/ha-compat.json
+
+      - name: Push to the badges branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          cd badge
+          git init -q -b badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ha-compat.json
+          git commit -qm "Update HA compatibility badge"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO}.git" badges
