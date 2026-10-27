@@ -7,6 +7,7 @@ import { isTemplate, makeHassSubscribe, TemplateRenderer } from "../lib/template
 import { conditionsSignature, explainConditions, type ConditionExplanation } from "../lib/explain";
 import { hassLanguage, localize } from "../lib/i18n";
 import { applyStarter, buildStarter, STARTERS, type StarterKind } from "../lib/starters";
+import { applyConversion, convertConfig, type ConvertResult } from "../lib/convert";
 import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
 import { SOURCE_TAB_TEMPLATE } from "../lib/sources";
 import "../components/tabdeck-tabbar";
@@ -28,6 +29,8 @@ const MDI_IMPORT =
   "M14,12L10,8V11H2V13H10V16M20,18V6C20,4.89 19.1,4 18,4H6A2,2 0 0,0 4,6V9H6V6H18V18H6V15H4V18A2,2 0 0,0 6,20H18A2,2 0 0,0 20,18Z";
 const MDI_CREATION =
   "M19,1L17.74,3.75L15,5L17.74,6.26L19,9L20.25,6.26L23,5L20.25,3.75M9,4L6.5,9.5L1,12L6.5,14.5L9,20L11.5,14.5L17,12L11.5,9.5M19,15L17.74,17.74L15,19L17.74,20.25L19,23L20.25,20.25L23,19L20.25,17.74";
+const MDI_SWAP =
+  "M21,9L17,5V8H10V10H17V13M7,11L3,15L7,19V16H14V14H7V11Z";
 const MDI_CHEVRON_DOWN = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z";
 
 // Fallback icon shown in a collapsed tab header when the tab has no icon set.
@@ -187,6 +190,10 @@ export class TabdeckCardEditor extends LitElement {
   // Starter-template panel.
   @state() private _starterOpen = false;
   @state() private _starterKind: StarterKind = "rooms";
+  // Convert-from panel: open state, current conversion (or error key).
+  @state() private _convertOpen = false;
+  @state() private _convertResult?: ConvertResult;
+  @state() private _convertError = "";
   // Transient status line (e.g. "Copied tab …").
   @state() private _status = "";
   private _statusTimer?: ReturnType<typeof setTimeout>;
@@ -391,6 +398,86 @@ export class TabdeckCardEditor extends LitElement {
     }
     const label = tab.name || `Tab ${index + 1}`;
     this._flash(ok ? `Copied tab "${label}" — paste it into Import tab.` : "Couldn't access the clipboard.");
+  }
+
+  private _toggleConvert(): void {
+    this._convertOpen = !this._convertOpen;
+    this._convertResult = undefined;
+    this._convertError = "";
+  }
+
+  private _onConvertInput(value: any): void {
+    this._convertResult = undefined;
+    this._convertError = "";
+    if (value === undefined || value === null || value === "") return;
+    try {
+      const r = convertConfig(value, this._hass);
+      if (r.tabs.length === 0) this._convertError = "convert.error.no_tabs";
+      else this._convertResult = r;
+    } catch (err: any) {
+      const key = String(err?.message ?? "");
+      this._convertError = key.startsWith("convert.") ? key : "convert.error.not_card";
+    }
+  }
+
+  private _applyConvert(mode: "replace" | "append"): void {
+    const r = this._convertResult;
+    if (!this._config || !r) return;
+    const next = normalizeConfig(applyConversion(this._config, r, mode));
+    this._expanded = new Set();
+    this._convertOpen = false;
+    this._convertResult = undefined;
+    this._flash(this._t("convert.done", { count: r.tabs.length, source: this._t(`convert.source.${r.source}`) }));
+    this._emit(next);
+  }
+
+  private _renderConvert() {
+    const r = this._convertResult;
+    const onYaml = (e: CustomEvent) => {
+      e.stopPropagation();
+      const d = e.detail as any;
+      if (d?.isValid === false) return;
+      this._onConvertInput(d?.value);
+    };
+    return html`
+      <div class="import-panel convert-panel">
+        <div class="import-hint">${this._t("convert.hint")}</div>
+        ${customElements.get("ha-yaml-editor")
+          ? html`<ha-yaml-editor class="convert-yaml" @value-changed=${onYaml}></ha-yaml-editor>`
+          : html`<textarea
+              class="import-json convert-json"
+              rows="8"
+              @input=${(e: any) => {
+                try {
+                  this._onConvertInput(JSON.parse(e.target.value));
+                } catch {
+                  this._convertResult = undefined;
+                }
+              }}
+            ></textarea>`}
+        ${this._convertError
+          ? html`<div class="import-error" role="alert">${this._t(this._convertError)}</div>`
+          : nothing}
+        ${r
+          ? html`<div class="convert-summary" role="status">
+              ${this._t("convert.detected", { source: this._t(`convert.source.${r.source}`), count: r.tabs.length })}
+              <ul class="convert-tabs">
+                ${r.tabs.map((t) => html`<li>${t.icon ? html`<ha-icon .icon=${t.icon}></ha-icon>` : nothing}${t.name}</li>`)}
+              </ul>
+              ${r.notes.map((n) => html`<div class="convert-note">ℹ️ ${this._t(n)}</div>`)}
+            </div>`
+          : nothing}
+        <div class="import-actions">
+          <ha-button class="convert-replace" .disabled=${!r} @click=${() => this._applyConvert("replace")}
+            >${this._t("convert.replace")}</ha-button
+          >
+          <ha-button class="convert-append" .disabled=${!r} @click=${() => this._applyConvert("append")}
+            >${this._t("convert.append")}</ha-button
+          >
+          <ha-button class="convert-cancel" @click=${this._toggleConvert}>${this._t("convert.cancel")}</ha-button>
+        </div>
+      </div>
+    `;
   }
 
   private _toggleStarter(): void {
@@ -1258,7 +1345,13 @@ export class TabdeckCardEditor extends LitElement {
             <ha-svg-icon slot="icon" .path=${MDI_CREATION}></ha-svg-icon>
             ${this._t("starter.button")}
           </ha-button>
+          <ha-button class="convert-tab" @click=${this._toggleConvert}>
+            <ha-svg-icon slot="start" .path=${MDI_SWAP}></ha-svg-icon>
+            <ha-svg-icon slot="icon" .path=${MDI_SWAP}></ha-svg-icon>
+            ${this._t("convert.button")}
+          </ha-button>
         </div>
+        ${this._convertOpen ? this._renderConvert() : nothing}
         ${this._starterOpen ? this._renderStarter() : nothing}
         ${this._importOpen ? this._renderImport() : nothing}
         ${this._status ? html`<div class="editor-status" role="status">${this._status}</div>` : nothing}
@@ -1364,6 +1457,24 @@ export class TabdeckCardEditor extends LitElement {
       display: flex;
       gap: 8px;
       margin-top: 8px;
+    }
+    .convert-summary {
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .convert-tabs {
+      margin: 6px 0;
+      padding-left: 18px;
+    }
+    .convert-tabs ha-icon {
+      --mdc-icon-size: 16px;
+      margin-right: 6px;
+      color: var(--secondary-text-color);
+    }
+    .convert-note {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      margin-top: 4px;
     }
     .editor-status {
       margin-top: 8px;

@@ -28,6 +28,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Edit mode helpers** — while the dashboard is being edited (and in the editor preview), tabs hidden by `visibility` appear faded with an eye-off marker so they can be reached; `auto_rotate` / `idle_return` pause and selections aren't persisted. Opt out with `edit_mode_reveal: false`.
 - **Why is this tab hidden?** — the editor checks each tab's visibility / alert / default conditions against live state: *Hidden now* / *Alerting* chips on the tab list, and a ✅/❌ breakdown per condition (with current values, missing entities and live template results).
 - **Starter templates** — *Start from a template* in the editor builds a working deck from your own entities: Rooms, Lights, Security, Media, Climate, Energy or Family. Replace the current tabs or add to them.
+- **Convert from another card** — paste a `tabbed-card`, `swipe-card`, `state-switch`, Bubble Card pop-ups, a stack / grid (split at `heading` cards), `conditional` cards, a sections view or a whole dashboard into the editor and get Tabdeck tabs, with options mapped and any lossy bits explained.
 
 ### Fixed
 - Editor button icons (Add tab) render on current WebAwesome-based HA builds.
