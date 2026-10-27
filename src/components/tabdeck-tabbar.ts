@@ -2,6 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { BadgeDisplay, TabAlign, TabDisplay, TabPosition, TabStyle } from "../lib/config";
 import { computeIndicatorRect } from "../lib/indicator";
+import { localize } from "../lib/i18n";
 import "./tabdeck-tab";
 
 interface TabItem {
@@ -53,8 +54,10 @@ export class TabdeckTabbar extends LitElement {
   @state() private _menuOpen = false;
   // Deck content is folded away (collapsible): dims the indicator.
   @property({ type: Boolean, reflect: true }) collapsed = false;
-  // Accessible name for the tablist.
-  @property() barLabel = "Tabs";
+  // Accessible name for the tablist (defaults to a localised "Tabs").
+  @property() barLabel?: string;
+  // UI language for built-in strings (aria labels, menu, tooltips).
+  @property() language = "en";
   // Optional custom bar background colour.
   @property() barBackground?: string;
 
@@ -70,7 +73,7 @@ export class TabdeckTabbar extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.setAttribute("role", "tablist");
-    this.setAttribute("aria-label", this.barLabel || "Tabs");
+    this.setAttribute("aria-label", this.barLabel || localize(this.language, "card.tabs"));
     this.addEventListener("keydown", this._onKeydown);
     if (typeof ResizeObserver !== "undefined") {
       // Debounce resize work to one reposition per animation frame.
@@ -269,7 +272,7 @@ export class TabdeckTabbar extends LitElement {
   }
 
   protected updated(): void {
-    this.setAttribute("aria-label", this.barLabel || "Tabs");
+    this.setAttribute("aria-label", this.barLabel || localize(this.language, "card.tabs"));
     this._applyAccent();
     this._applySticky();
     this._position();
@@ -317,7 +320,7 @@ export class TabdeckTabbar extends LitElement {
     return html`
       <div class="bar-wrap ${arrows || menu ? "has-arrows" : ""}">
       ${arrows
-        ? html`<button class="scroll-btn left" aria-label="Scroll left" @click=${() => this._scrollBy(-1)}>‹</button>`
+        ? html`<button class="scroll-btn left" aria-label=${localize(this.language, "card.scroll_left")} @click=${() => this._scrollBy(-1)}>‹</button>`
         : ""}
       <div
         class="bar ${this.position} style-${this.tabStyle} align-${this.align} ${this.elevation ? "elevated" : ""}"
@@ -342,6 +345,8 @@ export class TabdeckTabbar extends LitElement {
               .alert=${!!item.alert}
               .action=${!!item.action}
               .ghost=${!!item.ghost}
+              .ghostLabel=${localize(this.language, "card.ghost")}
+              .badgeLabel=${localize(this.language, "card.badge", { value: item.badge ?? "" })}
               .display=${this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"
@@ -355,12 +360,12 @@ export class TabdeckTabbar extends LitElement {
         )}
       </div>
       ${arrows
-        ? html`<button class="scroll-btn right" aria-label="Scroll right" @click=${() => this._scrollBy(1)}>›</button>`
+        ? html`<button class="scroll-btn right" aria-label=${localize(this.language, "card.scroll_right")} @click=${() => this._scrollBy(1)}>›</button>`
         : ""}
       ${menu
         ? html`<button
               class="overflow-btn"
-              aria-label="All tabs"
+              aria-label=${localize(this.language, "card.all_tabs")}
               aria-haspopup="menu"
               aria-expanded=${this._menuOpen ? "true" : "false"}
               @click=${() => (this._menuOpen = !this._menuOpen)}
@@ -376,7 +381,7 @@ export class TabdeckTabbar extends LitElement {
                       ?disabled=${item.disabled}
                       @click=${() => this._pickFromMenu(index)}
                     >
-                      ${item.name ?? `Tab ${index + 1}`}
+                      ${item.name ?? localize(this.language, "editor.tab_n", { n: index + 1 })}
                     </button>`,
                   )}
                 </div>`

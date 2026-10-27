@@ -636,3 +636,15 @@ describe("starter templates", () => {
     expect(el.shadowRoot.querySelector(".editor-status")?.textContent).toContain("no matching entities");
   });
 });
+
+describe("localisation", () => {
+  it("follows the Home Assistant language, falling back to English", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    el.hass = { states: {}, locale: { language: "de" } };
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".add-tab").textContent).toContain("Tab hinzufügen");
+    el.hass = { states: {}, locale: { language: "xx" } };
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".add-tab").textContent).toContain("Add tab");
+  });
+});
