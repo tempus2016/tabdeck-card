@@ -14,7 +14,7 @@ import { expandGeneratedTabs } from "./lib/generate";
 import { isTabVisible } from "./lib/conditions";
 import { loadInitialIndex, persistIndex } from "./lib/persistence";
 import { CardManager, getCreateCardElement } from "./lib/card-lifecycle";
-import { isTemplate, TemplateRenderer, type SubscribeFn } from "./lib/templates";
+import { isTemplate, makeHassSubscribe, TemplateRenderer, type SubscribeFn } from "./lib/templates";
 import { formatBadge } from "./lib/badge";
 import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import "./components/tabdeck-tabbar";
@@ -431,33 +431,7 @@ export class TabdeckCard extends LitElement {
 
   private _makeSubscribe(): SubscribeFn | undefined {
     if (!this._hass?.connection?.subscribeMessage) return undefined;
-    return (template, onResult, onError) => {
-      const conn = this._hass?.connection;
-      if (!conn?.subscribeMessage) {
-        onError();
-        return () => {};
-      }
-      let unsubbed = false;
-      let realUnsub: (() => void) | undefined;
-      Promise.resolve(
-        conn.subscribeMessage(
-          (msg: any) => {
-            if (msg && msg.error !== undefined) onError();
-            else onResult(msg?.result);
-          },
-          { type: "render_template", template, report_errors: true },
-        ),
-      )
-        .then((u: any) => {
-          realUnsub = u;
-          if (unsubbed) u?.();
-        })
-        .catch(() => onError());
-      return () => {
-        unsubbed = true;
-        realUnsub?.();
-      };
-    };
+    return makeHassSubscribe(() => this._hass);
   }
 
   private _syncTemplates(): void {
