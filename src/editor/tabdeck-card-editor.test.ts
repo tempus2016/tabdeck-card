@@ -529,3 +529,58 @@ describe("tabdeck-card-editor", () => {
     expect(cfg.auto_tabs).toEqual({ source: "areas", domains: ["light"] });
   });
 });
+
+describe("why-hidden condition check", () => {
+  const cfg = {
+    tabs: [
+      {
+        name: "Guests",
+        card: { type: "markdown" },
+        visibility: [{ condition: "state", entity: "input_boolean.guest", state: "on" }],
+        alert: [{ condition: "numeric_state", entity: "sensor.temp", above: 25 }],
+      },
+    ],
+  };
+  const hassWith = (guest: string, temp = "20") => ({
+    states: { "input_boolean.guest": { state: guest }, "sensor.temp": { state: temp } },
+  });
+
+  it("shows a Hidden chip on the header while visibility is unmet", async () => {
+    const el = await mount(cfg);
+    el.hass = hassWith("off");
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".chip-hidden")?.textContent).toContain("Hidden now");
+    el.hass = hassWith("on");
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".chip-hidden")).toBeNull();
+  });
+
+  it("shows an Alerting chip while alert conditions are met", async () => {
+    const el = await mount(cfg);
+    el.hass = hassWith("on", "30");
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".chip-alert")).toBeTruthy();
+  });
+
+  it("lists each condition with its result and current value", async () => {
+    const el = await mount(cfg);
+    el.hass = hassWith("off");
+    await expand(el);
+    const sec = el.shadowRoot.querySelector('.conditions-section[data-key="visibility"]');
+    const check = sec.querySelector(".check");
+    expect(check.classList.contains("unmet")).toBe(true);
+    expect(check.textContent).toContain("input_boolean.guest is on");
+    expect(check.textContent).toContain("now: off");
+  });
+
+  it("only re-renders on hass ticks that change a result", async () => {
+    const el = await mount(cfg);
+    el.hass = hassWith("off");
+    await el.updateComplete;
+    const spy = vi.spyOn(el, "requestUpdate");
+    el.hass = hassWith("off");
+    expect(spy).not.toHaveBeenCalled();
+    el.hass = hassWith("on");
+    expect(spy).toHaveBeenCalled();
+  });
+});

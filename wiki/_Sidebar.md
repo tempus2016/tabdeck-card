@@ -39,3 +39,4 @@
 - [Duplicate tab](Feature-Duplicate-Tab)
 - [Expand/Collapse all](Feature-Editor-Expand-Collapse)
 - [Edit mode helpers](Feature-Edit-Mode)
+- [Why is this tab hidden?](Feature-Condition-Check)

@@ -9,6 +9,38 @@ export type SubscribeFn = (
   onError: () => void,
 ) => () => void;
 
+// A SubscribeFn over Home Assistant's `render_template` websocket command.
+// `getHass` is read per call so a replaced connection is picked up.
+export function makeHassSubscribe(getHass: () => any): SubscribeFn {
+  return (template, onResult, onError) => {
+    const conn = getHass()?.connection;
+    if (!conn?.subscribeMessage) {
+      onError();
+      return () => {};
+    }
+    let unsubbed = false;
+    let realUnsub: (() => void) | undefined;
+    Promise.resolve(
+      conn.subscribeMessage(
+        (msg: any) => {
+          if (msg && msg.error !== undefined) onError();
+          else onResult(msg?.result);
+        },
+        { type: "render_template", template, report_errors: true },
+      ),
+    )
+      .then((u: any) => {
+        realUnsub = u;
+        if (unsubbed) u?.();
+      })
+      .catch(() => onError());
+    return () => {
+      unsubbed = true;
+      realUnsub?.();
+    };
+  };
+}
+
 export function isTemplate(s: string | undefined): boolean {
   return !!s && (s.includes("{{") || s.includes("{%"));
 }

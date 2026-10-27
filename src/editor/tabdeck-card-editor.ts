@@ -3,7 +3,9 @@ import { customElement, state } from "lit/decorators.js";
 import { fireEvent } from "custom-card-helpers";
 import type { HomeAssistant } from "../types";
 import { normalizeConfig, normalizeTab, type TabdeckCardConfig } from "../lib/config";
-import { isTemplate } from "../lib/templates";
+import { isTemplate, makeHassSubscribe, TemplateRenderer } from "../lib/templates";
+import { conditionsSignature, explainConditions, type ConditionExplanation } from "../lib/explain";
+import { hassLanguage, localize } from "../lib/i18n";
 import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
 import { SOURCE_TAB_TEMPLATE } from "../lib/sources";
 import "../components/tabdeck-tabbar";
@@ -182,16 +184,97 @@ export class TabdeckCardEditor extends LitElement {
   // Transient status line (e.g. "Copied tab …").
   @state() private _status = "";
   private _statusTimer?: ReturnType<typeof setTimeout>;
-  public hass?: HomeAssistant;
+  private _hass?: HomeAssistant;
+  // Live template results for template conditions (the "why hidden" check).
+  private _templates?: TemplateRenderer;
+  // Fingerprint of every live condition result, so a hass tick only redraws
+  // the editor when something shown actually changed.
+  private _checkSig = "";
+
+  set hass(hass: HomeAssistant | undefined) {
+    const first = !this._hass;
+    this._hass = hass;
+    this._syncTemplates();
+    const sig = this._checkSignature();
+    if (first || sig !== this._checkSig) {
+      this._checkSig = sig;
+      this.requestUpdate();
+    }
+  }
+  get hass(): HomeAssistant | undefined {
+    return this._hass;
+  }
+
+  private _t(key: string, vars?: Record<string, string | number>): string {
+    return localize(hassLanguage(this._hass), key, vars);
+  }
+
+  // Tri-state resolver: undefined while a template result is pending.
+  private _resolver = (tpl: string): boolean | undefined =>
+    this._templates?.result(tpl) === undefined ? undefined : this._templates!.boolean(tpl);
+
+  private _conditionTemplates(): string[] {
+    const out: string[] = [];
+    const walk = (conds: any) => {
+      for (const c of Array.isArray(conds) ? conds : []) {
+        if (c?.condition === "template" && c.value_template) out.push(c.value_template);
+        if (Array.isArray(c?.conditions)) walk(c.conditions);
+      }
+    };
+    for (const t of this._config?.tabs ?? []) {
+      walk(t.visibility);
+      walk(t.alert);
+      walk(t.default_if);
+    }
+    return out;
+  }
+
+  private _syncTemplates(): void {
+    const templates = this._conditionTemplates();
+    if (templates.length === 0 || !this._hass?.connection?.subscribeMessage) {
+      if (templates.length === 0) {
+        this._templates?.destroy();
+        this._templates = undefined;
+      }
+      return;
+    }
+    if (!this._templates) {
+      this._templates = new TemplateRenderer(makeHassSubscribe(() => this._hass));
+      this._templates.addEventListener("change", () => this.requestUpdate());
+    }
+    this._templates.track(templates);
+  }
+
+  private _explain(conditions: any) {
+    return explainConditions(conditions, this._hass ?? ({ states: {} } as any), this._resolver);
+  }
+
+  private _checkSignature(): string {
+    if (!this._hass) return "";
+    return (this._config?.tabs ?? [])
+      .map((t) =>
+        CONDITION_SECTIONS.map((sec) => conditionsSignature(this._explain((t as any)[sec.key]))).join("/"),
+      )
+      .join(";");
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._templates?.destroy();
+    this._templates = undefined;
+  }
+
   // Set by Home Assistant's card-editor dialog; forwarded to the nested editor.
   public lovelace?: any;
 
   setConfig(config: any): void {
     this._config = normalizeConfig(config);
+    this._syncTemplates();
   }
 
   private _emit(next: TabdeckCardConfig): void {
     this._config = next;
+    this._syncTemplates();
     fireEvent(this, "config-changed", { config: this._forOutput(next) } as any);
     this.requestUpdate();
   }
@@ -713,15 +796,87 @@ export class TabdeckCardEditor extends LitElement {
         }}
       ></textarea>`;
     }
+    const check = conditions.length && this._hass ? this._explain(conditions) : undefined;
     return html`
       <details class="conditions-section" data-key=${sec.key}>
         <summary>
           ${sec.label}${conditions.length ? ` (${conditions.length})` : ""}
+          ${check
+            ? html`<span class="check-dot ${check.met ? "met" : "unmet"}" aria-hidden="true"></span>`
+            : nothing}
           <span class="conditions-hint">${sec.hint}</span>
         </summary>
+        ${check ? this._renderCheck(check) : nothing}
         ${body}
       </details>
     `;
+  }
+
+  // Live "why" panel: every condition with its current result.
+  private _renderCheck(check: { met: boolean; items: ConditionExplanation[] }) {
+    return html`
+      <div class="check ${check.met ? "met" : "unmet"}" role="status">
+        <div class="check-head">
+          ${check.met ? "✅" : "❌"} ${this._t(check.met ? "check.now_met" : "check.now_unmet")}
+        </div>
+        <ul class="check-list">
+          ${check.items.map((i) => this._renderCheckItem(i))}
+        </ul>
+      </div>
+    `;
+  }
+
+  private _renderCheckItem(i: ConditionExplanation): unknown {
+    const mark = i.met ? "✅" : "❌";
+    return html`<li class="check-item ${i.met ? "met" : "unmet"}">
+      <span class="check-mark">${mark}</span>
+      <span class="check-text">${this._describe(i)}</span>
+      ${i.children
+        ? html`<ul class="check-list">${i.children.map((c) => this._renderCheckItem(c))}</ul>`
+        : nothing}
+    </li>`;
+  }
+
+  private _describe(i: ConditionExplanation): string {
+    const t = (k: string, v?: Record<string, string | number>) => this._t(k, v);
+    const now = (): string => {
+      if (i.missing) return ` (${t("check.missing")})`;
+      return i.current !== undefined ? ` (${t("check.now", { value: i.current })})` : "";
+    };
+    switch (i.type) {
+      case "state":
+        return (
+          t(i.negate ? "check.state_is_not" : "check.state_is", {
+            entity: i.entity ?? "?",
+            values: (i.expected ?? []).join(t("check.or")),
+          }) + now()
+        );
+      case "numeric_state": {
+        const parts: string[] = [];
+        if (i.above !== undefined) parts.push(t("check.above", { value: i.above }));
+        if (i.below !== undefined) parts.push(t("check.below", { value: i.below }));
+        return t("check.numeric", { entity: i.entity ?? "?", range: parts.join(t("check.and")) }) + now();
+      }
+      case "screen":
+        return t("check.screen", { query: i.media_query ?? "" });
+      case "time": {
+        const parts: string[] = [];
+        if (i.after) parts.push(t("check.time_after", { value: i.after }));
+        if (i.before) parts.push(t("check.time_before", { value: i.before }));
+        if (i.weekday?.length) parts.push(t("check.time_days", { days: i.weekday.join(", ") }));
+        return t("check.time", { range: parts.join(" ") });
+      }
+      case "user":
+        return t("check.user", { count: i.count ?? 0 });
+      case "template":
+        return t(i.pending ? "check.template_pending" : "check.template");
+      case "and":
+      case "or":
+      case "not":
+        return t(`check.group_${i.type}`);
+      default:
+        return t("check.unknown");
+    }
   }
 
   // HA lazy-loads its conditions editor with the conditional card's editor;
@@ -831,6 +986,21 @@ export class TabdeckCardEditor extends LitElement {
         ? html`<div class="tab-card-error">Invalid JSON — not saved.</div>`
         : nothing}
     `;
+  }
+
+  // At-a-glance live status on the collapsed tab header.
+  private _renderStatusChips(tab: any) {
+    if (!this._hass) return nothing;
+    const hidden = Array.isArray(tab.visibility) && tab.visibility.length > 0 && !this._explain(tab.visibility).met;
+    const alerting = Array.isArray(tab.alert) && tab.alert.length > 0 && this._explain(tab.alert).met;
+    if (!hidden && !alerting) return nothing;
+    return html`<div class="tab-status">
+      ${hidden
+        ? html`<span class="chip chip-hidden" title=${this._t("check.chip_hidden_title")}
+            >${this._t("check.chip_hidden")}</span>`
+        : nothing}
+      ${alerting ? html`<span class="chip chip-alert">${this._t("check.chip_alert")}</span>` : nothing}
+    </div>`;
   }
 
   private _renderListView() {
@@ -964,6 +1134,7 @@ export class TabdeckCardEditor extends LitElement {
                     ></ha-icon-button>
                   </div>
                 </div>
+                ${this._renderStatusChips(tab)}
                 ${expanded
                   ? html`
                       <ha-form
@@ -1024,6 +1195,73 @@ export class TabdeckCardEditor extends LitElement {
   }
 
   static styles = css`
+    .tab-status {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: -8px;
+      padding-left: 64px;
+    }
+    .chip {
+      flex-shrink: 0;
+      font-size: 11px;
+      line-height: 18px;
+      padding: 0 8px;
+      border-radius: 9px;
+      white-space: nowrap;
+    }
+    .chip-hidden {
+      background: color-mix(in srgb, var(--secondary-text-color) 18%, transparent);
+      color: var(--secondary-text-color);
+    }
+    .chip-alert {
+      background: color-mix(in srgb, var(--error-color, #db4437) 18%, transparent);
+      color: var(--error-color, #db4437);
+    }
+    .check-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .check-dot.met {
+      background: var(--success-color, #43a047);
+    }
+    .check-dot.unmet {
+      background: var(--secondary-text-color);
+    }
+    .check {
+      font-size: 13px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      background: var(--secondary-background-color, #f5f5f5);
+    }
+    .check-head {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .check-list {
+      list-style: none;
+      margin: 0;
+      padding-left: 4px;
+    }
+    .check-list .check-list {
+      padding-left: 18px;
+    }
+    .check-item {
+      padding: 2px 0;
+    }
+    .check-mark {
+      font-size: 11px;
+      margin-right: 4px;
+    }
+    .check-text {
+      font-family: var(--code-font-family, monospace);
+      font-size: 12px;
+    }
     .add-row {
       display: flex;
       gap: 8px;
@@ -1146,6 +1384,7 @@ export class TabdeckCardEditor extends LitElement {
       gap: 8px;
       min-width: 0;
       flex: 1;
+      overflow: hidden;
     }
     .drag-handle {
       flex-shrink: 0;
@@ -1175,6 +1414,8 @@ export class TabdeckCardEditor extends LitElement {
       color: var(--secondary-text-color);
     }
     .tab-title {
+      min-width: 3em;
+      flex: 0 1 auto;
       font-weight: 500;
       font-size: 15px;
       color: var(--primary-text-color);
@@ -1183,7 +1424,10 @@ export class TabdeckCardEditor extends LitElement {
       white-space: nowrap;
     }
     .tab-type {
-      flex-shrink: 0;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       color: var(--secondary-text-color);
       font-family: var(--code-font-family, monospace);
       font-size: 12px;

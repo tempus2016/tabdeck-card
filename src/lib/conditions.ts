@@ -85,7 +85,7 @@ function subConditions(c: any): any[] {
   return Array.isArray(c?.conditions) ? c.conditions : [];
 }
 
-function checkOne(c: any, hass: HomeAssistant, resolver?: TemplateResolver): boolean {
+export function checkOne(c: any, hass: HomeAssistant, resolver?: TemplateResolver): boolean {
   switch (c?.condition) {
     case "state":
       return checkState(c, hass);

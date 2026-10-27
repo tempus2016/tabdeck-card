@@ -1,0 +1,31 @@
+// English — the source language. Every key used in the code must exist here.
+const en: Record<string, string> = {
+  // Why-hidden / condition check
+  "check.now_met": "Met right now",
+  "check.now_unmet": "Not met right now",
+  "check.chip_hidden": "Hidden now",
+  "check.chip_alert": "Alerting",
+  "check.chip_hidden_title": "This tab's visibility conditions aren't met, so it's hidden on the dashboard.",
+  "check.state_is": "{entity} is {values}",
+  "check.state_is_not": "{entity} is not {values}",
+  "check.or": " or ",
+  "check.now": "now: {value}",
+  "check.missing": "entity not found",
+  "check.numeric": "{entity} {range}",
+  "check.above": "above {value}",
+  "check.below": "below {value}",
+  "check.and": " and ",
+  "check.screen": "screen matches {query}",
+  "check.time": "time {range}",
+  "check.time_after": "after {value}",
+  "check.time_before": "before {value}",
+  "check.time_days": "on {days}",
+  "check.user": "current user is one of {count} selected",
+  "check.template": "template renders true",
+  "check.template_pending": "template (waiting for Home Assistant)",
+  "check.group_and": "all of:",
+  "check.group_or": "any of:",
+  "check.group_not": "none of:",
+  "check.unknown": "unknown condition type",
+};
+export default en;
