@@ -22,6 +22,7 @@ import { hideTabs, loadLayout, orderTabs, saveLayout, type UserLayout } from "./
 import { cssBackground, peekCommit, transitionFrames } from "./lib/layout";
 import "./components/tabdeck-tabbar";
 import "./components/tabdeck-masonry-card";
+import "./components/tabdeck-sections-card";
 import { isActiveBadge } from "./components/tabdeck-tab";
 
 // Events that count as the user interacting with the card.

@@ -52,7 +52,8 @@ export interface TabdeckTabConfig {
   // or an image path / URL. May be a template.
   background?: string;
   // "masonry": the tab's `cards` are balanced into columns.
-  layout?: "masonry";
+  // "sections": titled groups of cards, like HA's sections view.
+  layout?: "masonry" | "sections";
   // CSS properties applied to the card while this tab is active (over the
   // top-level `styles`).
   styles?: Record<string, string>;
@@ -255,6 +256,13 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
       display,
       items: raw.children.map((c: any) => ({ name: c?.name ?? c?.attributes?.label, icon: c?.icon })),
     };
+  } else if (raw?.layout === "sections" && Array.isArray(raw?.sections) && raw.sections.length > 0) {
+    const max = Number(raw?.max_columns);
+    card = {
+      type: "custom:tabdeck-sections-card",
+      max_columns: Number.isFinite(max) && max >= 1 ? Math.round(max) : 4,
+      sections: raw.sections,
+    };
   } else if (Array.isArray(raw?.cards) && raw.cards.length > 0) {
     const cols = Number(raw?.columns);
     const minWidth = Number(raw?.min_column_width);
@@ -296,7 +304,12 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     visibility: raw?.visibility ?? undefined,
     alert: Array.isArray(raw?.alert) && raw.alert.length > 0 ? raw.alert : undefined,
     background: typeof raw?.background === "string" && raw.background.trim() ? raw.background : undefined,
-    layout: raw?.layout === "masonry" && Array.isArray(raw?.cards) && raw.cards.length > 0 ? "masonry" : undefined,
+    layout:
+      raw?.layout === "masonry" && Array.isArray(raw?.cards) && raw.cards.length > 0
+        ? "masonry"
+        : raw?.layout === "sections" && Array.isArray(raw?.sections) && raw.sections.length > 0 && !group
+          ? "sections"
+          : undefined,
     styles:
       raw?.styles && typeof raw.styles === "object" && !Array.isArray(raw.styles)
         ? raw.styles

@@ -48,7 +48,7 @@ A nested map card rendering correctly the moment its tab is selected — no
 - **Edit-mode helpers** — hidden tabs appear faded while you edit the dashboard; rotation pauses.
 - **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`, generated tabs via `auto_tabs` (Jinja, or **one tab per area/label**).
 - **Layouts** — `scroll_spy` anchor mode, `collapsible` deck, responsive `split` view (side by side on wide cards) and `tab_display_narrow`.
-- **Content** — `layout: masonry` inside a tab, `header_cards` / `footer_cards` on every tab, per-tab `background` (colour, gradient or image, may be a template), `content_height: tallest` so the page doesn't jump, a `fullscreen` button, and `swipe_peek` carousel swiping.
+- **Content** — `layout: masonry` or `layout: sections` (like HA's sections view) inside a tab, `header_cards` / `footer_cards` on every tab, per-tab `background` (colour, gradient or image, may be a template), `content_height: tallest` so the page doesn't jump, a `fullscreen` button, and `swipe_peek` carousel swiping.
 - **Wall panels** — `auto_rotate` through tabs, `idle_return` to the default tab.
 - **Persistence** — remember the active tab per `browser`, `url` (`#tab=name`, slug or index), or across devices via an `entity` with **live two-way sync**.
 - **Transitions** — optional `fade`/`slide`/`scale`/`flip`/`rise` panel animations with your own duration and easing (respects reduced-motion).
@@ -181,7 +181,7 @@ A ready-to-paste dashboard showcasing many features lives in
 | `default_if` | list   | —       | Conditions that make this the default tab on load. |
 | `visibility` | list   | —       | Conditions (see below); the tab is hidden when unmet. |
 | `card` / `cards` / `columns` | object/list/number | — | A single card, or multiple `cards` (optionally in a `columns` grid). |
-| `layout`     | string | —       | `masonry`: balance `cards` into `columns` (or `min_column_width` px). |
+| `layout`     | string | —       | `masonry`: balance `cards` into `columns` (or `min_column_width` px). `sections`: titled `sections` like HA's sections view (`max_columns`, per-section `column_span`). |
 | `background` | string | —       | Content background while open: colour, gradient or image URL (may be a template). |
 
 ### Visibility conditions

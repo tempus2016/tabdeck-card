@@ -7,6 +7,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 
 ### Added
 - **Masonry inside a tab** — `layout: masonry` balances a tab's `cards` into columns like HA's masonry view (`columns`, or `min_column_width` to fit the width).
+- **Sections inside a tab** — `layout: sections` lays out titled groups of cards like HA's sections view: HA heading cards (with `badges`), a 12-column card grid that honours `grid_options.columns` and each card's default width, sections auto-fitting up to `max_columns` (default 4) with `column_span`, stacking to one column on phones.
 - **Header and footer cards** — `header_cards` / `footer_cards` stay on screen on every tab (a summary row above the tabs, controls below).
 - **Tab backgrounds** — a tab's `background` (colour, gradient, CSS variable or image path / URL; may be a template) fills the content area while it's open.
 - **Content height** — `content_height: tallest` keeps the tallest tab's height so the page doesn't jump; a fixed `content_height` or `content_max_height` scrolls inside the card.

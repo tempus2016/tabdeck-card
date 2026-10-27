@@ -8,7 +8,9 @@ beforeAll(() => {
       created++;
       const el = document.createElement("div") as any;
       el.setAttribute("data-type", config.type ?? "");
+      el._cfg = config;
       el.getCardSize = () => config.size ?? 3;
+      if (config.default_columns) el.getGridOptions = () => ({ columns: config.default_columns });
       return el;
     },
   });
@@ -289,5 +291,84 @@ describe("masonry card", () => {
   it("is registered by the deck for layout: masonry tabs", async () => {
     await import("./tabdeck-card");
     expect(customElements.get("tabdeck-masonry-card")).toBeTruthy();
+  });
+});
+
+describe("sections card", () => {
+  async function sectionsCard(cfg: any) {
+    await import("./components/tabdeck-sections-card");
+    const s = document.createElement("tabdeck-sections-card") as any;
+    s.setConfig(cfg);
+    document.body.appendChild(s);
+    s.hass = { states: {} };
+    await settle(s);
+    return s;
+  }
+
+  const config = {
+    max_columns: 3,
+    sections: [
+      {
+        title: "Living room",
+        icon: "mdi:sofa",
+        badges: [{ entity: "light.lounge" }],
+        cards: [
+          { type: "tile", grid_options: { columns: 6 } },
+          { type: "lamp", default_columns: 6 },
+          { type: "media" },
+        ],
+      },
+      { title: "Outside", column_span: 2, cards: [{ type: "cam" }] },
+      { cards: [{ type: "untitled" }] },
+    ],
+  };
+
+  it("renders an HA heading card per titled section, then its cards", async () => {
+    const s = await sectionsCard(config);
+    const secs = s.shadowRoot.querySelectorAll(".section");
+    expect(secs).toHaveLength(3);
+    const heading = secs[0].querySelector("[data-type='heading']") as any;
+    expect(heading._cfg).toEqual({
+      type: "heading",
+      heading: "Living room",
+      icon: "mdi:sofa",
+      heading_style: "title",
+      badges: [{ entity: "light.lounge" }],
+    });
+    expect(secs[2].querySelector("[data-type='heading']")).toBeNull();
+    expect(s.hass).toBeTruthy();
+    expect(heading.hass).toBe(s.hass);
+  });
+
+  it("sizes cards on the 12-column grid: grid_options, then the card's default, then full", async () => {
+    const s = await sectionsCard(config);
+    const spans = [...s.shadowRoot.querySelectorAll(".section")[0].querySelectorAll(".cell")].map(
+      (c: any) => c.style.gridColumn,
+    );
+    expect(spans).toEqual(["span 6", "span 6", "span 12"]);
+  });
+
+  it("fits columns to the width, capped by max_columns; spans shrink to fit", async () => {
+    const s = await sectionsCard(config);
+    s._setWidth(1400);
+    await settle(s);
+    const grid = s.shadowRoot.querySelector(".sections") as HTMLElement;
+    expect(grid.style.getPropertyValue("--tabdeck-section-columns")).toBe("3");
+    expect((s.shadowRoot.querySelectorAll(".section")[1] as HTMLElement).style.gridColumn).toBe("span 2");
+    s._setWidth(500);
+    await settle(s);
+    expect(grid.style.getPropertyValue("--tabdeck-section-columns")).toBe("1");
+    expect((s.shadowRoot.querySelectorAll(".section")[1] as HTMLElement).style.gridColumn).toBe("span 1");
+  });
+
+  it("rejects a config without sections", async () => {
+    await import("./components/tabdeck-sections-card");
+    const s = document.createElement("tabdeck-sections-card") as any;
+    expect(() => s.setConfig({})).toThrow();
+  });
+
+  it("is registered by the deck for layout: sections tabs", async () => {
+    await import("./tabdeck-card");
+    expect(customElements.get("tabdeck-sections-card")).toBeTruthy();
   });
 });

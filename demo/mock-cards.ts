@@ -167,6 +167,14 @@ class DemoCard extends LitElement {
           ${(c.cards ?? []).map((cc: any) => html`<demo-card .config=${cc} .hass=${this.hass}></demo-card>`)}
         </div>`;
       }
+      case "heading":
+        return html`<div class="heading">${c.icon ? html`<ha-icon .icon=${c.icon}></ha-icon>` : nothing}<span>${c.heading ?? ""}</span></div>`;
+      case "custom:tabdeck-sections-card": {
+        const el = document.createElement("tabdeck-sections-card") as any;
+        el.setConfig(c);
+        el.hass = this.hass;
+        return html`${el}`;
+      }
       case "custom:tabdeck-masonry-card": {
         const el = document.createElement("tabdeck-masonry-card") as any;
         el.setConfig(c);
@@ -306,6 +314,18 @@ class DemoCard extends LitElement {
     .stack {
       display: grid;
       gap: 8px;
+    }
+    .heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 4px 4px 2px;
+    }
+    .heading ha-icon {
+      --mdc-icon-size: 18px;
+      color: var(--secondary-text-color);
     }
   `;
 }
