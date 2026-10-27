@@ -210,9 +210,14 @@ icon, accent, colour, badge and long-press action; global controls cover every
 top-level option. It warns about footguns like duplicate tab names. See the
 [Editor](https://github.com/tempus2016/tabdeck-card/wiki/Editor) wiki page.
 
-## Migrating from `tabbed-card`
+## Migrating from other cards
 
-Tabdeck reads several of the original `kinghat/tabbed-card` keys so existing
+The editor's **Convert from another card** button turns a pasted `tabbed-card`,
+`swipe-card`, `state-switch`, Bubble Card pop-ups, a stack, a sections view or a
+whole dashboard into Tabdeck tabs. See
+[Convert from another card](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Convert).
+
+Tabdeck also reads several of the original `kinghat/tabbed-card` keys so existing
 configs keep working:
 
 - `options.defaultTabIndex` → `default_tab`

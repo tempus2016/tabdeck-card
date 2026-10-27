@@ -65,3 +65,48 @@ describe("conditions fallback", () => {
     expect(JSON.parse(ta.value)).toEqual([{ condition: "user", users: ["x"] }]);
   });
 });
+
+describe("convert from another card (JSON fallback)", () => {
+  it("previews and replaces tabs from a pasted tabbed-card", async () => {
+    const el = document.createElement("tabdeck-card-editor") as any;
+    el.hass = { states: {} };
+    el.setConfig({ tabs: [{ name: "Old", card: { type: "markdown" } }] });
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const fired: any[] = [];
+    el.addEventListener("config-changed", (e: any) => fired.push(e.detail.config));
+    el.shadowRoot.querySelector(".convert-tab").click();
+    await el.updateComplete;
+    const ta = el.shadowRoot.querySelector(".convert-json");
+    ta.value = JSON.stringify({
+      type: "custom:tabbed-card",
+      options: { defaultTabIndex: 1 },
+      tabs: [
+        { card: { type: "markdown" }, attributes: { label: "One" } },
+        { card: { type: "map" }, attributes: { label: "Two" } },
+      ],
+    });
+    ta.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".convert-summary").textContent).toContain("tabbed-card");
+    el.shadowRoot.querySelector(".convert-replace").click();
+    const out = fired.at(-1)!;
+    expect(out.tabs.map((t: any) => t.name)).toEqual(["One", "Two"]);
+    expect(out.default_tab).toBe(1);
+  });
+
+  it("shows an error for input that isn't a card", async () => {
+    const el = document.createElement("tabdeck-card-editor") as any;
+    el.hass = { states: {} };
+    el.setConfig({ tabs: [{ name: "Old", card: { type: "markdown" } }] });
+    document.body.appendChild(el);
+    await el.updateComplete;
+    el.shadowRoot.querySelector(".convert-tab").click();
+    await el.updateComplete;
+    const ta = el.shadowRoot.querySelector(".convert-json");
+    ta.value = '"just text"';
+    ta.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".import-error").textContent).toContain("doesn't look like a card");
+  });
+});

@@ -41,3 +41,4 @@
 - [Edit mode helpers](Feature-Edit-Mode)
 - [Why is this tab hidden?](Feature-Condition-Check)
 - [Starter templates](Feature-Starter-Templates)
+- [Convert from another card](Feature-Convert)
