@@ -1024,6 +1024,7 @@ export class TabdeckCard extends LitElement {
         .elevation=${cfg.elevation}
         .scrollButtons=${cfg.scroll_buttons}
         .searchable=${cfg.search}
+        .railExpand=${cfg.rail_expand}
         .customizable=${cfg.customize && !this._editing}
         .customItems=${cfg.customize ? this._customItems() : []}
         @tabdeck-customize=${this._onCustomize}
@@ -1146,6 +1147,12 @@ export class TabdeckCard extends LitElement {
     }
     .root.pos-right {
       flex-direction: row-reverse;
+    }
+    /* Beside a side bar, the content takes the remaining width. */
+    .root.pos-left > .content,
+    .root.pos-right > .content {
+      flex: 1;
+      min-width: 0;
     }
     .content {
       padding-top: 8px;

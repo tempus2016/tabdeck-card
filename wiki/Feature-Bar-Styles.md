@@ -54,3 +54,22 @@ tabs: [ ... ]
 
 - All styles respect [`accent_indicator`](Feature-Accent-Indicator) and per-tab `accent`.
 - Pick the style from the **Style** dropdown in the [visual editor](Editor).
+
+
+## Expanding side rail (`rail_expand`)
+
+For `position: left` or `right`, **`rail_expand: true`** keeps the bar as a slim icon rail. Hovering it, or moving keyboard focus into it, slides the labels out **over** the content, so nothing reflows. Moving away collapses it again.
+
+```yaml
+type: custom:tabdeck-card
+position: left
+style: rail
+rail_expand: true
+tabs: [ ... ]
+```
+
+| Collapsed | Hovered |
+|---|---|
+| ![Collapsed rail](images/feature-rail-collapsed.png) | ![Expanded rail](images/feature-rail-expand.png) |
+
+Set the collapsed width with `--tabdeck-rail-width` (default 64px). It has no effect on top or bottom bars.

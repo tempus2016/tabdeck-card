@@ -218,5 +218,6 @@ const pl: Record<string, string> = {
   "card.show_tab": "Pokaż {name}",
   "card.reset": "Resetuj",
   "card.done": "Gotowe",
+  "editor.global.rail_expand": "Pasek boczny: same ikony, etykiety po najechaniu (lewo/prawo)",
 };
 export default pl;

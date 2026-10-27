@@ -218,5 +218,6 @@ const fr: Record<string, string> = {
   "card.show_tab": "Afficher {name}",
   "card.reset": "Réinitialiser",
   "card.done": "Terminé",
+  "editor.global.rail_expand": "Barre latérale : icônes seules, libellés au survol (gauche/droite)",
 };
 export default fr;

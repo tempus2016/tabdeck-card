@@ -218,5 +218,6 @@ const pt: Record<string, string> = {
   "card.show_tab": "Mostrar {name}",
   "card.reset": "Repor",
   "card.done": "Concluído",
+  "editor.global.rail_expand": "Barra lateral: só ícones, rótulos ao passar o rato (esquerda/direita)",
 };
 export default pt;

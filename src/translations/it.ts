@@ -218,5 +218,6 @@ const it: Record<string, string> = {
   "card.show_tab": "Mostra {name}",
   "card.reset": "Ripristina",
   "card.done": "Fatto",
+  "editor.global.rail_expand": "Barra laterale: solo icone, etichette al passaggio del mouse (sinistra/destra)",
 };
 export default it;

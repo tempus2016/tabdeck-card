@@ -414,3 +414,36 @@ describe("tabdeck-tabbar customize panel", () => {
     expect(seen).toEqual([{ order: ["B", "A"], hidden: ["B"] }, { reset: true }]);
   });
 });
+
+describe("tabdeck-tabbar rail expand", () => {
+  it("shows icons until hovered or focused, then labels", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "Home", icon: "mdi:home" }, { name: "Lights", icon: "mdi:lightbulb" }];
+    el.position = "left";
+    el.display = "both";
+    el.railExpand = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const tab = () => el.shadowRoot.querySelector("tabdeck-tab");
+    expect(tab().display).toBe("icon");
+    expect(el.hasAttribute("rail-expand")).toBe(true);
+    el.dispatchEvent(new Event("mouseenter"));
+    await el.updateComplete;
+    expect(tab().display).toBe("both");
+    expect(el.hasAttribute("expanded")).toBe(true);
+    el.dispatchEvent(new Event("mouseleave"));
+    await el.updateComplete;
+    expect(tab().display).toBe("icon");
+  });
+
+  it("does nothing on horizontal bars", async () => {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [{ name: "Home", icon: "mdi:home" }];
+    el.position = "top";
+    el.railExpand = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tab").display).toBe("both");
+    expect(el.hasAttribute("rail-expand")).toBe(false);
+  });
+});

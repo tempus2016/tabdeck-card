@@ -67,6 +67,10 @@ export class TabdeckTabbar extends LitElement {
   @property() language = "en";
   // Optional custom bar background colour.
   @property() barBackground?: string;
+  // Vertical bars only: icons until hovered / focused, then labels too. The
+  // expanded rail overlays the content instead of pushing it aside.
+  @property({ type: Boolean }) railExpand = false;
+  @state() private _railOpen = false;
   // A ⚙ button that lets the person reorder / hide tabs (customize).
   @property({ type: Boolean }) customizable = false;
   // Every tab in the person's order: { name, icon, key, hidden }.
@@ -94,6 +98,10 @@ export class TabdeckTabbar extends LitElement {
     this.setAttribute("role", "tablist");
     this.setAttribute("aria-label", this.barLabel || localize(this.language, "card.tabs"));
     this.addEventListener("keydown", this._onKeydown);
+    this.addEventListener("mouseenter", this._railEnter);
+    this.addEventListener("mouseleave", this._railLeave);
+    this.addEventListener("focusin", this._railEnter);
+    this.addEventListener("focusout", this._railFocusOut);
     if (typeof ResizeObserver !== "undefined") {
       // Debounce resize work to one reposition per animation frame.
       this._resizeObserver = new ResizeObserver(() => {
@@ -114,6 +122,26 @@ export class TabdeckTabbar extends LitElement {
     this._resizeObserver?.disconnect();
     super.disconnectedCallback();
   }
+
+  private get _railActive(): boolean {
+    return this.railExpand && !this._horizontal;
+  }
+
+  private _railEnter = (): void => {
+    if (this._railActive) this._railOpen = true;
+  };
+
+  private _railLeave = (): void => {
+    if (this._railActive && !this.matches(":focus-within")) this._railOpen = false;
+  };
+
+  private _railFocusOut = (e: FocusEvent): void => {
+    if (!this._railActive) return;
+    const to = e.relatedTarget as Node | null;
+    if (!to || !this.contains(to)) {
+      if (!this.matches(":hover")) this._railOpen = false;
+    }
+  };
 
   private _select(index: number): void {
     this.dispatchEvent(
@@ -546,6 +574,8 @@ export class TabdeckTabbar extends LitElement {
 
   protected updated(): void {
     this.setAttribute("aria-label", this.barLabel || localize(this.language, "card.tabs"));
+    this.toggleAttribute("rail-expand", this._railActive);
+    this.toggleAttribute("expanded", this._railActive && this._railOpen);
     this._applyAccent();
     this._applySticky();
     this._position();
@@ -625,7 +655,7 @@ export class TabdeckTabbar extends LitElement {
               .stacked=${this.dock}
               .ghostLabel=${localize(this.language, "card.ghost")}
               .badgeLabel=${localize(this.language, "card.badge", { value: item.badge ?? "" })}
-              .display=${this.display}
+              .display=${this._railActive ? (this._railOpen ? "both" : "icon") : this.display}
               .selected=${index === this.selected}
               aria-controls="tabdeck-panel"
               @click=${(e: Event) => this._onTabClick(index, e)}
@@ -695,6 +725,46 @@ export class TabdeckTabbar extends LitElement {
   static styles = css`
     :host {
       display: block;
+    }
+    /* rail_expand: an icon rail that widens over the content on hover. */
+    :host([rail-expand]) {
+      position: relative;
+      z-index: 3;
+      flex: none;
+      width: var(--tabdeck-rail-width, 64px);
+    }
+    :host([rail-expand]) .bar-wrap {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      min-width: 100%;
+      background: var(--card-background-color, var(--ha-card-background, #fff));
+      transition: box-shadow 150ms ease;
+    }
+    :host([rail-expand]) .bar {
+      height: 100%;
+      box-sizing: border-box;
+    }
+    :host([rail-expand][expanded]) .bar-wrap {
+      box-shadow: 4px 0 14px rgba(0, 0, 0, 0.25);
+      border-radius: 0 12px 12px 0;
+    }
+    :host([rail-expand][expanded]) .bar {
+      align-items: stretch;
+    }
+    :host([rail-expand][expanded]) tabdeck-tab {
+      justify-content: flex-start;
+      padding-right: 20px;
+    }
+    /* A right-hand rail grows leftwards. */
+    :host([rail-expand]) .bar-wrap:has(.bar.right) {
+      left: auto;
+      right: 0;
+    }
+    :host([rail-expand][expanded]) .bar-wrap:has(.bar.right) {
+      box-shadow: -4px 0 14px rgba(0, 0, 0, 0.25);
+      border-radius: 12px 0 0 12px;
     }
     /* dots: a centred, borderless row of pagination dots, no indicator. */
     .bar.dots {

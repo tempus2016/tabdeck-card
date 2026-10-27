@@ -218,5 +218,6 @@ const nl: Record<string, string> = {
   "card.show_tab": "{name} tonen",
   "card.reset": "Herstellen",
   "card.done": "Klaar",
+  "editor.global.rail_expand": "Zijbalk: alleen pictogrammen, labels bij aanwijzen (links/rechts)",
 };
 export default nl;

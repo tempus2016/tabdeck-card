@@ -169,6 +169,8 @@ export interface TabdeckCardConfig {
   history: boolean;
   // Let each person reorder / hide tabs for themselves (per browser).
   customize: boolean;
+  // Left/right bars: icons until hovered / focused, then labels (overlay).
+  rail_expand: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -384,6 +386,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     hotkeys: Boolean(raw?.hotkeys),
     history: Boolean(raw?.history),
     customize: Boolean(raw?.customize),
+    rail_expand: Boolean(raw?.rail_expand),
     edit_mode_reveal: raw?.edit_mode_reveal === undefined ? true : Boolean(raw.edit_mode_reveal),
   };
 }
