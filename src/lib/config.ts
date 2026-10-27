@@ -160,6 +160,10 @@ export interface TabdeckCardConfig {
   // Content only, no tab bar (menu-driven groups, or decks driven by
   // selectTab / remember: entity).
   hide_bar: boolean;
+  // A 🔍 quick-switch filter over the tabs.
+  search: boolean;
+  // Keyboard shortcuts: 1–9 open tabs, [ ] step, / opens search.
+  hotkeys: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -371,6 +375,8 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     dock: Boolean(raw?.dock),
     content_arrows: Boolean(raw?.content_arrows),
     hide_bar: Boolean(raw?.hide_bar),
+    search: Boolean(raw?.search),
+    hotkeys: Boolean(raw?.hotkeys),
     edit_mode_reveal: raw?.edit_mode_reveal === undefined ? true : Boolean(raw.edit_mode_reveal),
   };
 }

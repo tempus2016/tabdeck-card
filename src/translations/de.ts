@@ -204,5 +204,10 @@ const de: Record<string, string> = {
   "editor.opt.tab_display.dots": "Punkte",
   "card.prev_tab": "Vorheriger Tab",
   "card.next_tab": "Nächster Tab",
+  "editor.global.search": "Schnellsuche (🔍-Schaltfläche)",
+  "editor.global.hotkeys": "Tastenkürzel (1–9, [ ], /)",
+  "card.search": "Tab suchen",
+  "card.search_placeholder": "Zum Filtern tippen…",
+  "card.search_none": "Keine passenden Tabs",
 };
 export default de;

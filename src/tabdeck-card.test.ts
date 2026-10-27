@@ -1409,3 +1409,54 @@ describe("grouped tab menu", () => {
     expect(picks).toEqual(["Lounge"]);
   });
 });
+
+describe("hotkeys", () => {
+  const tabs = [
+    { name: "A", card: { type: "markdown" } },
+    { name: "B", card: { type: "light" } },
+    { name: "C", card: { type: "light" } },
+  ];
+  const press = (key: string, target: EventTarget = document.body, extra: any = {}) =>
+    target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, composed: true, ...extra }));
+  const bar = (el: any) => el.shadowRoot.querySelector("tabdeck-tabbar");
+
+  it("1–9 jump to tabs and [ ] step, when enabled", async () => {
+    const el = await mount({ hotkeys: true, tabs });
+    press("3");
+    await el.updateComplete;
+    expect(bar(el).selected).toBe(2);
+    press("[");
+    await el.updateComplete;
+    expect(bar(el).selected).toBe(1);
+    press("]");
+    await el.updateComplete;
+    expect(bar(el).selected).toBe(2);
+    el.remove();
+  });
+
+  it("ignores keys typed into inputs, modified keys, and decks without hotkeys", async () => {
+    const el = await mount({ hotkeys: true, tabs });
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+    press("2", input);
+    press("2", document.body, { ctrlKey: true });
+    await el.updateComplete;
+    expect(bar(el).selected).toBe(0);
+    el.remove();
+    input.remove();
+    const plain = await mount({ tabs });
+    press("2");
+    await plain.updateComplete;
+    expect(bar(plain).selected).toBe(0);
+    plain.remove();
+  });
+
+  it("/ opens search when search is on", async () => {
+    const el = await mount({ hotkeys: true, search: true, tabs });
+    let opened = false;
+    bar(el).openSearch = () => (opened = true);
+    press("/");
+    expect(opened).toBe(true);
+    el.remove();
+  });
+});

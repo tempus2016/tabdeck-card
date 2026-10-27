@@ -353,3 +353,45 @@ describe("tabdeck-tabbar action tabs", () => {
     expect(events).toEqual([1]);
   });
 });
+
+describe("tabdeck-tabbar search", () => {
+  async function mountBar() {
+    const el = document.createElement("tabdeck-tabbar") as any;
+    el.items = [
+      { name: "Kitchen" },
+      { name: "Living Room", subtitle: "lounge" },
+      { name: "Garage", disabled: true },
+      { name: "Café" },
+    ];
+    el.searchable = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    return el;
+  }
+
+  it("filters by name/subtitle, ignoring case and accents, skipping disabled", async () => {
+    const el = await mountBar();
+    el.shadowRoot.querySelector(".search-btn").click();
+    await el.updateComplete;
+    expect(el._matches("LOUNGE").map((m: any) => m.index)).toEqual([1]);
+    expect(el._matches("cafe").map((m: any) => m.index)).toEqual([3]);
+    expect(el._matches("ga").map((m: any) => m.index)).toEqual([]);
+    expect(el._matches("").map((m: any) => m.index)).toEqual([0, 1, 3]);
+  });
+
+  it("Enter picks the first match and closes", async () => {
+    const el = await mountBar();
+    const picks: number[] = [];
+    el.addEventListener("tabdeck-select", (e: any) => picks.push(e.detail.index));
+    el.openSearch();
+    await el.updateComplete;
+    const input = el.shadowRoot.querySelector(".search-input");
+    input.value = "liv";
+    input.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }));
+    await el.updateComplete;
+    expect(picks).toEqual([1]);
+    expect(el.shadowRoot.querySelector(".search-panel")).toBeNull();
+  });
+});

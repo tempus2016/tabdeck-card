@@ -204,5 +204,10 @@ const pt: Record<string, string> = {
   "editor.opt.tab_display.dots": "Pontos",
   "card.prev_tab": "Separador anterior",
   "card.next_tab": "Separador seguinte",
+  "editor.global.search": "Pesquisa rápida (botão 🔍)",
+  "editor.global.hotkeys": "Atalhos de teclado (1–9, [ ], /)",
+  "card.search": "Procurar um separador",
+  "card.search_placeholder": "Escreva para filtrar…",
+  "card.search_none": "Nenhum separador corresponde",
 };
 export default pt;

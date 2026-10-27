@@ -176,11 +176,34 @@ export class TabdeckCard extends LitElement {
     // HA moves cards around the DOM during layout; re-observe on reconnect.
     if (this._config?.scroll_spy) this.updateComplete.then(() => this._syncSpyObserver());
     if (this._config?.dock) this.updateComplete.then(() => this._syncDock());
+    document.addEventListener("keydown", this._onHotkey);
   }
+
+  // --- hotkeys --------------------------------------------------------------
+  // Page-wide while the card is on screen. Typing in a field, modified keys
+  // and decks without `hotkeys` are left alone.
+  private _onHotkey = (e: KeyboardEvent): void => {
+    const cfg = this._config;
+    if (!cfg?.hotkeys || !this._built || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
+    const target = e.composedPath()[0] as HTMLElement | undefined;
+    if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName ?? ""))) return;
+    // Not on screen (e.g. a nested deck in an inactive tab): stay quiet.
+    if (typeof (this as any).checkVisibility === "function" && !(this as any).checkVisibility()) return;
+    if (e.key === "/" && cfg.search) {
+      e.preventDefault();
+      (this.renderRoot.querySelector("tabdeck-tabbar") as any)?.openSearch?.();
+    } else if (/^[1-9]$/.test(e.key)) {
+      if (this.selectTab(Number(e.key) - 1)) e.preventDefault();
+    } else if (e.key === "[" || e.key === "]") {
+      const next = this._stepContent(this._selected, e.key === "]" ? 1 : -1, cfg.swipe_wrap);
+      if (next !== this._selected) this._selectIndex(next);
+    }
+  };
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
     for (const ev of INTERACTION_EVENTS) this.removeEventListener(ev, this._onInteraction);
+    document.removeEventListener("keydown", this._onHotkey);
     this._stopTimer();
     this._spyObserver?.disconnect();
     this._spyObserver = undefined;
@@ -937,6 +960,7 @@ export class TabdeckCard extends LitElement {
         .collapsed=${this._collapsed}
         .elevation=${cfg.elevation}
         .scrollButtons=${cfg.scroll_buttons}
+        .searchable=${cfg.search}
         .overflowMenu=${cfg.overflow_menu}
         .barLabel=${cfg.aria_label}
         .language=${hassLanguage(this._hass)}

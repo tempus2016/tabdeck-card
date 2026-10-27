@@ -204,5 +204,10 @@ const en: Record<string, string> = {
   "editor.opt.tab_display.dots": "Dots",
   "card.prev_tab": "Previous tab",
   "card.next_tab": "Next tab",
+  "editor.global.search": "Quick-switch search (🔍 button)",
+  "editor.global.hotkeys": "Keyboard shortcuts (1–9, [ ], /)",
+  "card.search": "Find a tab",
+  "card.search_placeholder": "Type to filter…",
+  "card.search_none": "No matching tabs",
 };
 export default en;

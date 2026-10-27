@@ -204,5 +204,10 @@ const fr: Record<string, string> = {
   "editor.opt.tab_display.dots": "Points",
   "card.prev_tab": "Onglet précédent",
   "card.next_tab": "Onglet suivant",
+  "editor.global.search": "Recherche rapide (bouton 🔍)",
+  "editor.global.hotkeys": "Raccourcis clavier (1–9, [ ], /)",
+  "card.search": "Rechercher un onglet",
+  "card.search_placeholder": "Tapez pour filtrer…",
+  "card.search_none": "Aucun onglet correspondant",
 };
 export default fr;
