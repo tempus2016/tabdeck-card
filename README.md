@@ -32,6 +32,8 @@ A nested map card rendering correctly the moment its tab is selected — no
 
 ![Keep-alive map rendering](images/map-keepalive.png)
 
+> 🎮 **[Try the live demo](https://tempus2016.github.io/tabdeck-card/)**: edit a config and flip pretend devices in your browser, no Home Assistant needed.
+>
 > 📖 **Full documentation, every option, and screenshots are on the [Wiki](https://github.com/tempus2016/tabdeck-card/wiki).** This README is a quick overview.
 
 ## Features
