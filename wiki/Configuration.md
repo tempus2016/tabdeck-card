@@ -18,7 +18,8 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `align` | `start` \| `center` \| `end` \| `justify` | `start` | How tabs are distributed along the bar. See [Tab alignment](Feature-Tab-Alignment). |
 | `badge_display` | `text` \| `dot` | `text` | Render badges as text or a dot. See [Badge display mode](Feature-Badge-Display). |
 | `badge_format` | `{precision, unit, max}` | — | Default numeric badge formatting for every tab. See [Badges](Badges#numeric-formatting-badge_format). |
-| `transition` | `none` \| `fade` \| `slide` | `none` | Animate content on tab switch. See [Panel transitions](Feature-Panel-Transition). |
+| `transition` | `none` \| `fade` \| `slide` \| `scale` \| `flip` \| `rise` | `none` | Animate content on tab switch. See [Panel transitions](Feature-Panel-Transition). |
+| `transition_duration` / `transition_easing` | ms / CSS easing | `180` / `ease` | Length and curve of the panel animation. See [Panel transitions](Feature-Panel-Transition). |
 | `indicator_size` | number (1–16) | `3` | Underline indicator thickness in px. See [Indicator thickness](Feature-Indicator-Size). |
 | `accent_indicator` | boolean | `true` | Colour the indicator by the selected tab's `accent`. See [Accent indicator](Feature-Accent-Indicator). |
 | `scrollable` | `auto` \| `true` \| `false` | `auto` | Whether the bar scrolls horizontally when tabs overflow. `auto` scrolls only when needed. |
@@ -28,8 +29,13 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `scroll_buttons` / `overflow_menu` | boolean | `false` | Scroll arrows / ⋯ jump-menu when the bar overflows. See [Scroll buttons](Feature-Scroll-Buttons). |
 | `swipe_mouse` | boolean | `false` | Change tabs by mouse drag (desktop). |
 | `unmount_hidden` | boolean | `false` | Keep only the active tab's card mounted. See [Performance](Feature-Performance). |
+| `unload_after` | number (minutes) | — | Free a tab's card when it hasn't been opened for this long; it's rebuilt when opened again. See [Performance](Feature-Performance#unload_after). |
+| `header_cards` / `footer_cards` | list of card configs | — | Cards shown above the bar / below the content on every tab. See [Content layout](Feature-Content-Layout#header-and-footer-cards-header_cards-footer_cards). |
+| `content_height` | `auto` \| `tallest` \| length | `auto` | Keep the tallest tab's height, or a fixed height that scrolls inside. See [Content layout](Feature-Content-Layout#content-height-content_height-content_max_height). |
+| `content_max_height` | length | — | Content taller than this scrolls inside the card. |
+| `fullscreen` | boolean | `false` | Full-screen button in the bar: opens the active tab over the whole window. See [Content layout](Feature-Content-Layout#full-screen-fullscreen). |
+| `swipe_peek` | boolean | `false` | While swiping, the content follows the finger and the next tab slides in. See [Content layout](Feature-Content-Layout#swipe-peek-swipe_peek). |
 | `header` | boolean | `false` | Show the active tab's title above the content. See [Content header](Feature-Header). |
-| `transition` | `none` \| `fade` \| `slide` | `none` | Panel switch animation. See [Panel transitions](Feature-Panel-Transition). |
 | `aria_label` | string | `Tabs` | Accessible name for the tab bar (screen readers). |
 | `remember` | `none` \| `browser` \| `url` \| `entity` | `none` | How the selected tab is remembered. See [Navigation & Persistence](Navigation-and-Persistence). |
 | `lazy` | boolean | `false` | When `true`, a tab's card is only built the first time it becomes visible. |
@@ -58,6 +64,8 @@ Each item in `tabs`:
 | --- | --- | --- | --- |
 | `card` | card config | **required**\* | Any Lovelace card configuration. (\*Not needed for a `tap_action` tab.) |
 | `cards` | list of card configs | — | Multiple cards, auto-stacked. See [Multiple cards per tab](Feature-Multiple-Cards). \*Either `card` or `cards`. |
+| `layout` / `columns` / `min_column_width` | `masonry` / number / px | — / `2` / — | Balance `cards` into columns like HA's masonry view. See [Content layout](Feature-Content-Layout#masonry-inside-a-tab-layout-masonry). |
+| `background` | string | — | Content background while the tab is open: colour, gradient or image path / URL (may be a template). See [Content layout](Feature-Content-Layout#tab-background-background). |
 | `name` | string | — | Tab label. Falls back to `Tab N` when omitted. |
 | `subtitle` | string | — | Secondary text under the label. See [Tab subtitles](Feature-Subtitle). |
 | `icon` | string (mdi) | — | Tab icon, e.g. `mdi:lightbulb`. |
@@ -76,7 +84,7 @@ Each item in `tabs`:
 | `styles` | map | — | CSS properties applied to the card while this tab is active (over the top-level `styles`). See [Theming](Feature-Theming#per-tab-styles). |
 | `alert` | list of conditions | — | While all are met, the tab pulses in the alert colour. See [Alert pulse](Feature-Alert). |
 
-> `name`, `subtitle`, `icon`, `accent` and `color` also accept a **Jinja template** that renders live. See [State-driven icons, names & colours](Feature-Templated-Fields).
+> `name`, `subtitle`, `icon`, `accent`, `color` and `background` also accept a **Jinja template** that renders live. See [State-driven icons, names & colours](Feature-Templated-Fields).
 
 ## Full example
 

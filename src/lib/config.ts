@@ -1,6 +1,7 @@
 import type { LovelaceCardConfig } from "../types";
 import { normalizeBadgeFormat, type BadgeFormat } from "./badge";
 import { isPreset, withPreset, type PresetName } from "./presets";
+import { cssLength, type TransitionMode } from "./layout";
 import { buildSourceTemplate, SOURCES, SOURCE_TAB_TEMPLATE, type AutoTabsSource } from "./sources";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
@@ -11,7 +12,7 @@ export type RememberMode = "none" | "browser" | "url" | "entity";
 export type TabDisplay = "both" | "icon" | "label" | "active" | "dots";
 export type TabAlign = "start" | "center" | "end" | "justify";
 export type BadgeDisplay = "text" | "dot";
-export type PanelTransition = "none" | "fade" | "slide";
+export type PanelTransition = TransitionMode;
 
 export interface TabdeckTabConfig {
   name?: string;
@@ -47,6 +48,11 @@ export interface TabdeckTabConfig {
   visibility?: any[];
   // Conditions (visibility-style) that, while met, make the tab pulse.
   alert?: any[];
+  // Content background while this tab is active: a colour, gradient, var()
+  // or an image path / URL. May be a template.
+  background?: string;
+  // "masonry": the tab's `cards` are balanced into columns.
+  layout?: "masonry";
   // CSS properties applied to the card while this tab is active (over the
   // top-level `styles`).
   styles?: Record<string, string>;
@@ -171,6 +177,24 @@ export interface TabdeckCardConfig {
   customize: boolean;
   // Left/right bars: icons until hovered / focused, then labels (overlay).
   rail_expand: boolean;
+  // Panel animation length (ms) and CSS easing.
+  transition_duration: number;
+  transition_easing: string;
+  // "auto" (each tab its own height), "tallest" (the content keeps the
+  // tallest tab's height, so the page doesn't jump) or a CSS length.
+  content_height: string;
+  // Content taller than this scrolls inside the card.
+  content_max_height?: string;
+  // Cards shown above the bar / below the content on every tab.
+  header_cards?: LovelaceCardConfig[];
+  footer_cards?: LovelaceCardConfig[];
+  // An expand button that opens the active tab full screen.
+  fullscreen: boolean;
+  // While swiping, the content follows the finger and the next tab slides in.
+  swipe_peek: boolean;
+  // Minutes: a tab not opened for this long has its card freed (rebuilt
+  // when it's opened again).
+  unload_after?: number;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -179,7 +203,7 @@ const REMEMBER: RememberMode[] = ["none", "browser", "url", "entity"];
 const DISPLAYS: TabDisplay[] = ["both", "icon", "label", "active", "dots"];
 const ALIGNS: TabAlign[] = ["start", "center", "end", "justify"];
 const BADGE_DISPLAYS: BadgeDisplay[] = ["text", "dot"];
-const TRANSITIONS: PanelTransition[] = ["none", "fade", "slide"];
+const TRANSITIONS: PanelTransition[] = ["none", "fade", "slide", "scale", "flip", "rise"];
 
 function pick<T>(value: any, allowed: T[], fallback: T): T {
   return allowed.includes(value) ? value : fallback;
@@ -233,8 +257,17 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     };
   } else if (Array.isArray(raw?.cards) && raw.cards.length > 0) {
     const cols = Number(raw?.columns);
+    const minWidth = Number(raw?.min_column_width);
     card =
-      Number.isFinite(cols) && cols > 1
+      raw?.layout === "masonry"
+        ? {
+            type: "custom:tabdeck-masonry-card",
+            ...(Number.isFinite(minWidth) && minWidth > 0
+              ? { min_column_width: minWidth }
+              : { columns: Number.isFinite(cols) && cols >= 1 ? Math.round(cols) : 2 }),
+            cards: raw.cards,
+          }
+        : Number.isFinite(cols) && cols > 1
         ? { type: "grid", columns: cols, square: false, cards: raw.cards }
         : { type: "vertical-stack", cards: raw.cards };
   }
@@ -262,6 +295,8 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     default_if: raw?.default_if ?? undefined,
     visibility: raw?.visibility ?? undefined,
     alert: Array.isArray(raw?.alert) && raw.alert.length > 0 ? raw.alert : undefined,
+    background: typeof raw?.background === "string" && raw.background.trim() ? raw.background : undefined,
+    layout: raw?.layout === "masonry" && Array.isArray(raw?.cards) && raw.cards.length > 0 ? "masonry" : undefined,
     styles:
       raw?.styles && typeof raw.styles === "object" && !Array.isArray(raw.styles)
         ? raw.styles
@@ -315,6 +350,16 @@ function normalizeAutoRotate(raw: any): AutoRotateConfig | undefined {
 }
 
 // `split: 900` or `{ min_width: 900, columns: 2 }`.
+function cardList(raw: any): LovelaceCardConfig[] | undefined {
+  return Array.isArray(raw) && raw.length > 0 ? raw : undefined;
+}
+
+// `content_height: auto | tallest | <length>`.
+function normalizeContentHeight(raw: any): string {
+  if (raw === "tallest") return "tallest";
+  return cssLength(raw) ?? "auto";
+}
+
 function normalizeSplit(raw: any): SplitConfig | undefined {
   const obj = typeof raw === "object" && raw !== null ? raw : { min_width: raw };
   const min = Number(obj.min_width);
@@ -388,6 +433,18 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     customize: Boolean(raw?.customize),
     rail_expand: Boolean(raw?.rail_expand),
     edit_mode_reveal: raw?.edit_mode_reveal === undefined ? true : Boolean(raw.edit_mode_reveal),
+    transition_duration: clampNumber(raw?.transition_duration, 0, 2000, 180),
+    transition_easing:
+      typeof raw?.transition_easing === "string" && raw.transition_easing.trim() && !/[;{}"<>]/.test(raw.transition_easing)
+        ? raw.transition_easing.trim()
+        : "ease",
+    content_height: normalizeContentHeight(raw?.content_height),
+    content_max_height: cssLength(raw?.content_max_height),
+    header_cards: cardList(raw?.header_cards),
+    footer_cards: cardList(raw?.footer_cards),
+    fullscreen: Boolean(raw?.fullscreen),
+    swipe_peek: Boolean(raw?.swipe_peek),
+    unload_after: Number(raw?.unload_after) > 0 ? Math.max(1, Number(raw.unload_after)) : undefined,
   };
 }
 

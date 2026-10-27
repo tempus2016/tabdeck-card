@@ -78,6 +78,8 @@ export class TabdeckTabbar extends LitElement {
   @state() private _customOpen = false;
   // A 🔍 button that opens a quick-switch filter over the tabs.
   @property({ type: Boolean }) searchable = false;
+  // A full-screen button after the tabs (fires tabdeck-fullscreen).
+  @property({ type: Boolean }) expandable = false;
   @state() private _searchOpen = false;
   @state() private _query = "";
   @state() private _active = 0;
@@ -621,7 +623,7 @@ export class TabdeckTabbar extends LitElement {
     const arrows = this.scrollButtons && this._horizontal && this._overflow;
     const menu = this.overflowMenu && this._horizontal && this._overflow;
     return html`
-      <div class="bar-wrap ${arrows || menu || this.searchable || this.customizable ? "has-arrows" : ""}">
+      <div class="bar-wrap ${arrows || menu || this.searchable || this.customizable || this.expandable ? "has-arrows" : ""}">
       ${arrows
         ? html`<button class="scroll-btn left" aria-label=${localize(this.language, "card.scroll_left")} @click=${() => this._scrollBy(-1)}>‹</button>`
         : ""}
@@ -690,6 +692,15 @@ export class TabdeckTabbar extends LitElement {
           </button>`
         : ""}
       ${this._customOpen ? this._renderCustom() : ""}
+      ${this.expandable
+        ? html`<button
+            class="fs-btn search-btn"
+            aria-label=${localize(this.language, "card.fullscreen")}
+            @click=${() => this.dispatchEvent(new CustomEvent("tabdeck-fullscreen", { bubbles: true, composed: true }))}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z"></path></svg>
+          </button>`
+        : ""}
       ${arrows
         ? html`<button class="scroll-btn right" aria-label=${localize(this.language, "card.scroll_right")} @click=${() => this._scrollBy(1)}>›</button>`
         : ""}

@@ -219,5 +219,18 @@ const nl: Record<string, string> = {
   "card.reset": "Herstellen",
   "card.done": "Klaar",
   "editor.global.rail_expand": "Zijbalk: alleen pictogrammen, labels bij aanwijzen (links/rechts)",
+  "card.fullscreen": "Volledig scherm",
+  "card.exit_fullscreen": "Volledig scherm sluiten",
+  "editor.tab.background": "Achtergrond (kleur, verloop of afbeeldings-URL)",
+  "editor.opt.transition.scale": "Schalen",
+  "editor.opt.transition.flip": "Draaien",
+  "editor.opt.transition.rise": "Van onderen",
+  "editor.global.transition_duration": "Duur van de overgang (ms)",
+  "editor.global.transition_easing": "Overgangscurve (CSS, bijv. ease-out)",
+  "editor.global.content_height": "Inhoudshoogte (auto, tallest of bijv. 400px)",
+  "editor.global.content_max_height": "Maximale inhoudshoogte (scrolt binnenin)",
+  "editor.global.fullscreen": "Knop voor volledig scherm",
+  "editor.global.swipe_peek": "Veegvoorbeeld (inhoud volgt de vinger)",
+  "editor.global.unload_after": "Ongebruikte tabs vrijgeven na (minuten, 0 = nooit)",
 };
 export default nl;

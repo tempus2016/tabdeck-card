@@ -19,14 +19,16 @@ import { formatBadge } from "./lib/badge";
 import { hassLanguage, localize } from "./lib/i18n";
 import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import { hideTabs, loadLayout, orderTabs, saveLayout, type UserLayout } from "./lib/customize";
+import { cssBackground, peekCommit, transitionFrames } from "./lib/layout";
 import "./components/tabdeck-tabbar";
+import "./components/tabdeck-masonry-card";
 import { isActiveBadge } from "./components/tabdeck-tab";
 
 // Events that count as the user interacting with the card.
 const INTERACTION_EVENTS = ["pointerdown", "keydown", "touchstart", "wheel"] as const;
 
 // Tab display fields that may be Jinja templates (rendered live by HA).
-const TEMPLATED_FIELDS = ["name", "subtitle", "icon", "color", "accent"] as const;
+const TEMPLATED_FIELDS = ["name", "subtitle", "icon", "color", "accent", "background"] as const;
 
 @customElement("tabdeck-card")
 export class TabdeckCard extends LitElement {
@@ -38,6 +40,10 @@ export class TabdeckCard extends LitElement {
   private _widthObserver?: ResizeObserver;
   // collapsible: content folded away (the bar stays).
   @state() private _collapsed = false;
+  // fullscreen: the content is open as a full-screen overlay.
+  @state() private _fullscreen = false;
+  // header_cards / footer_cards, built in one manager (header first).
+  private _extras?: CardManager;
   private _hass?: HomeAssistant;
   private _manager?: CardManager;
   private _cardKey = "";
@@ -105,6 +111,8 @@ export class TabdeckCard extends LitElement {
     this._built = false;
     this._selected = resolveDefaultIndex(this._config);
     this._collapsed = this._config.start_collapsed;
+    this._fullscreen = false;
+    this._seenAt.clear();
     this._autoPrev = undefined;
     this._lastEntityValue = undefined;
     this._genTabs = [];
@@ -113,6 +121,7 @@ export class TabdeckCard extends LitElement {
     this._templates?.destroy();
     this._templates = undefined;
     this._syncTimer();
+    this._syncUnloadTimer();
     this._syncWidthObserver();
     void this._build();
   }
@@ -173,11 +182,13 @@ export class TabdeckCard extends LitElement {
     super.connectedCallback();
     for (const ev of INTERACTION_EVENTS) this.addEventListener(ev, this._onInteraction);
     this._syncTimer();
+    this._syncUnloadTimer();
     this._syncWidthObserver();
     // HA moves cards around the DOM during layout; re-observe on reconnect.
     if (this._config?.scroll_spy) this.updateComplete.then(() => this._syncSpyObserver());
     if (this._config?.dock) this.updateComplete.then(() => this._syncDock());
     document.addEventListener("keydown", this._onHotkey);
+    document.addEventListener("keydown", this._onFullscreenKey);
     window.addEventListener("popstate", this._onPopState);
   }
 
@@ -229,8 +240,11 @@ export class TabdeckCard extends LitElement {
     super.disconnectedCallback();
     for (const ev of INTERACTION_EVENTS) this.removeEventListener(ev, this._onInteraction);
     document.removeEventListener("keydown", this._onHotkey);
+    document.removeEventListener("keydown", this._onFullscreenKey);
     window.removeEventListener("popstate", this._onPopState);
     this._stopTimer();
+    if (this._unloadTimer) clearInterval(this._unloadTimer);
+    this._unloadTimer = undefined;
     this._spyObserver?.disconnect();
     this._spyObserver = undefined;
     this._spyObserved = [];
@@ -325,6 +339,16 @@ export class TabdeckCard extends LitElement {
     this._manager.addEventListener("ll-rebuild-done", () => this.requestUpdate());
     await this._manager.build(this._cardConfigs());
     if (this._hass) this._manager.setHass(this._hass);
+    const extras = [...(this._config.header_cards ?? []), ...(this._config.footer_cards ?? [])];
+    if (extras.length) {
+      this._extras = new CardManager(create);
+      this._extras.addEventListener("ll-rebuild-done", () => this.requestUpdate());
+      await this._extras.build(extras);
+      if (this._hass) this._extras.setHass(this._hass);
+    } else {
+      this._extras = undefined;
+    }
+    this._builtAt = Date.now();
     this._syncTemplates();
     this._selected = loadInitialIndex({
       mode: this._config.remember,
@@ -350,6 +374,7 @@ export class TabdeckCard extends LitElement {
   set hass(hass: HomeAssistant) {
     this._hass = hass;
     this._manager?.setHass(hass);
+    this._extras?.setHass(hass);
     this._syncTemplates();
     this._runAutoSelect();
     this._syncRememberEntity();
@@ -779,6 +804,14 @@ export class TabdeckCard extends LitElement {
     const visible = this._visibleTabs();
     const prev = visible[this._selected];
     const changed = index !== this._selected;
+    // unload_after counts from when a tab was last on screen.
+    const now = Date.now();
+    if (prev) this._seenAt.set(this._allTabs().indexOf(prev), now);
+    if (visible[index]) {
+      const original = this._allTabs().indexOf(visible[index]);
+      this._seenAt.set(original, now);
+      this._manager?.ensure(original);
+    }
     this._selected = index;
     if (changed) {
       this._runAction(prev?.leave_action, "tap");
@@ -817,6 +850,146 @@ export class TabdeckCard extends LitElement {
     );
   }
 
+  // --- unload_after ----------------------------------------------------------
+  // Last time each tab (original index) was on screen.
+  private _seenAt = new Map<number, number>();
+  private _builtAt = Date.now();
+  private _unloadTimer?: ReturnType<typeof setInterval>;
+
+  private _syncUnloadTimer(): void {
+    const want = !!this._config?.unload_after && this.isConnected;
+    if (want && !this._unloadTimer) {
+      this._unloadTimer = setInterval(() => this._sweepUnloaded(Date.now()), 30_000);
+    } else if (!want && this._unloadTimer) {
+      clearInterval(this._unloadTimer);
+      this._unloadTimer = undefined;
+    }
+  }
+
+  // Free every tab not on screen for unload_after minutes. Layouts that show
+  // all tabs at once (scroll_spy, split) keep everything.
+  _sweepUnloaded(now: number): void {
+    const minutes = this._config?.unload_after;
+    if (!minutes || !this._manager || !this._built || this._config!.scroll_spy || this._isSplit) return;
+    const active = this._activeOriginalIndex();
+    let freed = false;
+    this._allTabs().forEach((_t, i) => {
+      if (i === active || !this._manager!.isLoaded(i)) return;
+      const seen = this._seenAt.get(i) ?? this._builtAt;
+      if (now - seen >= minutes * 60_000) {
+        this._manager!.unload(i);
+        freed = true;
+      }
+    });
+    if (freed) this.requestUpdate();
+  }
+
+  // --- fullscreen --------------------------------------------------------------
+  private _toggleFullscreen = (): void => {
+    this._fullscreen = !this._fullscreen;
+    this.updateComplete.then(() => this._manager?.notifyVisible(this._activeOriginalIndex()));
+  };
+
+  private _onFullscreenKey = (e: KeyboardEvent): void => {
+    if (e.key === "Escape" && this._fullscreen) {
+      this._fullscreen = false;
+      this.updateComplete.then(() => this._manager?.notifyVisible(this._activeOriginalIndex()));
+    }
+  };
+
+  // --- swipe_peek -------------------------------------------------------------
+  // During a horizontal drag the active panel follows the finger and the
+  // neighbour in that direction slides in beside it. Styles are set directly
+  // on the panels (no re-render per frame) and cleared on release.
+  private _peek?: { x: number; y: number; t: number; axis?: "x" | "y"; dx: number; neighbour?: HTMLElement };
+  // Set when a peek drag changes tab, so the normal enter animation is skipped.
+  private _peekSettling = false;
+
+  private _panelEl(index: number): HTMLElement | null {
+    return this.renderRoot?.querySelector?.(`.panel[data-index="${index}"]`) as HTMLElement | null;
+  }
+
+  private _peekStart(x: number, y: number): void {
+    this._peek = { x, y, t: performance.now(), dx: 0 };
+  }
+
+  private _onTouchMove = (e: TouchEvent): void => {
+    const p = this._peek;
+    const t = e.touches[0];
+    if (!p || !t || !this._config?.swipe_peek) return;
+    const dx = t.clientX - p.x;
+    const dy = t.clientY - p.y;
+    if (!p.axis) {
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      p.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    }
+    if (p.axis !== "x") return;
+    this._peekMove(dx);
+  };
+
+  private _peekMove(dx: number): void {
+    const p = this._peek!;
+    const content = this.renderRoot.querySelector(".content") as HTMLElement | null;
+    const active = this._panelEl(this._selected);
+    if (!content || !active) return;
+    const dir = dx < 0 ? 1 : -1;
+    const target = this._stepContent(this._selected, dir, !!this._config?.swipe_wrap);
+    const next = target !== this._selected ? this._panelEl(target) : null;
+    // Nothing that way: resist instead of following.
+    const offset = next ? dx : dx / 3;
+    p.dx = dx;
+    content.classList.add("dragging");
+    active.style.transform = `translateX(${offset}px)`;
+    if (p.neighbour && p.neighbour !== next) this._clearPeekPanel(p.neighbour);
+    p.neighbour = next ?? undefined;
+    if (next) {
+      next.classList.add("peek");
+      next.style.top = `${active.offsetTop}px`;
+      next.style.transform = `translateX(calc(${dir > 0 ? "100%" : "-100%"} + ${offset}px))`;
+    }
+  }
+
+  private _clearPeekPanel(panel: HTMLElement): void {
+    panel.classList.remove("peek");
+    panel.style.transform = "";
+    panel.style.top = "";
+  }
+
+  private _peekEnd(): void {
+    const p = this._peek;
+    this._peek = undefined;
+    if (!p || p.axis !== "x") return;
+    const content = this.renderRoot.querySelector(".content") as HTMLElement | null;
+    const active = this._panelEl(this._selected);
+    const width = content?.clientWidth || 1;
+    const velocity = p.dx / Math.max(1, performance.now() - p.t);
+    const commit = p.neighbour ? peekCommit(p.dx, width, velocity) : null;
+    const from = active?.style.transform ?? "";
+    if (active) active.style.transform = "";
+    if (p.neighbour) this._clearPeekPanel(p.neighbour);
+    content?.classList.remove("dragging");
+    if (commit) {
+      const dir = commit === "next" ? 1 : -1;
+      const target = this._stepContent(this._selected, dir, !!this._config?.swipe_wrap);
+      this._peekSettling = true;
+      this._selectIndex(target);
+      // Carry on from where the neighbour was released.
+      const start = `translateX(calc(${dir > 0 ? "100%" : "-100%"} + ${p.dx}px))`;
+      this.updateComplete.then(() => {
+        const panel = this._panelEl(target);
+        if (panel && typeof panel.animate === "function" && !this._reducedMotion()) {
+          panel.animate([{ transform: start }, { transform: "translateX(0)" }], { duration: 200, easing: "ease-out" });
+        }
+      });
+    } else if (active && from && typeof active.animate === "function" && !this._reducedMotion()) {
+      active.animate([{ transform: from }, { transform: "translateX(0)" }], { duration: 180, easing: "ease-out" });
+    }
+  }
+
+  private _reducedMotion(): boolean {
+    return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
   // Persist the selected index to an HA helper entity (input_number/input_text),
   // so the active tab syncs across devices. Skipped if the entity is absent.
   private _writeRememberEntity(index: number): void {
@@ -841,12 +1014,15 @@ export class TabdeckCard extends LitElement {
     }
     const t = e.touches[0];
     this._touchStart = { x: t.clientX, y: t.clientY, t: e.timeStamp };
+    if (this._config.swipe_peek) this._peekStart(t.clientX, t.clientY);
   };
 
   private _onTouchEnd = (e: TouchEvent): void => {
     const start = this._touchStart;
     this._touchStart = undefined;
     if (!start || !this._config?.swipe) return;
+    // With swipe_peek the drag itself decides.
+    if (this._config.swipe_peek) return this._peekEnd();
     const t = e.changedTouches[0];
     if (!t) return;
     this._applySwipe(start, { x: t.clientX, y: t.clientY, t: e.timeStamp });
@@ -891,7 +1067,8 @@ export class TabdeckCard extends LitElement {
       changed.get("_selected") !== undefined &&
       !this._config?.scroll_spy
     ) {
-      this._animatePanel();
+      if (this._peekSettling) this._peekSettling = false;
+      else this._animatePanel(this._selected >= (changed.get("_selected") as number) ? 1 : -1);
     }
     this._applyStyles();
     this._syncSpyObserver();
@@ -955,26 +1132,16 @@ export class TabdeckCard extends LitElement {
   // Play a short enter animation on the newly-active panel when a transition is
   // configured. Uses the Web Animations API so it replays on every switch;
   // skipped for `none`, in jsdom, and under prefers-reduced-motion.
-  private _animatePanel(): void {
-    const mode = this._config?.transition;
-    if (!mode || mode === "none") return;
-    if (
-      typeof matchMedia === "function" &&
-      matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      return;
-    const panel = this.renderRoot?.querySelector?.(
-      ".panel:not([hidden])",
-    ) as HTMLElement | null;
+  private _animatePanel(dir: 1 | -1): void {
+    const cfg = this._config;
+    if (!cfg || cfg.transition === "none" || cfg.transition_duration <= 0) return;
+    if (this._reducedMotion()) return;
+    const panel = this._panelEl(this._selected);
     if (!panel || typeof panel.animate !== "function") return;
-    const frames =
-      mode === "slide"
-        ? [
-            { opacity: 0, transform: "translateX(12px)" },
-            { opacity: 1, transform: "translateX(0)" },
-          ]
-        : [{ opacity: 0 }, { opacity: 1 }];
-    panel.animate(frames, { duration: 180, easing: "ease" });
+    panel.animate(transitionFrames(cfg.transition, dir), {
+      duration: cfg.transition_duration,
+      easing: cfg.transition_easing,
+    });
   }
 
   render() {
@@ -984,7 +1151,7 @@ export class TabdeckCard extends LitElement {
       return html`<div class="empty"></div>`;
     }
     const cfg = this._config;
-    if (this._isSplit) return this._renderSplit(visible);
+    if (this._isSplit) return this._wrapExtras(this._renderSplit(visible));
     // The dock leaves the page while editing so it can't cover HA's edit UI.
     const docked = cfg.dock && !this._editing;
     const bar = html`
@@ -1024,6 +1191,8 @@ export class TabdeckCard extends LitElement {
         .elevation=${cfg.elevation}
         .scrollButtons=${cfg.scroll_buttons}
         .searchable=${cfg.search}
+        .expandable=${cfg.fullscreen}
+        @tabdeck-fullscreen=${this._toggleFullscreen}
         .railExpand=${cfg.rail_expand}
         .customizable=${cfg.customize && !this._editing}
         .customItems=${cfg.customize ? this._customItems() : []}
@@ -1035,19 +1204,54 @@ export class TabdeckCard extends LitElement {
         @tabdeck-select=${this._onSelect}
       ></tabdeck-tabbar>
     `;
+    const activeTab = visible[this._selected];
+    const background = activeTab && !cfg.scroll_spy ? cssBackground(this._text(activeTab.background)) : undefined;
+    const fixedHeight = cfg.content_height !== "auto" && cfg.content_height !== "tallest" ? cfg.content_height : undefined;
+    const scrolls = !this._fullscreen && !!(fixedHeight || cfg.content_max_height);
+    const contentStyle = [
+      background ? `background:${background}` : "",
+      scrolls && fixedHeight ? `height:${fixedHeight}` : "",
+      scrolls && cfg.content_max_height ? `max-height:${cfg.content_max_height}` : "",
+    ]
+      .filter(Boolean)
+      .join(";");
+    const contentClass = [
+      "content",
+      cfg.content_arrows && !cfg.scroll_spy ? "with-arrows" : "",
+      cfg.content_height === "tallest" && !cfg.scroll_spy ? "tallest" : "",
+      scrolls ? "scrolls" : "",
+      background || (!cfg.scroll_spy && visible.some((t) => t.background)) ? "has-bg" : "",
+      this._fullscreen ? "fullscreen" : "",
+      cfg.fullscreen && cfg.hide_bar ? "with-fs" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const lang = hassLanguage(this._hass);
     const panels = html`
       <div
-        class="content ${cfg.content_arrows && !cfg.scroll_spy ? "with-arrows" : ""}"
+        class=${contentClass}
+        style=${contentStyle}
         id="tabdeck-panel"
         role="tabpanel"
         ?hidden=${this._collapsed}
         @touchstart=${this._onTouchStart}
+        @touchmove=${this._onTouchMove}
         @touchend=${this._onTouchEnd}
         @pointerdown=${this._onPointerDown}
         @pointerup=${this._onPointerUp}
         @tabdeck-tab-changed=${this._onNestedChanged}
       >
         ${cfg.content_arrows && !cfg.scroll_spy ? this._renderArrows() : nothing}
+        ${cfg.fullscreen && (this._fullscreen || cfg.hide_bar)
+          ? html`<button
+              class="fs-toggle"
+              aria-label=${localize(lang, this._fullscreen ? "card.exit_fullscreen" : "card.fullscreen")}
+              title=${localize(lang, this._fullscreen ? "card.exit_fullscreen" : "card.fullscreen")}
+              @click=${this._toggleFullscreen}
+            >
+              <ha-icon .icon=${this._fullscreen ? "mdi:fullscreen-exit" : "mdi:fullscreen"}></ha-icon>
+            </button>`
+          : nothing}
         ${cfg.header && !cfg.scroll_spy && visible[this._selected]
           ? html`<div class="content-header">
               <span class="content-title">${this._text(visible[this._selected].name) ?? ""}</span>
@@ -1070,16 +1274,30 @@ export class TabdeckCard extends LitElement {
               ${spy && cfg.header && !isActionTab(tab)
                 ? html`<div class="section-title">${this._text(tab.name) ?? ""}</div>`
                 : nothing}
-              ${spy || !cfg.unmount_hidden || active ? this._manager?.get(original) : nothing}
+              ${active ? this._manager?.ensure(original) : spy || !cfg.unmount_hidden ? this._manager?.get(original) : nothing}
             </div>
           `;
         })}
       </div>
     `;
-    return html`
+    return this._wrapExtras(html`
       <div class="root pos-${docked ? "bottom" : cfg.position} ${docked ? "docked" : ""} ${cfg.hide_bar ? "no-bar" : ""}">
         ${cfg.hide_bar ? panels : docked || cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
       </div>
+    `);
+  }
+
+  // header_cards above and footer_cards below the deck, on every tab.
+  private _wrapExtras(deck: unknown) {
+    if (!this._extras) return deck;
+    const head = this._config!.header_cards?.length ?? 0;
+    const cards = this._extras.all();
+    const header = cards.slice(0, head);
+    const footer = cards.slice(head);
+    return html`
+      ${header.length ? html`<div class="deck-header">${header}</div>` : nothing}
+      ${deck}
+      ${footer.length ? html`<div class="deck-footer">${footer}</div>` : nothing}
     `;
   }
 
@@ -1232,6 +1450,107 @@ export class TabdeckCard extends LitElement {
     }
     .empty {
       min-height: 8px;
+    }
+    .deck-header,
+    .deck-footer {
+      display: flex;
+      flex-direction: column;
+      gap: var(--tabdeck-extras-gap, 8px);
+    }
+    .deck-header {
+      margin-bottom: var(--tabdeck-extras-gap, 8px);
+    }
+    .deck-footer {
+      margin-top: var(--tabdeck-extras-gap, 8px);
+    }
+    /* content_height: tallest — every panel shares one grid cell, so the
+       content is as tall as the tallest tab; inactive ones are invisible. */
+    .content.tallest {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .content.tallest > .content-header {
+      grid-row: 1;
+    }
+    .content.tallest > .panel {
+      grid-row: 2;
+      grid-column: 1;
+    }
+    .content.tallest > .panel[hidden] {
+      display: block;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .content.scrolls {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .content.has-bg {
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: var(--tabdeck-content-radius, var(--ha-card-border-radius, 12px));
+    }
+    .content.with-fs {
+      padding-top: 40px;
+    }
+    .fs-toggle {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 3;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--primary-text-color);
+      background: var(--secondary-background-color, rgba(127, 127, 127, 0.15));
+      opacity: var(--tabdeck-arrow-opacity, 0.7);
+    }
+    .fs-toggle:hover,
+    .fs-toggle:focus-visible {
+      opacity: 1;
+    }
+    .content.fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: var(--tabdeck-fullscreen-z, 9);
+      margin: 0;
+      padding: calc(52px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+      overflow-y: auto;
+      border-radius: 0;
+      background: var(--tabdeck-fullscreen-background, var(--primary-background-color));
+    }
+    .content.fullscreen.has-bg {
+      background-size: cover;
+    }
+    .content.fullscreen .fs-toggle {
+      position: fixed;
+      top: calc(8px + env(safe-area-inset-top, 0px));
+      right: 12px;
+    }
+    /* swipe_peek: the neighbour panel shown beside the dragged one. */
+    .content.dragging {
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+    .panel.peek[hidden] {
+      display: block;
+      position: absolute;
+      left: 0;
+      right: 0;
+      pointer-events: none;
+    }
+    .content.has-bg > .panel.peek {
+      left: 12px;
+      right: 12px;
+    }
+    .content.with-arrows > .panel.peek {
+      left: var(--tabdeck-arrow-gutter, 40px);
+      right: var(--tabdeck-arrow-gutter, 40px);
     }
     .split {
       display: grid;

@@ -30,6 +30,11 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Disabled tabs](Feature-Disabled-Tabs)** — show a tab greyed-out and non-selectable (`disabled`).
 - **[Tab subtitles](Feature-Subtitle)** — secondary text under a tab label (`subtitle`).
 - **[Content header](Feature-Header)** — show the active tab's title above the content (`header`); icon-rail recipe.
+- **[Masonry inside a tab](Feature-Content-Layout#masonry-inside-a-tab-layout-masonry)** — balance a tab's cards into columns (`layout: masonry`).
+- **[Header & footer cards](Feature-Content-Layout#header-and-footer-cards-header_cards-footer_cards)** — cards shown on every tab (`header_cards`, `footer_cards`).
+- **[Tab backgrounds](Feature-Content-Layout#tab-background-background)** — colour, gradient or image behind a tab's content, may be a template (`background`).
+- **[Content height](Feature-Content-Layout#content-height-content_height-content_max_height)** — keep the tallest tab's height or scroll inside (`content_height`, `content_max_height`).
+- **[Full screen](Feature-Content-Layout#full-screen-fullscreen)** — open the active tab over the whole window (`fullscreen`).
 
 ## Navigation & interaction
 - **[Arrange tabs](Feature-Customize)** — each person reorders and hides tabs for themselves, saved per browser (`customize`).
@@ -38,12 +43,13 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Grouped tabs](Feature-Grouped-Tabs)** — `children:` as a second-level row or a ▾ dropdown menu (`children_display`); `hide_bar`; `selectTab()` API and `tabdeck-tab-changed` event.
 - **[Collapsible deck](Feature-Collapsible)** — tap the active tab to fold the content away (`collapsible`, `start_collapsed`).
 - **[Scroll-spy (anchor mode)](Feature-Scroll-Spy)** — stack every tab as a section; the bar scrolls to and tracks sections (`scroll_spy`).
-- **[Panel transitions](Feature-Panel-Transition)** — fade or slide when switching tabs (`transition`).
+- **[Panel transitions](Feature-Panel-Transition)** — fade, slide, scale, flip or rise when switching tabs, with your own duration and easing (`transition`).
+- **[Swipe peek](Feature-Content-Layout#swipe-peek-swipe_peek)** — the content follows the finger and the next tab slides in (`swipe_peek`).
 - **[Navigation & action tabs](Feature-Navigation-Tabs)** — a tab that navigates / runs an action instead of opening a panel (`tap_action`).
 - **[Tab-change actions](Feature-Enter-Leave-Actions)** — run an action when a tab opens or closes (`enter_action`, `leave_action`).
 - **[Tab & badge actions](Feature-Hold-Action)** — long-press tab (`hold_action`) and clickable badge (`badge_action`).
 - **[Auto-rotate & idle return](Feature-Kiosk)** — cycle tabs on a timer (`auto_rotate`) or return to the default when idle (`idle_return`).
-- **[Performance & swipe options](Feature-Performance)** — `unmount_hidden`, `swipe_wrap`, `swipe_mouse` (desktop drag).
+- **[Performance & swipe options](Feature-Performance)** — `unmount_hidden`, `unload_after` (free tabs unused for N minutes), `swipe_wrap`, `swipe_mouse` (desktop drag).
 
 ## Dynamic behaviour
 - **[Dynamic tabs](Feature-Dynamic-Tabs)** — generate a tab per item from a live Jinja list (`auto_tabs`).

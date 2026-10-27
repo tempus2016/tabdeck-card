@@ -219,5 +219,18 @@ const fr: Record<string, string> = {
   "card.reset": "Réinitialiser",
   "card.done": "Terminé",
   "editor.global.rail_expand": "Barre latérale : icônes seules, libellés au survol (gauche/droite)",
+  "card.fullscreen": "Plein écran",
+  "card.exit_fullscreen": "Quitter le plein écran",
+  "editor.tab.background": "Arrière-plan (couleur, dégradé ou URL d'image)",
+  "editor.opt.transition.scale": "Zoom",
+  "editor.opt.transition.flip": "Retournement",
+  "editor.opt.transition.rise": "Depuis le bas",
+  "editor.global.transition_duration": "Durée de la transition (ms)",
+  "editor.global.transition_easing": "Courbe de la transition (CSS, ex. ease-out)",
+  "editor.global.content_height": "Hauteur du contenu (auto, tallest ou ex. 400px)",
+  "editor.global.content_max_height": "Hauteur maximale du contenu (défile à l'intérieur)",
+  "editor.global.fullscreen": "Bouton plein écran",
+  "editor.global.swipe_peek": "Aperçu au balayage (le contenu suit le doigt)",
+  "editor.global.unload_after": "Libérer les onglets inutilisés après (minutes, 0 = jamais)",
 };
 export default fr;

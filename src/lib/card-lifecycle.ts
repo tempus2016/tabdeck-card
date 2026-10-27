@@ -44,6 +44,24 @@ export class CardManager extends EventTarget {
     return this._elements;
   }
 
+  // Free a built card (unload_after); its config is kept so ensure() can
+  // rebuild it.
+  unload(index: number): void {
+    this._elements[index] = undefined;
+  }
+
+  isLoaded(index: number): boolean {
+    return !!this._elements[index];
+  }
+
+  // The card at `index`, rebuilt first if it was unloaded.
+  ensure(index: number): any | undefined {
+    if (!this._elements[index] && this._configs[index]) {
+      this._elements[index] = this._make(this._configs[index], index);
+    }
+    return this._elements[index];
+  }
+
   setHass(hass: HomeAssistant): void {
     this._hass = hass;
     for (const el of this._elements) if (el) el.hass = hass;

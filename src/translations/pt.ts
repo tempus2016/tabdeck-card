@@ -219,5 +219,18 @@ const pt: Record<string, string> = {
   "card.reset": "Repor",
   "card.done": "Concluído",
   "editor.global.rail_expand": "Barra lateral: só ícones, rótulos ao passar o rato (esquerda/direita)",
+  "card.fullscreen": "Ecrã inteiro",
+  "card.exit_fullscreen": "Sair do ecrã inteiro",
+  "editor.tab.background": "Fundo (cor, gradiente ou URL de imagem)",
+  "editor.opt.transition.scale": "Escala",
+  "editor.opt.transition.flip": "Rotação",
+  "editor.opt.transition.rise": "De baixo",
+  "editor.global.transition_duration": "Duração da transição (ms)",
+  "editor.global.transition_easing": "Curva da transição (CSS, ex. ease-out)",
+  "editor.global.content_height": "Altura do conteúdo (auto, tallest ou ex. 400px)",
+  "editor.global.content_max_height": "Altura máxima do conteúdo (desliza por dentro)",
+  "editor.global.fullscreen": "Botão de ecrã inteiro",
+  "editor.global.swipe_peek": "Pré-visualização ao deslizar (o conteúdo segue o dedo)",
+  "editor.global.unload_after": "Libertar separadores sem uso após (minutos, 0 = nunca)",
 };
 export default pt;

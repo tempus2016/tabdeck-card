@@ -10,6 +10,7 @@ import { applyStarter, buildStarter, STARTERS, type StarterKind } from "../lib/s
 import { applyConversion, convertConfig, type ConvertResult } from "../lib/convert";
 import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
 import { SOURCE_TAB_TEMPLATE } from "../lib/sources";
+import { cssLength } from "../lib/layout";
 import "../components/tabdeck-tabbar";
 
 // MDI icon paths for the per-tab reorder/delete buttons. Inlined rather than
@@ -48,6 +49,7 @@ const TAB_SCHEMA = [
   { name: "color", selector: { text: {} } },
   { name: "badge", selector: { text: {} } },
   { name: "badge_color", selector: { text: {} } },
+  { name: "background", selector: { text: {} } },
   { name: "disabled", selector: { boolean: {} } },
   { name: "fab", selector: { boolean: {} } },
   { name: "card_size", selector: { number: { min: 1, max: 20, step: 1, mode: "box" } } },
@@ -705,7 +707,9 @@ export class TabdeckCardEditor extends LitElement {
       { name: "align", selector: { select: { mode: "dropdown", options: opts(["start", "center", "end", "justify"], "align") } } },
       { name: "badge_display", selector: { select: { mode: "dropdown", options: opts(["text", "dot"], "badge_display") } } },
       { name: "hide_inactive_badge", selector: { boolean: {} } },
-      { name: "transition", selector: { select: { mode: "dropdown", options: opts(["none", "fade", "slide"], "transition") } } },
+      { name: "transition", selector: { select: { mode: "dropdown", options: opts(["none", "fade", "slide", "scale", "flip", "rise"], "transition") } } },
+      { name: "transition_duration", selector: { number: { min: 0, max: 2000, step: 10, mode: "box" } } },
+      { name: "transition_easing", selector: { text: {} } },
       { name: "indicator_size", selector: { number: { min: 1, max: 16, step: 1, mode: "slider" } } },
       { name: "indicator_radius", selector: { number: { min: 0, max: 30, step: 1, mode: "slider" } } },
       { name: "remember", selector: { select: { mode: "dropdown", options: opts(["none", "browser", "url", "entity"], "remember") } } },
@@ -742,6 +746,11 @@ export class TabdeckCardEditor extends LitElement {
       { name: "history", selector: { boolean: {} } },
       { name: "customize", selector: { boolean: {} } },
       { name: "rail_expand", selector: { boolean: {} } },
+      { name: "content_height", selector: { text: {} } },
+      { name: "content_max_height", selector: { text: {} } },
+      { name: "fullscreen", selector: { boolean: {} } },
+      { name: "swipe_peek", selector: { boolean: {} } },
+      { name: "unload_after", selector: { number: { min: 0, max: 1440, step: 1, mode: "box" } } },
       { name: "edit_mode_reveal", selector: { boolean: {} } },
     ];
   }
@@ -794,6 +803,13 @@ export class TabdeckCardEditor extends LitElement {
       customize: cfg.customize,
       rail_expand: cfg.rail_expand,
       edit_mode_reveal: cfg.edit_mode_reveal,
+      transition_duration: cfg.transition_duration,
+      transition_easing: cfg.transition_easing,
+      content_height: cfg.content_height,
+      content_max_height: cfg.content_max_height ?? "",
+      fullscreen: cfg.fullscreen,
+      swipe_peek: cfg.swipe_peek,
+      unload_after: cfg.unload_after ?? 0,
     };
   }
 
@@ -863,6 +879,15 @@ export class TabdeckCardEditor extends LitElement {
       customize: !!v.customize,
       rail_expand: !!v.rail_expand,
       edit_mode_reveal: v.edit_mode_reveal !== false,
+      transition_duration: Number.isFinite(Number(v.transition_duration))
+        ? Math.min(2000, Math.max(0, Number(v.transition_duration)))
+        : 180,
+      transition_easing: v.transition_easing || "ease",
+      content_height: v.content_height === "tallest" ? "tallest" : cssLength(v.content_height) ?? "auto",
+      content_max_height: cssLength(v.content_max_height),
+      fullscreen: !!v.fullscreen,
+      swipe_peek: !!v.swipe_peek,
+      unload_after: Number(v.unload_after) > 0 ? Math.max(1, Number(v.unload_after)) : undefined,
     });
   }
 
@@ -877,6 +902,7 @@ export class TabdeckCardEditor extends LitElement {
       color: v.color || undefined,
       badge: v.badge || undefined,
       badge_color: v.badge_color || undefined,
+      background: v.background || undefined,
       disabled: v.disabled ? true : undefined,
       fab: v.fab ? true : undefined,
       card_size: typeof v.card_size === "number" ? v.card_size : undefined,
@@ -1282,6 +1308,7 @@ export class TabdeckCardEditor extends LitElement {
                           color: tab.color ?? "",
                           badge: tab.badge ?? "",
                           badge_color: tab.badge_color ?? "",
+                          background: tab.background ?? "",
                           disabled: !!tab.disabled,
                           fab: !!tab.fab,
                           card_size: tab.card_size,

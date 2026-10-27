@@ -18,6 +18,22 @@ describe("CardManager", () => {
     expect(m.get(0).getAttribute("data-type")).toBe("a");
   });
 
+  it("unload frees a card and ensure rebuilds it with the current hass", async () => {
+    const m = new CardManager(fakeCreate());
+    await m.build([{ type: "a" }, null]);
+    const first = m.get(0);
+    m.unload(0);
+    expect(m.get(0)).toBeUndefined();
+    expect(m.isLoaded(0)).toBe(false);
+    const hass = { states: {} } as any;
+    m.setHass(hass);
+    const again = m.ensure(0);
+    expect(again).not.toBe(first);
+    expect(again.hass).toBe(hass);
+    expect(m.ensure(0)).toBe(again);
+    expect(m.ensure(1)).toBeUndefined();
+  });
+
   it("fans hass out to every element", async () => {
     const m = new CardManager(fakeCreate());
     await m.build([{ type: "a" }, { type: "b" }]);

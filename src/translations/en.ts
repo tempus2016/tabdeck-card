@@ -219,5 +219,18 @@ const en: Record<string, string> = {
   "card.reset": "Reset",
   "card.done": "Done",
   "editor.global.rail_expand": "Side rail: icons only, labels on hover (left/right)",
+  "card.fullscreen": "Full screen",
+  "card.exit_fullscreen": "Exit full screen",
+  "editor.tab.background": "Background (colour, gradient or image URL)",
+  "editor.opt.transition.scale": "Scale",
+  "editor.opt.transition.flip": "Flip",
+  "editor.opt.transition.rise": "Rise",
+  "editor.global.transition_duration": "Transition duration (ms)",
+  "editor.global.transition_easing": "Transition easing (CSS, e.g. ease-out)",
+  "editor.global.content_height": "Content height (auto, tallest or e.g. 400px)",
+  "editor.global.content_max_height": "Maximum content height (scrolls inside)",
+  "editor.global.fullscreen": "Full-screen button",
+  "editor.global.swipe_peek": "Swipe peek (content follows the finger)",
+  "editor.global.unload_after": "Free unused tabs after (minutes, 0 = never)",
 };
 export default en;
