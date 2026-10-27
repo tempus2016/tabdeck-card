@@ -19,6 +19,8 @@
 - [Dynamic tabs](Feature-Dynamic-Tabs)
 - [Remote control & events](Feature-Remote-Control)
 - [PIN-locked tabs](Feature-PIN)
+- [Reuse: defaults & templates](Feature-Reuse)
+- [Debug panel](Feature-Debug)
 - [State-driven icons & names](Feature-Templated-Fields)
 - [Alert pulse](Feature-Alert)
 - [Auto-rotate & idle return](Feature-Kiosk)

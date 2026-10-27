@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { handleAction } from "custom-card-helpers";
 import type { HomeAssistant } from "./types";
 import {
+  expandTab,
   isActionTab,
   normalizeConfig,
   normalizeTab,
@@ -372,6 +373,7 @@ export class TabdeckCard extends LitElement {
 
   private async _build(): Promise<void> {
     if (!this._config) return;
+    const buildStart = performance.now();
     this._layout = this._config.customize ? loadLayout(this._cardKey) : { order: [], hidden: [] };
     const create = await getCreateCardElement();
     this._manager = new CardManager(create);
@@ -400,6 +402,11 @@ export class TabdeckCard extends LitElement {
         ? this._hass?.states?.[this._config.remember_entity]?.state
         : undefined,
     });
+    const fallback = this._computeDefaultIndex();
+    this._startReason =
+      this._selected !== fallback && this._config.remember !== "none"
+        ? `remembered (remember: ${this._config.remember})`
+        : this._defaultReason;
     this._selected = this._ensureContentTab(this._selected);
     if (this._isLocked(this._visibleTabs()[this._selected])) {
       const open = this._visibleTabs().findIndex((t) => this._isContentTab(t) && !this._isLocked(t));
@@ -411,6 +418,7 @@ export class TabdeckCard extends LitElement {
     }
     this._lastEntityValue = this._rememberEntityState();
     this._built = true;
+    this._buildMs = performance.now() - buildStart;
     this._refreshAlertOrder();
     this.requestUpdate();
   }
@@ -820,7 +828,8 @@ export class TabdeckCard extends LitElement {
     if (key === this._genKey) return;
     const prevName = this._visibleTabs()[this._selected]?.name;
     this._genKey = key;
-    this._genTabs = raw.map(normalizeTab);
+    const cfg = this._config!;
+    this._genTabs = raw.map((t) => normalizeTab(expandTab(t, cfg.tab_templates, cfg.tab_defaults)));
     // Restore selection synchronously, before awaiting the (internally sync)
     // rebuild, so the panel never renders the new tab set against a stale index.
     this._restoreSelection(prevName);
@@ -869,15 +878,21 @@ export class TabdeckCard extends LitElement {
     for (let i = 0; i < visible.length; i++) {
       const c = visible[i].default_if;
       if (Array.isArray(c) && c.length > 0 && isTabVisible(c, this._hass, this._templateResolver)) {
+        this._defaultReason = `default_if of ${visible[i].name ?? i}`;
         return i;
       }
     }
     const cfg = this._config!;
-    const target = pickByDevice(cfg.default_by_device, deviceId()) ?? pickByTime(cfg.default_by_time, new Date());
+    const byDevice = pickByDevice(cfg.default_by_device, deviceId());
+    const target = byDevice ?? pickByTime(cfg.default_by_time, new Date());
     if (target !== undefined) {
       const i = this._indexOf(target);
-      if (this._isContentTab(visible[i])) return i;
+      if (this._isContentTab(visible[i])) {
+        this._defaultReason = byDevice !== undefined ? `default_by_device (${deviceId()})` : "default_by_time";
+        return i;
+      }
     }
+    this._defaultReason = "default_tab";
     const orig = resolveDefaultIndex(cfg);
     const vIdx = visible.indexOf(this._allTabs()[orig] ?? cfg.tabs[orig]);
     return vIdx >= 0 ? vIdx : 0;
@@ -1329,8 +1344,14 @@ export class TabdeckCard extends LitElement {
     if (target !== this._selected) this._userSelect(target);
   }
 
+  protected willUpdate(changed: PropertyValues): void {
+    super.willUpdate(changed);
+    if (this._config?.debug) this._renderStart = performance.now();
+  }
+
   protected updated(changed: PropertyValues): void {
     super.updated(changed);
+    if (this._config?.debug && this._renderStart) this._renderMs = performance.now() - this._renderStart;
     const visible = this._visibleTabs();
     if (this._selected > visible.length - 1) this._selected = 0;
     if (
@@ -1567,9 +1588,11 @@ export class TabdeckCard extends LitElement {
     `);
   }
 
-  // header_cards above and footer_cards below the deck, on every tab.
+  // header_cards above and footer_cards below the deck, on every tab; the
+  // debug panel last.
   private _wrapExtras(deck: unknown) {
-    if (!this._extras) return deck;
+    const debug = this._config?.debug ? this._renderDebug() : nothing;
+    if (!this._extras) return html`${deck}${debug}`;
     const head = this._config!.header_cards?.length ?? 0;
     const cards = this._extras.all();
     const header = cards.slice(0, head);
@@ -1578,6 +1601,91 @@ export class TabdeckCard extends LitElement {
       ${header.length ? html`<div class="deck-header">${header}</div>` : nothing}
       ${deck}
       ${footer.length ? html`<div class="deck-footer">${footer}</div>` : nothing}
+      ${debug}
+    `;
+  }
+
+  // --- debug panel ---------------------------------------------------------------
+  private _defaultReason = "default_tab";
+  private _startReason = "";
+  private _buildMs = 0;
+  private _renderStart = 0;
+  private _renderMs = 0;
+
+  // One-line description of a condition, for the debug panel.
+  private _describeCondition(c: any): string {
+    if (!c || typeof c !== "object") return String(c);
+    const kind = c.condition ?? (c.entity ? "state" : "?");
+    if (Array.isArray(c.conditions)) return `${kind}(${c.conditions.map((x: any) => this._describeCondition(x)).join(", ")})`;
+    switch (kind) {
+      case "state":
+        return `state ${c.entity} ${c.state_not !== undefined ? "≠ " + [].concat(c.state_not).join("|") : "= " + [].concat(c.state).join("|")}`;
+      case "numeric_state":
+        return `numeric ${c.entity}${c.above !== undefined ? " > " + c.above : ""}${c.below !== undefined ? " < " + c.below : ""}`;
+      case "screen":
+        return `screen ${c.media_query}`;
+      case "template":
+        return "template";
+      default:
+        return String(kind);
+    }
+  }
+
+  private _conditionsText(conds: any[] | undefined): string {
+    if (!Array.isArray(conds) || !conds.length) return "";
+    return conds
+      .map((c) => `${this._describeCondition(c)} ${isTabVisible([c], this._hass, this._templateResolver) ? "✓" : "✗"}`)
+      .join("; ");
+  }
+
+  private _renderDebug() {
+    const visible = this._visibleTabs();
+    const selected = visible[this._selected];
+    const templates = this._collectTemplates();
+    const short = (v: unknown) => {
+      const t = typeof v === "string" ? v : JSON.stringify(v);
+      return t === undefined ? "…" : t.length > 70 ? t.slice(0, 70) + "…" : t;
+    };
+    return html`
+      <details class="debug" open>
+        <summary>tabdeck debug</summary>
+        <div class="debug-facts">
+          <span>selected ${this._selected} (${selected?.name ?? "—"})</span>
+          <span>start: ${this._startReason}</span>
+          <span>deck ${this._deckId}</span>
+          <span>device ${deviceId() ?? "—"}</span>
+          ${this._editing ? html`<span>editing</span>` : nothing}
+          <span>build ${this._buildMs.toFixed(1)} ms</span>
+          <span>render ${this._renderMs.toFixed(1)} ms</span>
+        </div>
+        <table>
+          <tbody>
+            ${this._allTabs().map((t, i) => {
+              const shown = visible.includes(t);
+              const badge = this._resolveBadgeFinal(t);
+              const ring = this._ring(t);
+              const parts = [
+                shown ? "visible" : "hidden",
+                this._conditionsText(t.visibility),
+                t.alert ? `alert ${this._isAlerting(t) ? "on" : "off"}` : "",
+                badge !== undefined ? `badge ${badge}` : "",
+                ring !== undefined ? `ring ${Math.round(ring)}%` : "",
+                this._isLocked(t) ? "locked" : "",
+                isActionTab(t) ? "action tab" : this._manager?.isLoaded(i) ? "" : "card not built",
+              ].filter(Boolean);
+              return html`<tr class="tab-row ${t === selected ? "current" : ""}">
+                <td>${this._text(t.name) ?? i}</td>
+                <td>${parts.join(" · ")}</td>
+              </tr>`;
+            })}
+          </tbody>
+        </table>
+        ${templates.length
+          ? html`<div class="debug-templates">
+              ${templates.map((tpl) => html`<div><code>${short(tpl)}</code> → <code>${short(this._templates?.result(tpl))}</code></div>`)}
+            </div>`
+          : nothing}
+      </details>
     `;
   }
 
@@ -1828,6 +1936,40 @@ export class TabdeckCard extends LitElement {
       position: fixed;
       top: calc(8px + env(safe-area-inset-top, 0px));
       right: 12px;
+    }
+    /* debug panel */
+    .debug {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border: 1px dashed var(--divider-color, #888);
+      border-radius: 8px;
+      font: 12px/1.5 var(--code-font-family, ui-monospace, monospace);
+      color: var(--secondary-text-color);
+    }
+    .debug summary {
+      cursor: pointer;
+      color: var(--primary-text-color);
+    }
+    .debug-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+      margin: 6px 0;
+    }
+    .debug table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .debug td {
+      padding: 2px 6px 2px 0;
+      vertical-align: top;
+    }
+    .debug tr.current td:first-child {
+      color: var(--primary-color);
+    }
+    .debug-templates {
+      margin-top: 6px;
+      word-break: break-all;
     }
     /* PIN prompt */
     .pin-backdrop {

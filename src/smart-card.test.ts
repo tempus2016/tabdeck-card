@@ -228,3 +228,35 @@ describe("ring and badge icon", () => {
     expect(bar(el).items[0].badgeIcon).toBe("mdi:alert");
   });
 });
+
+describe("debug panel", () => {
+  it("is off by default", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "a" } }] });
+    expect(el.shadowRoot.querySelector(".debug")).toBeNull();
+  });
+
+  it("shows each tab's conditions, the starting-tab reason, templates and timings", async () => {
+    const el = await mount(
+      {
+        debug: true,
+        default_tab: "B",
+        tabs: [
+          { name: "A", visibility: [{ condition: "state", entity: "light.x", state: "on" }], card: { type: "a" } },
+          { name: "B", badge: { count: "light.*" }, card: { type: "b" } },
+        ],
+      },
+      { states: { "light.x": st("off") } },
+    );
+    const panel = el.shadowRoot.querySelector(".debug") as HTMLElement;
+    expect(panel).toBeTruthy();
+    const text = panel.textContent!.replace(/\s+/g, " ");
+    expect(text).toContain("default_tab");
+    const rows = [...panel.querySelectorAll("tr.tab-row")].map((r) => r.textContent!.replace(/\s+/g, " "));
+    expect(rows[0]).toContain("A");
+    expect(rows[0]).toContain("hidden");
+    expect(rows[0]).toContain("state light.x = on ✗");
+    expect(rows[1]).toContain("B");
+    expect(rows[1]).toContain("badge 0");
+    expect(text).toMatch(/build \d+(\.\d+)? ms/);
+  });
+});

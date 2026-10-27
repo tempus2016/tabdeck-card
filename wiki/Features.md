@@ -79,6 +79,12 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Condition builders](Editor#condition-builders)** — edit Visibility / Alert / Default-when conditions with HA's native builder.
 - **[Live preview](Editor#live-preview)** — the editor previews the bar as you edit.
 
+## Power users
+- **[Tab defaults](Feature-Reuse#tab_defaults)** — keys applied to every tab (`tab_defaults`).
+- **[Tab templates](Feature-Reuse#tab_templates--use)** — named blueprints filled per tab (`tab_templates`, `use`, `vars`).
+- **[Debug panel](Feature-Debug)** — conditions, templates, start reason and timings under the card (`debug`).
+- **[Public API](Feature-Grouped-Tabs#related-hide_bar-and-the-public-api)** — `selectTab()`, `selectedTab`, `tabdeck-tab-changed`.
+
 ## Theming
 - **[Style presets](Feature-Presets)** — one-line looks: `ios`, `material`, `glass`, `minimal`, `rail` (`preset`).
 - **[Theming & styles passthrough](Feature-Theming)** — set CSS variables from config (`styles`).

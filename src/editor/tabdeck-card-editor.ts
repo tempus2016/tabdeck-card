@@ -233,7 +233,8 @@ export class TabdeckCardEditor extends LitElement {
   public lovelace?: any;
 
   setConfig(config: any): void {
-    this._config = normalizeConfig(config);
+    // Keep tab_defaults / tab_templates / use as written (the card applies them).
+    this._config = normalizeConfig(config, { expand: false });
     this._syncTemplates();
   }
 
@@ -386,7 +387,7 @@ export class TabdeckCardEditor extends LitElement {
   private _applyConvert(mode: "replace" | "append"): void {
     const r = this._convertResult;
     if (!this._config || !r) return;
-    const next = normalizeConfig(applyConversion(this._config, r, mode));
+    const next = normalizeConfig(applyConversion(this._config, r, mode), { expand: false });
     this._expanded = new Set();
     this._convertOpen = false;
     this._convertResult = undefined;
@@ -456,7 +457,7 @@ export class TabdeckCardEditor extends LitElement {
       this._flash(this._t("starter.none", { name: label }));
       return;
     }
-    const next = normalizeConfig(applyStarter(this._config, starter, mode));
+    const next = normalizeConfig(applyStarter(this._config, starter, mode), { expand: false });
     this._expanded = new Set();
     this._starterOpen = false;
     this._flash(this._t("starter.done", { name: label }));
@@ -767,6 +768,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "event_id", selector: { text: {} } },
       { name: "unload_after", selector: { number: { min: 0, max: 1440, step: 1, mode: "box" } } },
       { name: "edit_mode_reveal", selector: { boolean: {} } },
+      { name: "debug", selector: { boolean: {} } },
     ];
   }
 
@@ -832,6 +834,7 @@ export class TabdeckCardEditor extends LitElement {
       remote_event: cfg.remote_event,
       fire_event: cfg.fire_event,
       event_id: cfg.event_id ?? "",
+      debug: cfg.debug,
     };
   }
 
@@ -917,6 +920,7 @@ export class TabdeckCardEditor extends LitElement {
       remote_event: !!v.remote_event,
       fire_event: !!v.fire_event,
       event_id: v.event_id || undefined,
+      debug: !!v.debug,
     });
   }
 
