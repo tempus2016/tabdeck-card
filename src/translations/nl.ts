@@ -198,5 +198,7 @@ const nl: Record<string, string> = {
   "convert.note.state_switch_mode": "Deze state-switch-modus (gebruiker / media query / template) heeft geen direct equivalent; de statussen zijn gewone tabs geworden. Voeg zo nodig zichtbaarheidsvoorwaarden toe.",
   "convert.note.bubble": "Elke pop-up is een tab geworden; de eigen knop en opmaak van de pop-up worden niet gebruikt.",
   "convert.note.dashboard": "Elke weergave is een tab geworden. Grote dashboards kunnen een zware kaart opleveren; overweeg lazy: true.",
+  "editor.global.dock": "Dock: balk onderaan het scherm vastzetten (telefoonnavigatie)",
+  "editor.tab.fab": "Als zwevende actieknop",
 };
 export default nl;

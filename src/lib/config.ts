@@ -23,6 +23,8 @@ export interface TabdeckTabConfig {
   // Numeric badge formatting (precision / unit / max → "99+").
   badge_format?: BadgeFormat;
   disabled?: boolean;
+  // Render as a raised floating action button (usually an action tab).
+  fab?: boolean;
   // Optional getCardSize() hint for this tab (masonry layout sizing).
   card_size?: number;
   // Home Assistant action fired on a long-press of the tab (tap still selects).
@@ -131,6 +133,8 @@ export interface TabdeckCardConfig {
   // In dashboard edit mode / the editor preview, show hidden tabs (ghosted)
   // and pause auto_rotate / idle_return. On by default.
   edit_mode_reveal: boolean;
+  // Phone-style navigation: the bar is pinned to the bottom of the screen.
+  dock: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -191,6 +195,7 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     badge_color: raw?.badge_color ?? undefined,
     badge_format: normalizeBadgeFormat(raw?.badge_format),
     disabled: raw?.disabled ? true : undefined,
+    fab: raw?.fab ? true : undefined,
     card_size: typeof raw?.card_size === "number" ? raw.card_size : undefined,
     hold_action: raw?.hold_action ?? undefined,
     badge_action: raw?.badge_action ?? undefined,
@@ -317,6 +322,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     start_collapsed: Boolean(raw?.collapsible && raw?.start_collapsed),
     idle_return:
       Number(raw?.idle_return) > 0 ? Math.max(5, Number(raw.idle_return)) : undefined,
+    dock: Boolean(raw?.dock),
     edit_mode_reveal: raw?.edit_mode_reveal === undefined ? true : Boolean(raw.edit_mode_reveal),
   };
 }

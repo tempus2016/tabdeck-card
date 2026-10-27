@@ -198,5 +198,7 @@ const pl: Record<string, string> = {
   "convert.note.state_switch_mode": "Ten tryb state-switch (użytkownik / media query / szablon) nie ma bezpośredniego odpowiednika; stany stały się zwykłymi zakładkami. W razie potrzeby dodaj warunki widoczności.",
   "convert.note.bubble": "Każde wyskakujące okienko stało się zakładką; jego własny przycisk i styl nie są używane.",
   "convert.note.dashboard": "Każdy widok stał się zakładką. Duże dashboardy mogą dać ciężką kartę; rozważ lazy: true.",
+  "editor.global.dock": "Dock: przypnij pasek do dołu ekranu (nawigacja jak w telefonie)",
+  "editor.tab.fab": "Styl pływającego przycisku akcji",
 };
 export default pl;

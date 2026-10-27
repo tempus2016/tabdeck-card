@@ -21,6 +21,8 @@ interface TabItem {
   action?: boolean;
   // Hidden tab revealed in edit mode.
   ghost?: boolean;
+  // Floating action button style.
+  fab?: boolean;
 }
 
 const HOLD_MS = 500;
@@ -60,6 +62,8 @@ export class TabdeckTabbar extends LitElement {
   @property() language = "en";
   // Optional custom bar background colour.
   @property() barBackground?: string;
+  // Pinned to the bottom of the viewport, phone-navigation style.
+  @property({ type: Boolean, reflect: true }) dock = false;
 
   // Becomes true one frame after the first paint, so the indicator's initial
   // placement never slides in from the corner; only later moves animate.
@@ -345,6 +349,8 @@ export class TabdeckTabbar extends LitElement {
               .alert=${!!item.alert}
               .action=${!!item.action}
               .ghost=${!!item.ghost}
+              .fab=${!!item.fab}
+              .stacked=${this.dock}
               .ghostLabel=${localize(this.language, "card.ghost")}
               .badgeLabel=${localize(this.language, "card.badge", { value: item.badge ?? "" })}
               .display=${this.display}
@@ -394,6 +400,25 @@ export class TabdeckTabbar extends LitElement {
   static styles = css`
     :host {
       display: block;
+    }
+    /* dock: a phone-style navigation bar fixed to the bottom of the screen. */
+    :host([dock]) {
+      position: fixed;
+      left: var(--tabdeck-dock-left, 0);
+      right: var(--tabdeck-dock-right, 0);
+      bottom: 0;
+      z-index: 5;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      background: var(--tabdeck-dock-background, var(--card-background-color, var(--ha-card-background, #fff)));
+      box-shadow: var(--tabdeck-dock-shadow, 0 -2px 10px rgba(0, 0, 0, 0.18));
+    }
+    :host([dock]) .bar {
+      border-top: none;
+      overflow: visible;
+    }
+    :host([dock]) .bar tabdeck-tab:not([fab]) {
+      flex: 1 1 0;
+      justify-content: center;
     }
     .bar-wrap.has-arrows {
       display: flex;

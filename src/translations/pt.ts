@@ -198,5 +198,7 @@ const pt: Record<string, string> = {
   "convert.note.state_switch_mode": "Este modo do state-switch (utilizador / media query / modelo) não tem equivalente direto; os estados passaram a separadores simples. Adicione condições de visibilidade se necessário.",
   "convert.note.bubble": "Cada pop-up passou a um separador; o botão e o estilo próprios do pop-up não são usados.",
   "convert.note.dashboard": "Cada vista passou a um separador. Painéis grandes podem gerar um cartão pesado; considere lazy: true.",
+  "editor.global.dock": "Dock: fixar a barra no fundo do ecrã (navegação de telemóvel)",
+  "editor.tab.fab": "Estilo de botão de ação flutuante",
 };
 export default pt;

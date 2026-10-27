@@ -32,6 +32,8 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Translations** — the editor and the card's built-in text follow the Home Assistant language: English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português (regional variants fall back to the base language, missing strings to English). Editor dropdowns show readable option names.
 - **Live demo** — a browser playground (https://tempus2016.github.io/tabdeck-card/) with example decks, an editable YAML box and pretend devices (guest mode, garage door, lights) that drive visibility, badges and alerts live. Built from `demo/` by the new Pages workflow.
 - **Showcase** — a Showcase wiki page of community decks and starter ideas, plus a *Show and tell* discussion form (screenshot, description, YAML, consent to feature) linked from the issue chooser.
+- **Dock** — `dock: true` pins the bar to the bottom of the screen as phone-style navigation (icon over label, badges on the icon, safe-area aware, follows HA's sidebar); it reverts to a normal bar while editing.
+- **Floating action tabs** — per-tab `fab: true` renders a raised round accent button (floats above the dock); pair it with `tap_action`.
 
 ### Fixed
 - Editor button icons (Add tab) render on current WebAwesome-based HA builds.

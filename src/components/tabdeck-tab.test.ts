@@ -175,3 +175,17 @@ describe("tabdeck-tab ghost", () => {
     expect(el.title).toBeTruthy();
   });
 });
+
+describe("tabdeck-tab stacked & fab", () => {
+  it("reflects stacked and fab", async () => {
+    const el = document.createElement("tabdeck-tab") as any;
+    el.label = "Add";
+    el.icon = "mdi:plus";
+    el.stacked = true;
+    el.fab = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.hasAttribute("stacked")).toBe(true);
+    expect(el.hasAttribute("fab")).toBe(true);
+  });
+});

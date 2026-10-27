@@ -198,5 +198,7 @@ const fr: Record<string, string> = {
   "convert.note.state_switch_mode": "Ce mode de state-switch (utilisateur / media query / modèle) n'a pas d'équivalent direct ; les états sont devenus de simples onglets. Ajoutez des conditions de visibilité si besoin.",
   "convert.note.bubble": "Chaque pop-up est devenu un onglet ; le bouton et le style propres au pop-up ne sont pas utilisés.",
   "convert.note.dashboard": "Chaque vue est devenue un onglet. Les grands tableaux de bord peuvent alourdir la carte ; envisagez lazy: true.",
+  "editor.global.dock": "Dock : épingler la barre en bas de l'écran (navigation mobile)",
+  "editor.tab.fab": "Style bouton d'action flottant",
 };
 export default fr;

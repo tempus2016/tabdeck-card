@@ -175,6 +175,7 @@ export class TabdeckCard extends LitElement {
     this._syncWidthObserver();
     // HA moves cards around the DOM during layout; re-observe on reconnect.
     if (this._config?.scroll_spy) this.updateComplete.then(() => this._syncSpyObserver());
+    if (this._config?.dock) this.updateComplete.then(() => this._syncDock());
   }
 
   disconnectedCallback(): void {
@@ -186,6 +187,8 @@ export class TabdeckCard extends LitElement {
     this._spyObserved = [];
     this._widthObserver?.disconnect();
     this._widthObserver = undefined;
+    this._dockObserver?.disconnect();
+    this._dockObserver = undefined;
     this._templates?.destroy();
     this._templates = undefined;
   }
@@ -752,6 +755,44 @@ export class TabdeckCard extends LitElement {
     }
     this._applyStyles();
     this._syncSpyObserver();
+    this._syncDock();
+  }
+
+  // --- dock ----------------------------------------------------------------
+  // The dock spans HA's dashboard area, not the sidebar: find the nearest
+  // dashboard panel up the (shadow-crossing) tree and track its edges. A
+  // ResizeObserver catches window resizes and the sidebar opening/closing.
+  private _dockObserver?: ResizeObserver;
+
+  private _syncDock(): void {
+    const want = !!this._config?.dock && !this._editing && this.isConnected;
+    if (!want) {
+      this._dockObserver?.disconnect();
+      this._dockObserver = undefined;
+      return;
+    }
+    if (this._dockObserver || typeof ResizeObserver === "undefined") return;
+    const panel = this._dashboardPanel();
+    if (!panel) return;
+    this._dockObserver = new ResizeObserver(() => this._measureDock(panel));
+    this._dockObserver.observe(panel);
+    this._measureDock(panel);
+  }
+
+  private _dashboardPanel(): Element | undefined {
+    let node: Node | null = this;
+    while (node) {
+      if (node instanceof Element && /^(HUI-ROOT|HA-PANEL-LOVELACE)$/.test(node.tagName)) return node;
+      node = node.parentNode ?? (node as ShadowRoot).host ?? null;
+    }
+    return undefined;
+  }
+
+  private _measureDock(panel: Element): void {
+    const r = panel.getBoundingClientRect();
+    if (r.width === 0) return;
+    this.style.setProperty("--tabdeck-dock-left", `${Math.max(0, Math.round(r.left))}px`);
+    this.style.setProperty("--tabdeck-dock-right", `${Math.max(0, Math.round(window.innerWidth - r.right))}px`);
   }
 
   // Keys currently applied to the host from `styles`, so they can be removed if
@@ -804,6 +845,8 @@ export class TabdeckCard extends LitElement {
     }
     const cfg = this._config;
     if (this._isSplit) return this._renderSplit(visible);
+    // The dock leaves the page while editing so it can't cover HA's edit UI.
+    const docked = cfg.dock && !this._editing;
     const bar = html`
       <tabdeck-tabbar
         .items=${visible.map((t) => ({
@@ -820,10 +863,12 @@ export class TabdeckCard extends LitElement {
           badge: this._resolveBadgeFinal(t),
           alert: this._isAlerting(t),
           ghost: this._editing && this._isHidden(t),
+          fab: t.fab,
         }))}
         .selected=${this._selected}
         @tabdeck-action=${this._onTabAction}
-        .position=${cfg.position}
+        .position=${docked ? "bottom" : cfg.position}
+        .dock=${docked}
         .tabStyle=${cfg.style}
         .display=${this._effectiveDisplay}
         .align=${cfg.align}
@@ -884,8 +929,8 @@ export class TabdeckCard extends LitElement {
       </div>
     `;
     return html`
-      <div class="root pos-${cfg.position}">
-        ${cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
+      <div class="root pos-${docked ? "bottom" : cfg.position} ${docked ? "docked" : ""}">
+        ${docked || cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
       </div>
     `;
   }
@@ -940,6 +985,10 @@ export class TabdeckCard extends LitElement {
     }
     .content {
       padding-top: 8px;
+    }
+    /* Room for the fixed dock so the last card isn't hidden behind it. */
+    .root.docked .content {
+      padding-bottom: calc(var(--tabdeck-dock-tab-height, 56px) + 16px + env(safe-area-inset-bottom, 0px));
     }
     .content-header {
       display: flex;

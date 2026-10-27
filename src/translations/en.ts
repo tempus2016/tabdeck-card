@@ -198,5 +198,7 @@ const en: Record<string, string> = {
   "convert.note.state_switch_mode": "This state-switch mode (user / media query / template) has no direct equivalent; the states became plain tabs. Add visibility conditions if needed.",
   "convert.note.bubble": "Each pop-up became a tab; the pop-up's own button and styling are not used.",
   "convert.note.dashboard": "Each view became a tab. Large dashboards can make a heavy card; consider lazy: true.",
+  "editor.global.dock": "Dock: pin the bar to the bottom of the screen (phone navigation)",
+  "editor.tab.fab": "Floating action button style",
 };
 export default en;
