@@ -25,6 +25,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Expand the selected tab** — `tab_display: active` shows icons only, except the selected tab, which also shows its name and subtitle (also valid for `tab_display_narrow`). Suggested in discussion #93.
 - **Per-tab styles** — a tab's own `styles` apply over the top-level ones while it's active (e.g. a different accent per tab).
 - **Slug deep links** — `#tab=living-room` / `#tab=LIGHTS` now match tab names case-insensitively and by slug, alongside exact names and indices.
+- **Edit mode helpers** — while the dashboard is being edited (and in the editor preview), tabs hidden by `visibility` appear faded with an eye-off marker so they can be reached; `auto_rotate` / `idle_return` pause and selections aren't persisted. Opt out with `edit_mode_reveal: false`.
 
 ### Fixed
 - Editor button icons (Add tab) render on current WebAwesome-based HA builds.

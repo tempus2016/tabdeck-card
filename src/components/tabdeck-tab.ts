@@ -33,6 +33,10 @@ export class TabdeckTab extends LitElement {
   @property({ type: Boolean, reflect: true }) alert = false;
   // Action (navigation) tab: always focusable, Enter/Space activates it.
   @property({ type: Boolean, reflect: true }) action = false;
+  // Edit mode only: the tab is normally hidden (visibility unmet) and is shown
+  // faded so it can still be reached while editing.
+  @property({ type: Boolean, reflect: true }) ghost = false;
+  @property() ghostLabel = "Hidden: its visibility conditions aren't met (shown while editing)";
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -60,6 +64,8 @@ export class TabdeckTab extends LitElement {
     // host colour beats the :host([selected]) accent rule).
     if (this.color) this.style.color = this.color;
     else this.style.removeProperty("color");
+    if (this.ghost) this.title = this.ghostLabel;
+    else this.removeAttribute("title");
   }
 
   render() {
@@ -83,6 +89,9 @@ export class TabdeckTab extends LitElement {
             </span>`
           : nothing}
         ${this._renderBadge()}
+        ${this.ghost
+          ? html`<ha-icon class="ghost-mark" icon="mdi:eye-off-outline" aria-hidden="true"></ha-icon>`
+          : nothing}
       </div>
     `;
   }
@@ -160,6 +169,15 @@ export class TabdeckTab extends LitElement {
           transparent
         );
       }
+    }
+    :host([ghost]) {
+      opacity: 0.55;
+      outline: 1px dashed currentColor;
+      outline-offset: -6px;
+      border-radius: 8px;
+    }
+    .ghost-mark {
+      --mdc-icon-size: 14px;
     }
     :host([disabled]) {
       opacity: 0.5;

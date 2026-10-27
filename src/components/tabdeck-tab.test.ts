@@ -162,3 +162,16 @@ describe("tabdeck-tab alert", () => {
     expect(el.hasAttribute("alert")).toBe(false);
   });
 });
+
+describe("tabdeck-tab ghost", () => {
+  it("reflects ghost and renders a hidden marker", async () => {
+    const el = document.createElement("tabdeck-tab") as any;
+    el.label = "Guests";
+    el.ghost = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.hasAttribute("ghost")).toBe(true);
+    expect(el.shadowRoot.querySelector(".ghost-mark")).toBeTruthy();
+    expect(el.title).toBeTruthy();
+  });
+});

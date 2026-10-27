@@ -50,6 +50,38 @@ export class TabdeckCard extends LitElement {
   private _lastEntityValue?: string;
   // Until this time, entity changes are echoes of our own recent writes.
   private _entityWriteGuard = 0;
+  // Set by Home Assistant: `editMode` while the dashboard is being edited,
+  // `preview` there and in the card editor's preview.
+  private _editModeFlag = false;
+  private _previewFlag = false;
+
+  set editMode(v: boolean) {
+    this._setEditFlags(!!v, this._previewFlag);
+  }
+  get editMode(): boolean {
+    return this._editModeFlag;
+  }
+  set preview(v: boolean) {
+    this._setEditFlags(this._editModeFlag, !!v);
+  }
+  get preview(): boolean {
+    return this._previewFlag;
+  }
+
+  // Keep the user on the same tab while the visible set grows / shrinks.
+  private _setEditFlags(editMode: boolean, preview: boolean): void {
+    if (editMode === this._editModeFlag && preview === this._previewFlag) return;
+    const prevName = this._config && this._built ? this._visibleTabs()[this._selected]?.name : undefined;
+    this._editModeFlag = editMode;
+    this._previewFlag = preview;
+    if (prevName !== undefined) this._restoreSelection(prevName);
+    this.requestUpdate();
+  }
+
+  // Edit mode reveals hidden tabs and pauses automatic switching.
+  private get _editing(): boolean {
+    return (this._editModeFlag || this._previewFlag) && this._config?.edit_mode_reveal !== false;
+  }
 
   static getStubConfig() {
     return {
@@ -192,6 +224,11 @@ export class TabdeckCard extends LitElement {
   private _tick(now: number): void {
     const cfg = this._config;
     if (!cfg || !this._built) return;
+    if (this._editing) {
+      // Hold while editing; timers restart from the end of the edit.
+      this._lastInteraction = this._lastRotate = now;
+      return;
+    }
     const idleMs = now - this._lastInteraction;
     const rotate = cfg.auto_rotate;
     if (rotate) {
@@ -362,9 +399,12 @@ export class TabdeckCard extends LitElement {
 
   private _visibleTabs() {
     if (!this._config) return [];
-    return this._allTabs().filter((t) =>
-      isTabVisible(t.visibility, this._hass, this._templateResolver),
-    );
+    if (this._editing) return this._allTabs();
+    return this._allTabs().filter((t) => !this._isHidden(t));
+  }
+
+  private _isHidden(t: TabdeckTabConfig): boolean {
+    return !isTabVisible(t.visibility, this._hass, this._templateResolver);
   }
 
   private _collectTemplates(): string[] {
@@ -640,7 +680,8 @@ export class TabdeckCard extends LitElement {
       this._runAction(visible[index]?.enter_action, "tap");
     }
     const tab = visible[this._selected];
-    if (this._config && persist) {
+    // Picks made while editing (possibly of a hidden tab) aren't remembered.
+    if (this._config && persist && !this._editing) {
       const r = persistIndex({
         mode: this._config.remember,
         cardKey: this._cardKey,
@@ -803,6 +844,7 @@ export class TabdeckCard extends LitElement {
           action: isActionTab(t),
           badge: this._resolveBadgeFinal(t),
           alert: this._isAlerting(t),
+          ghost: this._editing && this._isHidden(t),
         }))}
         .selected=${this._selected}
         @tabdeck-action=${this._onTabAction}

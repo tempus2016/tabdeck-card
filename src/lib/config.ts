@@ -128,6 +128,9 @@ export interface TabdeckCardConfig {
   narrow_width: number;
   // Named style bundle (defaults under explicit keys).
   preset?: PresetName;
+  // In dashboard edit mode / the editor preview, show hidden tabs (ghosted)
+  // and pause auto_rotate / idle_return. On by default.
+  edit_mode_reveal: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -314,6 +317,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     start_collapsed: Boolean(raw?.collapsible && raw?.start_collapsed),
     idle_return:
       Number(raw?.idle_return) > 0 ? Math.max(5, Number(raw.idle_return)) : undefined,
+    edit_mode_reveal: raw?.edit_mode_reveal === undefined ? true : Boolean(raw.edit_mode_reveal),
   };
 }
 
