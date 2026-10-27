@@ -67,6 +67,11 @@ export class TabdeckTabbar extends LitElement {
   @property() language = "en";
   // Optional custom bar background colour.
   @property() barBackground?: string;
+  // A ⚙ button that lets the person reorder / hide tabs (customize).
+  @property({ type: Boolean }) customizable = false;
+  // Every tab in the person's order: { name, icon, key, hidden }.
+  @property({ attribute: false }) customItems: { name?: string; icon?: string; key?: string; hidden?: boolean }[] = [];
+  @state() private _customOpen = false;
   // A 🔍 button that opens a quick-switch filter over the tabs.
   @property({ type: Boolean }) searchable = false;
   @state() private _searchOpen = false;
@@ -105,6 +110,7 @@ export class TabdeckTabbar extends LitElement {
     this.removeEventListener("keydown", this._onKeydown);
     window.removeEventListener("pointerdown", this._onOutside, true);
     window.removeEventListener("pointerdown", this._onSearchOutside, true);
+    window.removeEventListener("pointerdown", this._onCustomOutside, true);
     this._resizeObserver?.disconnect();
     super.disconnectedCallback();
   }
@@ -159,6 +165,88 @@ export class TabdeckTabbar extends LitElement {
       return;
     }
     this._select(index);
+  }
+
+  // --- customize panel ------------------------------------------------------
+  private _emitCustomize(detail: { order?: string[]; hidden?: string[]; reset?: boolean }): void {
+    this.dispatchEvent(new CustomEvent("tabdeck-customize", { detail, bubbles: true, composed: true }));
+  }
+
+  private _customLayout(items = this.customItems) {
+    return {
+      order: items.map((i) => i.key).filter((k): k is string => k !== undefined),
+      hidden: items.filter((i) => i.hidden && i.key !== undefined).map((i) => i.key!),
+    };
+  }
+
+  private _moveCustom(i: number, dir: -1 | 1): void {
+    const items = this.customItems.slice();
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    [items[i], items[j]] = [items[j], items[i]];
+    this._emitCustomize(this._customLayout(items));
+  }
+
+  private _toggleCustomHidden(i: number): void {
+    const items = this.customItems.map((it, k) => (k === i ? { ...it, hidden: !it.hidden } : it));
+    // Keep at least one tab visible.
+    if (items.every((it) => it.hidden)) return;
+    this._emitCustomize(this._customLayout(items));
+  }
+
+  private _onCustomOutside = (e: Event): void => {
+    const panel = (this.renderRoot as ParentNode).querySelector(".custom-panel");
+    const btn = (this.renderRoot as ParentNode).querySelector(".custom-btn");
+    const path = e.composedPath();
+    if ((panel && path.includes(panel)) || (btn && path.includes(btn))) return;
+    this._closeCustom();
+  };
+
+  private _openCustom(): void {
+    this._customOpen = true;
+    window.addEventListener("pointerdown", this._onCustomOutside, true);
+  }
+
+  private _closeCustom(): void {
+    this._customOpen = false;
+    window.removeEventListener("pointerdown", this._onCustomOutside, true);
+  }
+
+  private _renderCustom() {
+    const lang = this.language;
+    const t = (k: string, v?: Record<string, string>) => localize(lang, k, v);
+    const n = this.customItems.length;
+    return html`<div
+      class="custom-panel"
+      role="dialog"
+      aria-label=${t("card.customize")}
+      @keydown=${(e: KeyboardEvent) => {
+        e.stopPropagation();
+        if (e.key === "Escape") this._closeCustom();
+      }}
+    >
+      <div class="custom-title">${t("card.customize")}</div>
+      ${this.customItems.map(
+        (it, i) => html`<div class="custom-row ${it.hidden ? "is-hidden" : ""}">
+          ${it.icon ? html`<ha-icon .icon=${it.icon}></ha-icon>` : html`<span class="custom-noicon"></span>`}
+          <span class="custom-name">${it.name ?? ""}</span>
+          <button class="custom-up" ?disabled=${i === 0} aria-label=${t("card.move_up", { name: it.name ?? "" })} @click=${() => this._moveCustom(i, -1)}>↑</button>
+          <button class="custom-down" ?disabled=${i === n - 1} aria-label=${t("card.move_down", { name: it.name ?? "" })} @click=${() => this._moveCustom(i, 1)}>↓</button>
+          <button
+            class="custom-eye"
+            aria-pressed=${it.hidden ? "false" : "true"}
+            aria-label=${t(it.hidden ? "card.show_tab" : "card.hide_tab", { name: it.name ?? "" })}
+            @click=${() => this._toggleCustomHidden(i)}
+          >
+            <ha-icon .icon=${it.hidden ? "mdi:eye-off-outline" : "mdi:eye-outline"}></ha-icon>
+          </button>
+        </div>`,
+      )}
+      <div class="custom-actions">
+        <button class="custom-reset" @click=${() => this._emitCustomize({ reset: true })}>${t("card.reset")}</button>
+        <button class="custom-done" @click=${() => this._closeCustom()}>${t("card.done")}</button>
+      </div>
+    </div>`;
   }
 
   // --- quick-switch search -------------------------------------------------
@@ -503,7 +591,7 @@ export class TabdeckTabbar extends LitElement {
     const arrows = this.scrollButtons && this._horizontal && this._overflow;
     const menu = this.overflowMenu && this._horizontal && this._overflow;
     return html`
-      <div class="bar-wrap ${arrows || menu || this.searchable ? "has-arrows" : ""}">
+      <div class="bar-wrap ${arrows || menu || this.searchable || this.customizable ? "has-arrows" : ""}">
       ${arrows
         ? html`<button class="scroll-btn left" aria-label=${localize(this.language, "card.scroll_left")} @click=${() => this._scrollBy(-1)}>‹</button>`
         : ""}
@@ -561,6 +649,17 @@ export class TabdeckTabbar extends LitElement {
           </button>`
         : ""}
       ${this._searchOpen ? this._renderSearch() : ""}
+      ${this.customizable
+        ? html`<button
+            class="custom-btn search-btn"
+            aria-label=${localize(this.language, "card.customize")}
+            aria-expanded=${this._customOpen ? "true" : "false"}
+            @click=${() => (this._customOpen ? this._closeCustom() : this._openCustom())}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3,17V19H9V17H3M3,5V7H13V5H3M13,21V19H21V17H13V15H11V21H13M7,9V11H3V13H7V15H9V9H7M21,13V11H11V13H21M15,9H17V7H21V5H17V3H15V9Z"></path></svg>
+          </button>`
+        : ""}
+      ${this._customOpen ? this._renderCustom() : ""}
       ${arrows
         ? html`<button class="scroll-btn right" aria-label=${localize(this.language, "card.scroll_right")} @click=${() => this._scrollBy(1)}>›</button>`
         : ""}
@@ -723,6 +822,90 @@ export class TabdeckTabbar extends LitElement {
     }
     .search-results .group-item.active {
       background: var(--secondary-background-color, #f5f5f5);
+    }
+    .custom-panel {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      z-index: 4;
+      width: min(320px, 100%);
+      max-height: 420px;
+      overflow: auto;
+      background: var(--card-background-color, #fff);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      padding: 8px;
+      box-sizing: border-box;
+      color: var(--primary-text-color);
+    }
+    :host([dock]) .custom-panel {
+      top: auto;
+      bottom: 100%;
+    }
+    .custom-title {
+      font-weight: 500;
+      font-size: 14px;
+      padding: 4px 6px 8px;
+    }
+    .custom-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 4px;
+      border-radius: 6px;
+    }
+    .custom-row.is-hidden .custom-name,
+    .custom-row.is-hidden > ha-icon {
+      opacity: 0.45;
+    }
+    .custom-row ha-icon {
+      --mdc-icon-size: 20px;
+      color: var(--secondary-text-color);
+    }
+    .custom-noicon {
+      width: 20px;
+    }
+    .custom-name {
+      flex: 1;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .custom-row button {
+      border: none;
+      background: none;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: var(--secondary-text-color);
+      font-size: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .custom-row button:hover:not([disabled]) {
+      background: var(--secondary-background-color, #f5f5f5);
+    }
+    .custom-row button[disabled] {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .custom-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 4px 2px;
+    }
+    .custom-actions button {
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--tabdeck-accent, var(--primary-color));
+      font-size: 14px;
+      padding: 6px 8px;
+      border-radius: 6px;
     }
     .search-empty {
       padding: 10px 12px;

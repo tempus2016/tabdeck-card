@@ -210,5 +210,13 @@ const pt: Record<string, string> = {
   "card.search_placeholder": "Escreva para filtrar…",
   "card.search_none": "Nenhum separador corresponde",
   "editor.global.history": "O botão Voltar regressa ao separador anterior",
+  "editor.global.customize": "Permitir que cada pessoa reordene e oculte separadores (por navegador)",
+  "card.customize": "Organizar separadores",
+  "card.move_up": "Mover {name} para cima",
+  "card.move_down": "Mover {name} para baixo",
+  "card.hide_tab": "Ocultar {name}",
+  "card.show_tab": "Mostrar {name}",
+  "card.reset": "Repor",
+  "card.done": "Concluído",
 };
 export default pt;

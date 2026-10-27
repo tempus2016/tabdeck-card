@@ -210,5 +210,13 @@ const es: Record<string, string> = {
   "card.search_placeholder": "Escribe para filtrar…",
   "card.search_none": "No hay pestañas que coincidan",
   "editor.global.history": "El botón Atrás vuelve a la pestaña anterior",
+  "editor.global.customize": "Permitir que cada persona reordene y oculte pestañas (por navegador)",
+  "card.customize": "Organizar pestañas",
+  "card.move_up": "Subir {name}",
+  "card.move_down": "Bajar {name}",
+  "card.hide_tab": "Ocultar {name}",
+  "card.show_tab": "Mostrar {name}",
+  "card.reset": "Restablecer",
+  "card.done": "Listo",
 };
 export default es;

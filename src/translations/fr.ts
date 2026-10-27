@@ -210,5 +210,13 @@ const fr: Record<string, string> = {
   "card.search_placeholder": "Tapez pour filtrer…",
   "card.search_none": "Aucun onglet correspondant",
   "editor.global.history": "Le bouton Retour revient à l'onglet précédent",
+  "editor.global.customize": "Permettre à chacun de réordonner et masquer les onglets (par navigateur)",
+  "card.customize": "Organiser les onglets",
+  "card.move_up": "Monter {name}",
+  "card.move_down": "Descendre {name}",
+  "card.hide_tab": "Masquer {name}",
+  "card.show_tab": "Afficher {name}",
+  "card.reset": "Réinitialiser",
+  "card.done": "Terminé",
 };
 export default fr;

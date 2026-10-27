@@ -210,5 +210,13 @@ const nl: Record<string, string> = {
   "card.search_placeholder": "Typ om te filteren…",
   "card.search_none": "Geen overeenkomende tabs",
   "editor.global.history": "Terugknop gaat naar de vorige tab",
+  "editor.global.customize": "Laat mensen zelf tabs herschikken en verbergen (per browser)",
+  "card.customize": "Tabs ordenen",
+  "card.move_up": "{name} omhoog",
+  "card.move_down": "{name} omlaag",
+  "card.hide_tab": "{name} verbergen",
+  "card.show_tab": "{name} tonen",
+  "card.reset": "Herstellen",
+  "card.done": "Klaar",
 };
 export default nl;

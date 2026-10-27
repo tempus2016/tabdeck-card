@@ -1511,3 +1511,42 @@ describe("history (back button)", () => {
     el.remove();
   });
 });
+
+describe("customize (per-browser order & hidden tabs)", () => {
+  const tabs = [
+    { name: "A", card: { type: "markdown" } },
+    { name: "B", card: { type: "light" } },
+    { name: "C", card: { type: "light" } },
+  ];
+  const bar = (el: any) => el.shadowRoot.querySelector("tabdeck-tabbar");
+  const customize = (el: any, detail: any) =>
+    bar(el).dispatchEvent(new CustomEvent("tabdeck-customize", { detail }));
+
+  it("applies and saves the person's order and hidden tabs, keeping the selection", async () => {
+    localStorage.clear();
+    const el = await mount({ customize: true, storage_key: "c1", tabs });
+    bar(el).dispatchEvent(new CustomEvent("tabdeck-select", { detail: { index: 1 } }));
+    customize(el, { order: ["C", "B", "A"], hidden: ["A"] });
+    await el.updateComplete;
+    expect(bar(el).items.map((i: any) => i.name)).toEqual(["C", "B"]);
+    expect(bar(el).items[bar(el).selected].name).toBe("B");
+    expect(bar(el).customItems.map((i: any) => `${i.name}${i.hidden ? "-" : ""}`)).toEqual(["C", "B", "A-"]);
+    expect(JSON.parse(localStorage.getItem("tabdeck-layout:c1")!)).toEqual({ order: ["C", "B", "A"], hidden: ["A"] });
+    el.remove();
+    const again = await mount({ customize: true, storage_key: "c1", tabs });
+    expect(bar(again).items.map((i: any) => i.name)).toEqual(["C", "B"]);
+    customize(again, { reset: true });
+    await again.updateComplete;
+    expect(bar(again).items.map((i: any) => i.name)).toEqual(["A", "B", "C"]);
+    expect(localStorage.getItem("tabdeck-layout:c1")).toBeNull();
+    again.remove();
+  });
+
+  it("is ignored without the option", async () => {
+    localStorage.setItem("tabdeck-layout:c2", JSON.stringify({ order: ["C"], hidden: ["A"] }));
+    const el = await mount({ storage_key: "c2", tabs });
+    expect(bar(el).items.map((i: any) => i.name)).toEqual(["A", "B", "C"]);
+    expect(bar(el).customizable).toBe(false);
+    el.remove();
+  });
+});
