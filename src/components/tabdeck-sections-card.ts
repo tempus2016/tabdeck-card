@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
+import { defineOnce } from "../lib/define";
 import type { HomeAssistant, LovelaceCardConfig } from "../types";
 import { getCreateCardElement } from "../lib/card-lifecycle";
 import { cardGridColumns, sectionColumns } from "../lib/layout";
@@ -24,7 +25,7 @@ interface BuiltSection {
 // as many columns as fit (each at least 320px wide),
 // up to max_columns. Headings are HA's own heading card; cards sit on a
 // 12-column grid sized by grid_options.columns or the card's own default.
-@customElement("tabdeck-sections-card")
+@defineOnce("tabdeck-sections-card")
 export class TabdeckSectionsCard extends LitElement {
   @state() private _sections: BuiltSection[] = [];
   @state() private _width = 0;

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import "../translations/editor";
 import { hassLanguage, localize, registerLanguage, resolveLanguage } from "./i18n";
 
 describe("i18n", () => {

@@ -3,6 +3,11 @@
 All notable changes are documented here. Each GitHub release uses the matching
 section below as its release notes (see `.github/workflows/release.yml`).
 
+## Unreleased
+
+### Added
+- **Faster dashboards** — the visual editor (with its helpers and translations) is now a separate file, `tabdeck-card-editor-<hash>.js`, loaded only when the card editor is opened. The card file dashboards load drops from 82 KB to 41 KB gzipped. HACS installs both files; manual installs copy both to `config/www/`.
+
 ## v1.3.0 — 2026-10-31
 
 ### Fixed

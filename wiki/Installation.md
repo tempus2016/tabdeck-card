@@ -14,12 +14,14 @@ Tabdeck Card is in the **default HACS store** — no custom repository needed.
 
 ## Manual
 
-1. Download `tabdeck-card.js` from the [latest release](https://github.com/tempus2016/tabdeck-card/releases).
-2. Copy it to `<config>/www/tabdeck-card.js`.
+1. Download `tabdeck-card.js` **and** `tabdeck-card-editor-….js` from the [latest release](https://github.com/tempus2016/tabdeck-card/releases).
+2. Copy both to `<config>/www/`, side by side. Remove an older `tabdeck-card-editor-….js` if there is one.
 3. Add the resource under **Settings → Dashboards → ⋮ → Resources**:
    - URL: `/local/tabdeck-card.js`
    - Type: **JavaScript Module**
 4. Hard-refresh your browser (the card is cached by the browser).
+
+Only `tabdeck-card.js` is a resource. The visual editor lives in the second file and is loaded only when you open the card editor, so dashboards load faster. If the editor file is missing, the card still works and Home Assistant offers its YAML editor instead.
 
 ## Verify
 

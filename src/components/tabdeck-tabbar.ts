@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
+import { defineOnce } from "../lib/define";
 import type { BadgeDisplay, TabAlign, TabDisplay, TabPosition, TabStyle } from "../lib/config";
 import { computeIndicatorRect } from "../lib/indicator";
 import { localize } from "../lib/i18n";
@@ -34,7 +35,7 @@ interface TabItem {
 
 const HOLD_MS = 500;
 
-@customElement("tabdeck-tabbar")
+@defineOnce("tabdeck-tabbar")
 export class TabdeckTabbar extends LitElement {
   @property({ attribute: false }) items: TabItem[] = [];
   @property({ type: Number }) selected = 0;
@@ -731,7 +732,7 @@ export class TabdeckTabbar extends LitElement {
                       ?disabled=${item.disabled}
                       @click=${() => this._pickFromMenu(index)}
                     >
-                      ${item.name ?? localize(this.language, "editor.tab_n", { n: index + 1 })}
+                      ${item.name ?? localize(this.language, "card.tab_n", { n: index + 1 })}
                     </button>`,
                   )}
                 </div>`

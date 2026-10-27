@@ -71,10 +71,11 @@ Tabdeck Card is in the **default HACS store** — no custom repository needed.
 
 ### Manual installation
 
-1. Download `tabdeck-card.js` from the latest release.
-2. Copy it to `config/www/tabdeck-card.js`.
+1. Download `tabdeck-card.js` **and** `tabdeck-card-editor-….js` from the latest release.
+2. Copy both to `config/www/` (side by side; remove an older `tabdeck-card-editor-….js`).
 3. Add a dashboard resource: **Settings → Dashboards → ⋮ → Resources → Add**,
-   URL `/local/tabdeck-card.js`, type **JavaScript Module**.
+   URL `/local/tabdeck-card.js`, type **JavaScript Module**. (Only the card is a resource;
+   it loads the editor file itself when you open the visual editor.)
 
 ## Example
 
