@@ -79,3 +79,28 @@ export function peekCommit(dx: number, width: number, velocity: number): "next" 
   if (!far && !flick) return null;
   return dx < 0 ? "next" : "prev";
 }
+
+// layout: sections — how many section columns fit the width (each at least
+// `min` px, `gap` between), capped by max_columns.
+export function sectionColumns(width: number, maxColumns: number, min = 320, gap = 16): number {
+  if (!(width > 0)) return 1;
+  return Math.max(1, Math.min(maxColumns, Math.floor((width + gap) / (min + gap))));
+}
+
+// A card's width on a section's 12-column grid, the way HA's sections view
+// reads it: the card's grid_options (or legacy layout_options), then the
+// card's own default from getGridOptions(), else full width.
+export function cardGridColumns(config: any, defaults?: { columns?: unknown }): number {
+  const fromValue = (v: unknown): number | undefined => {
+    if (v === "full") return 12;
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? Math.min(12, Math.round(n)) : undefined;
+  };
+  const legacy = Number(config?.layout_options?.grid_columns);
+  return (
+    fromValue(config?.grid_options?.columns) ??
+    (Number.isFinite(legacy) && legacy > 0 ? Math.min(12, Math.round(legacy * 3)) : undefined) ??
+    fromValue(defaults?.columns) ??
+    12
+  );
+}

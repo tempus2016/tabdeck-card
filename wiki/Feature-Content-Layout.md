@@ -1,6 +1,6 @@
 # Content layout
 
-Options for the content area under the tab bar: how a tab's cards are laid out, what stays on screen on every tab, how tall the content is, its background, and full screen.
+Options for the content area under the tab bar: how a tab's cards are laid out (masonry or sections), what stays on screen on every tab, how tall the content is, its background, and full screen.
 
 ## Masonry inside a tab (`layout: masonry`)
 
@@ -30,6 +30,41 @@ Use **`min_column_width`** instead of `columns` to fit as many columns as the wi
 
 - Gap between cards: the `--tabdeck-masonry-gap` variable (default `8px`).
 - The tab's content is a `custom:tabdeck-masonry-card` with `columns` / `min_column_width` and `cards`, which you can also use on its own.
+
+## Sections inside a tab (`layout: sections`)
+
+Titled groups of cards laid out like Home Assistant's **sections view**, inside one tab. Each section has a heading (HA's own heading card, so it looks the same as on a sections dashboard) and its cards sit on a 12-column grid.
+
+```yaml
+tabs:
+  - name: Home
+    icon: mdi:home
+    layout: sections
+    max_columns: 3            # default 4, like HA
+    sections:
+      - title: Living room
+        icon: mdi:sofa
+        badges:               # HA heading badges, optional
+          - type: entity
+            entity: light.lounge
+        cards:
+          - { type: tile, entity: light.lounge }    # tiles are half width by default
+          - { type: tile, entity: light.lamp }
+          - { type: media-control, entity: media_player.tv }
+      - title: Outside
+        icon: mdi:cctv
+        column_span: 2        # a wide section
+        cards:
+          - { type: picture-entity, entity: camera.driveway, grid_options: { columns: 6 } }
+          - { type: picture-entity, entity: camera.garden, grid_options: { columns: 6 } }
+```
+
+- **Columns:** sections flow into as many columns as fit (each at least 320 px wide), up to `max_columns`. On a phone or a narrow card they stack into one column in the order written.
+- **`column_span`:** a section can span several columns; it shrinks to fit when fewer columns are available.
+- **Card widths** follow HA's rules: the card's `grid_options.columns` (1–12 or `full`; the older `layout_options.grid_columns` also works), else the card's own default (a tile is half width), else full width. Cards copied from a sections dashboard keep their sizes.
+- A section without a `title` has no heading.
+- `grid_options.rows` (fixed card heights) isn't used; cards are as tall as their content.
+- Gap between sections: `--tabdeck-section-gap` (default `16px`).
 
 ## Header and footer cards (`header_cards`, `footer_cards`)
 

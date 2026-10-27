@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { normalizeConfig, normalizeTab } from "./config";
-import { cssBackground, cssLength, distributeMasonry, peekCommit, transitionFrames } from "./layout";
+import { cardGridColumns, cssBackground, cssLength, distributeMasonry, peekCommit, sectionColumns, transitionFrames } from "./layout";
 
 const one = { tabs: [{ card: { type: "markdown" } }] };
 
@@ -155,5 +155,50 @@ describe("peekCommit", () => {
     expect(peekCommit(-60, 400, 0.1)).toBe(null);
     expect(peekCommit(-60, 400, 0.8)).toBe("next");
     expect(peekCommit(-10, 400, 2)).toBe(null);
+  });
+});
+
+describe("sections", () => {
+  const sections = [
+    { title: "Living room", icon: "mdi:sofa", cards: [{ type: "tile" }] },
+    { title: "Outside", column_span: 2, cards: [{ type: "picture" }] },
+  ];
+
+  it("layout: sections wraps the sections in the sections card", () => {
+    const t = normalizeTab({ name: "Home", layout: "sections", max_columns: 3, sections });
+    expect(t.layout).toBe("sections");
+    expect(t.card).toEqual({ type: "custom:tabdeck-sections-card", max_columns: 3, sections });
+  });
+
+  it("max_columns defaults to 4, like HA's sections view", () => {
+    expect(normalizeTab({ layout: "sections", sections }).card).toEqual({
+      type: "custom:tabdeck-sections-card",
+      max_columns: 4,
+      sections,
+    });
+  });
+
+  it("needs a sections list", () => {
+    const t = normalizeTab({ layout: "sections", card: { type: "x" } });
+    expect(t.layout).toBeUndefined();
+    expect(t.card).toEqual({ type: "x" });
+  });
+
+  it("works out section columns from the width, capped by max_columns", () => {
+    expect(sectionColumns(1400, 4)).toBe(4);
+    expect(sectionColumns(1000, 4)).toBe(3);
+    expect(sectionColumns(1000, 2)).toBe(2);
+    expect(sectionColumns(500, 4)).toBe(1);
+    expect(sectionColumns(0, 4)).toBe(1);
+  });
+
+  it("reads a card's width on the 12-column grid", () => {
+    expect(cardGridColumns({ grid_options: { columns: 6 } })).toBe(6);
+    expect(cardGridColumns({ grid_options: { columns: "full" } })).toBe(12);
+    expect(cardGridColumns({ grid_options: { columns: 40 } })).toBe(12);
+    expect(cardGridColumns({ layout_options: { grid_columns: 2 } })).toBe(6);
+    expect(cardGridColumns({}, { columns: 6 })).toBe(6);
+    expect(cardGridColumns({}, { columns: "full" })).toBe(12);
+    expect(cardGridColumns({})).toBe(12);
   });
 });

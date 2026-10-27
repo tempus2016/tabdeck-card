@@ -179,6 +179,25 @@ tabs:
       - { type: tile, entity: light.kitchen }
       - { type: sensor, entity: sensor.power }
       - { type: tile, entity: lock.front_door }
+  - name: Rooms
+    icon: mdi:home-group
+    layout: sections
+    max_columns: 3
+    sections:
+      - title: Kitchen
+        icon: mdi:silverware-fork-knife
+        cards:
+          - { type: tile, entity: light.kitchen, grid_options: { columns: 6 } }
+          - { type: tile, entity: lock.front_door, grid_options: { columns: 6 } }
+      - title: Energy
+        icon: mdi:lightning-bolt
+        cards:
+          - { type: sensor, entity: sensor.power }
+      - title: Outside
+        icon: mdi:cctv
+        column_span: 2
+        cards:
+          - { type: picture-entity, entity: camera.driveway }
   - name: Cameras
     icon: mdi:cctv
     card: { type: picture-entity, entity: camera.driveway }

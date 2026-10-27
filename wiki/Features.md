@@ -31,6 +31,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Tab subtitles](Feature-Subtitle)** — secondary text under a tab label (`subtitle`).
 - **[Content header](Feature-Header)** — show the active tab's title above the content (`header`); icon-rail recipe.
 - **[Masonry inside a tab](Feature-Content-Layout#masonry-inside-a-tab-layout-masonry)** — balance a tab's cards into columns (`layout: masonry`).
+- **[Sections inside a tab](Feature-Content-Layout#sections-inside-a-tab-layout-sections)** — titled groups of cards like HA's sections view (`layout: sections`).
 - **[Header & footer cards](Feature-Content-Layout#header-and-footer-cards-header_cards-footer_cards)** — cards shown on every tab (`header_cards`, `footer_cards`).
 - **[Tab backgrounds](Feature-Content-Layout#tab-background-background)** — colour, gradient or image behind a tab's content, may be a template (`background`).
 - **[Content height](Feature-Content-Layout#content-height-content_height-content_max_height)** — keep the tallest tab's height or scroll inside (`content_height`, `content_max_height`).

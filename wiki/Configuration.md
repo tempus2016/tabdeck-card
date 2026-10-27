@@ -65,6 +65,7 @@ Each item in `tabs`:
 | `card` | card config | **required**\* | Any Lovelace card configuration. (\*Not needed for a `tap_action` tab.) |
 | `cards` | list of card configs | — | Multiple cards, auto-stacked. See [Multiple cards per tab](Feature-Multiple-Cards). \*Either `card` or `cards`. |
 | `layout` / `columns` / `min_column_width` | `masonry` / number / px | — / `2` / — | Balance `cards` into columns like HA's masonry view. See [Content layout](Feature-Content-Layout#masonry-inside-a-tab-layout-masonry). |
+| `layout: sections` / `sections` / `max_columns` | list / number | — / `4` | Titled groups of cards like HA's sections view (`title`, `icon`, `badges`, `column_span`, `cards`). See [Content layout](Feature-Content-Layout#sections-inside-a-tab-layout-sections). |
 | `background` | string | — | Content background while the tab is open: colour, gradient or image path / URL (may be a template). See [Content layout](Feature-Content-Layout#tab-background-background). |
 | `name` | string | — | Tab label. Falls back to `Tab N` when omitted. |
 | `subtitle` | string | — | Secondary text under the label. See [Tab subtitles](Feature-Subtitle). |
