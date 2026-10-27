@@ -55,6 +55,7 @@ A nested map card rendering correctly the moment its tab is selected — no
 - **Persistence** — remember the active tab per `browser`, `url` (`#tab=name`, slug or index), or across devices via an `entity` with **live two-way sync**.
 - **Transitions** — optional `fade`/`slide`/`scale`/`flip`/`rise` panel animations with your own duration and easing (respects reduced-motion).
 - **Theming** — CSS variables via `styles`, no card-mod needed.
+- **Power users** — `tab_defaults` for every tab, reusable `tab_templates` (`use` + `vars`), a `debug` panel, and a public API (`selectTab()`, `tabdeck-tab-changed`).
 - **Accessible** — `tablist` semantics, full keyboard navigation (Arrows, Home/End, skips disabled).
 - **Translated** — editor and card text in English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português, following your HA language. [Help translate](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Languages).
 
@@ -159,6 +160,8 @@ A ready-to-paste dashboard showcasing many features lives in
 | `animated`    | boolean           | `true`       | Slide the active-tab indicator between tabs. Snaps instantly when `false` or under reduced-motion. |
 | `swipe`       | boolean           | `false`      | Change tabs by swiping left/right on the card body (touch devices). Off by default so it never hijacks gestures of interactive cards (maps, sliders). |
 | `styles`      | object            | `{}`         | CSS-variable overrides (see Theming). |
+| `tab_defaults` / `tab_templates` | object | — | Keys for every tab / named tab blueprints (`use` + `vars` on a tab). |
+| `debug`       | boolean           | `false`      | Panel with conditions, templates, start reason and timings. |
 | `preset`      | string            | —            | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` style bundle; explicit keys win. |
 | `badge_format` | object           | —            | Default numeric badge format `{precision, unit, max}`. |
 | `auto_rotate` / `idle_return` | number | —      | Cycle tabs every N s / return to the default tab after N s idle. |

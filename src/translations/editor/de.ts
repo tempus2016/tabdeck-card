@@ -225,5 +225,6 @@ const de: Record<string, string> = {
   "editor.global.remote_event": "Bei tabdeck_select-Ereignissen wechseln (Admins)",
   "editor.global.fire_event": "tabdeck_tab_changed-Ereignisse auslösen (Admins)",
   "editor.global.event_id": "Name des Decks in Ereignissen",
+  "editor.global.debug": "Debug-Bereich (Bedingungen, Templates, Zeiten)",
 };
 export default de;

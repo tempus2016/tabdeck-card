@@ -2,6 +2,7 @@ import type { LovelaceCardConfig } from "../types";
 import { normalizeBadgeFormat, type BadgeFormat } from "./badge";
 import { isPreset, withPreset, type PresetName } from "./presets";
 import { cssLength, type TransitionMode } from "./layout";
+import { substituteTokens } from "./generate";
 import { buildSourceTemplate, defaultTabTemplate, SOURCES, type AutoTabsSource } from "./sources";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
@@ -83,6 +84,10 @@ export interface TabdeckTabConfig {
   children?: any[];
   children_display?: "row" | "menu";
   children_options?: Record<string, any>;
+  // Reuse: fill the top-level tab_templates[use] blueprint with these vars
+  // (kept so the editor round-trips them).
+  use?: string;
+  vars?: Record<string, any>;
   // A single resolved card. When the source config supplies `cards: [...]`,
   // it is collapsed into one `vertical-stack` card here.
   card: LovelaceCardConfig;
@@ -239,6 +244,13 @@ export interface TabdeckCardConfig {
   // Minutes: a tab not opened for this long has its card freed (rebuilt
   // when it's opened again).
   unload_after?: number;
+  // Keys applied to every tab (a tab's own keys win; styles merge).
+  tab_defaults?: Record<string, any>;
+  // Named tab blueprints; a tab with `use: <name>` and `vars` is filled from
+  // one ({{ item.<var> }} tokens).
+  tab_templates?: Record<string, Record<string, any>>;
+  // A panel under the card showing conditions, templates and timings.
+  debug: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -367,6 +379,8 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
       raw?.styles && typeof raw.styles === "object" && !Array.isArray(raw.styles)
         ? raw.styles
         : undefined,
+    use: typeof raw?.use === "string" && raw.use ? raw.use : undefined,
+    vars: raw?.vars && typeof raw.vars === "object" && !Array.isArray(raw.vars) ? raw.vars : undefined,
     group,
     children: group ? raw.children : undefined,
     children_display: group ? group.display : undefined,
@@ -439,9 +453,38 @@ function normalizeSplit(raw: any): SplitConfig | undefined {
   return { min_width: min, columns: Math.round(clampNumber(obj.columns, 2, 4, 2)) };
 }
 
-export function normalizeConfig(raw: any): TabdeckCardConfig {
+// Merge `over` onto `base`, with `styles` maps merged rather than replaced.
+function layer(base: Record<string, any>, over: Record<string, any>): Record<string, any> {
+  const out = { ...base, ...over };
+  if (base.styles || over.styles) out.styles = { ...(base.styles ?? {}), ...(over.styles ?? {}) };
+  return out;
+}
+
+// A raw tab with its tab_templates blueprint (use + vars) and tab_defaults
+// applied: defaults < template < the tab's own keys. Defaults never set a
+// name or a card.
+export function expandTab(raw: any, templates?: Record<string, any>, defaults?: Record<string, any>): any {
+  if (!raw || typeof raw !== "object") return raw;
+  let tab = raw;
+  const blueprint = typeof raw.use === "string" ? templates?.[raw.use] : undefined;
+  if (blueprint && typeof blueprint === "object") {
+    tab = layer(substituteTokens(blueprint, raw.vars ?? {}, 0), raw);
+  }
+  if (defaults) {
+    const { name: _name, card: _card, cards: _cards, ...rest } = defaults;
+    tab = layer(rest, tab);
+  }
+  return tab;
+}
+
+// `expand: false` (the editor) keeps tab_defaults / tab_templates / use as
+// written instead of applying them to the tabs.
+export function normalizeConfig(raw: any, opts: { expand?: boolean } = {}): TabdeckCardConfig {
   raw = withPreset(raw);
-  const tabs = Array.isArray(raw?.tabs) ? raw.tabs : [];
+  const tabDefaults = plainMap(raw?.tab_defaults);
+  const tabTemplates = plainMap(raw?.tab_templates);
+  const written = Array.isArray(raw?.tabs) ? raw.tabs : [];
+  const tabs = opts.expand === false ? written : written.map((t: any) => expandTab(t, tabTemplates, tabDefaults));
   const auto_tabs = normalizeAutoTabs(raw?.auto_tabs);
   if (tabs.length === 0 && !auto_tabs) {
     throw new Error("tabdeck-card: you must define at least one tab (or auto_tabs).");
@@ -525,6 +568,9 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     event_id: typeof raw?.event_id === "string" && raw.event_id ? raw.event_id : undefined,
     remote_entity: typeof raw?.remote_entity === "string" && raw.remote_entity ? raw.remote_entity : undefined,
     remote_event: Boolean(raw?.remote_event),
+    tab_defaults: tabDefaults,
+    tab_templates: tabTemplates,
+    debug: Boolean(raw?.debug),
     unload_after: Number(raw?.unload_after) > 0 ? Math.max(1, Number(raw.unload_after)) : undefined,
   };
 }

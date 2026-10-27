@@ -225,5 +225,6 @@ const pl: Record<string, string> = {
   "editor.global.remote_event": "Przełączaj na zdarzenia tabdeck_select (administratorzy)",
   "editor.global.fire_event": "Wysyłaj zdarzenia tabdeck_tab_changed (administratorzy)",
   "editor.global.event_id": "Nazwa karty w zdarzeniach",
+  "editor.global.debug": "Panel debugowania (warunki, szablony, czasy)",
 };
 export default pl;

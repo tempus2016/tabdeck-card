@@ -225,5 +225,6 @@ const nl: Record<string, string> = {
   "editor.global.remote_event": "Wisselen bij tabdeck_select-gebeurtenissen (beheerders)",
   "editor.global.fire_event": "tabdeck_tab_changed-gebeurtenissen afvuren (beheerders)",
   "editor.global.event_id": "Naam van het deck in gebeurtenissen",
+  "editor.global.debug": "Debugpaneel (voorwaarden, templates, tijden)",
 };
 export default nl;

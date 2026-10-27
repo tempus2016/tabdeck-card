@@ -225,5 +225,6 @@ const pt: Record<string, string> = {
   "editor.global.remote_event": "Mudar com eventos tabdeck_select (administradores)",
   "editor.global.fire_event": "Disparar eventos tabdeck_tab_changed (administradores)",
   "editor.global.event_id": "Nome do cartão nos eventos",
+  "editor.global.debug": "Painel de depuração (condições, modelos, tempos)",
 };
 export default pt;

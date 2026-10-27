@@ -258,6 +258,25 @@ describe("tabdeck-card-editor", () => {
     expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].badge).toBe("sensor.unread");
   });
 
+  it("keeps tab_defaults and tab_templates short when a field is edited", async () => {
+    const el = await mount({
+      tab_defaults: { accent: "red" },
+      tab_templates: { room: { icon: "mdi:sofa", card: { type: "area", area: "{{ item.area }}" } } },
+      tabs: [{ name: "Kitchen", use: "room", vars: { area: "kitchen" } }],
+    });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    await expand(el, 0);
+    formChange(el.shadowRoot.querySelector(".tab-form"), { name: "Kitchen 2" });
+    const cfg = handler.mock.calls.at(-1)![0].detail.config;
+    expect(cfg.tab_defaults).toEqual({ accent: "red" });
+    expect(cfg.tab_templates.room.icon).toBe("mdi:sofa");
+    expect(cfg.tabs[0].use).toBe("room");
+    expect(cfg.tabs[0].vars).toEqual({ area: "kitchen" });
+    expect(cfg.tabs[0].accent).toBeUndefined();
+    expect(cfg.tabs[0].icon).toBeUndefined();
+  });
+
   it("keeps a YAML count badge when another tab field is edited", async () => {
     const badge = { count: "light.*", state: "on" };
     const el = await mount({ tabs: [{ name: "A", badge, card: {} }] });

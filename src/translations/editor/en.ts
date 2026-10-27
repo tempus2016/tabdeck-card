@@ -225,5 +225,6 @@ const en: Record<string, string> = {
   "editor.global.remote_event": "Switch on tabdeck_select events (admin users)",
   "editor.global.fire_event": "Fire tabdeck_tab_changed events (admin users)",
   "editor.global.event_id": "Deck name in events",
+  "editor.global.debug": "Debug panel (conditions, templates, timings)",
 };
 export default en;

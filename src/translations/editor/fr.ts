@@ -225,5 +225,6 @@ const fr: Record<string, string> = {
   "editor.global.remote_event": "Changer sur les événements tabdeck_select (administrateurs)",
   "editor.global.fire_event": "Émettre des événements tabdeck_tab_changed (administrateurs)",
   "editor.global.event_id": "Nom de la carte dans les événements",
+  "editor.global.debug": "Panneau de débogage (conditions, modèles, durées)",
 };
 export default fr;

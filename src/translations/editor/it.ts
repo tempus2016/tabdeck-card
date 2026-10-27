@@ -225,5 +225,6 @@ const itl: Record<string, string> = {
   "editor.global.remote_event": "Cambia con gli eventi tabdeck_select (amministratori)",
   "editor.global.fire_event": "Genera eventi tabdeck_tab_changed (amministratori)",
   "editor.global.event_id": "Nome della scheda negli eventi",
+  "editor.global.debug": "Pannello di debug (condizioni, template, tempi)",
 };
 export default itl;

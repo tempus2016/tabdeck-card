@@ -59,6 +59,9 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `customize` | boolean | `false` | Each person can reorder/hide tabs, saved per browser. See [Arrange tabs](Feature-Customize). |
 | `rail_expand` | boolean | `false` | Left/right bars: icons until hovered or focused, then labels, over the content. See [Expanding side rail](Feature-Bar-Styles#expanding-side-rail-rail_expand). |
 | `styles` | map | — | CSS variables/properties applied to the card. See [Theming](Feature-Theming). |
+| `tab_defaults` | map | — | Keys applied to every tab (a tab's own keys win; `styles` merge). See [Reuse](Feature-Reuse#tab_defaults). |
+| `tab_templates` | map | — | Named tab blueprints; a tab uses one with `use` + `vars`. See [Reuse](Feature-Reuse#tab_templates--use). |
+| `debug` | boolean | `false` | A panel under the card with conditions, templates, start reason and timings. See [Debug panel](Feature-Debug). |
 
 > **Legacy:** `options.defaultTabIndex` is still accepted as a fallback for `default_tab`.
 
@@ -84,6 +87,7 @@ Each item in `tabs`:
 | `badge_icon` | icon | — | An icon as the badge. See [Badges](Badges#badge-icon-badge_icon). |
 | `ring` / `ring_max` / `ring_color` | entity / template / number, number, colour | — / `100` / — | Progress ring around the icon. See [Badges](Badges#progress-ring-ring). |
 | `area` / `floor` / `label` / `domains` | id / list | — | No card needed: tiles of the entities there. See [Dynamic tabs](Feature-Dynamic-Tabs#area-floor-and-label-tabs-without-a-card-auto-content). |
+| `use` / `vars` | string / map | — | Fill this tab from a `tab_templates` blueprint. See [Reuse](Feature-Reuse#tab_templates--use). |
 | `pin` / `pin_timeout` | string / minutes | — | Ask for a code before the tab opens (not security). See [PIN-locked tabs](Feature-PIN). |
 | `disabled` | boolean | `false` | Show the tab greyed-out and non-selectable. See [Disabled tabs](Feature-Disabled-Tabs). |
 | `fab` | boolean | `false` | Render the tab as a raised round action button. See [Floating action tabs](Feature-Dock#floating-action-tabs). |
