@@ -3,7 +3,7 @@
 All notable changes are documented here. Each GitHub release uses the matching
 section below as its release notes (see `.github/workflows/release.yml`).
 
-## Unreleased
+## v1.1.0 — 2026-10-27
 
 ### Added
 - **Live `remember: entity` sync** — the card now follows its helper entity when it changes elsewhere (another device, an automation, Node-RED), so the helper doubles as a remote control for wall panels. Echoes of the card's own writes are ignored.
