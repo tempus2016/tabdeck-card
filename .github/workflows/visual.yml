@@ -1,0 +1,91 @@
+name: Visual regression
+
+# Screenshots every demo example (desktop, phone, light theme) against the
+# demo's mock Home Assistant and compares them with tests/visual/linux/.
+# Run it by hand with "update baselines" ticked to get fresh baselines as an
+# artifact (commit them under tests/visual/linux/).
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "demo/**"
+      - "scripts/visual/**"
+      - "tests/visual/**"
+      - "vite.demo.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/visual.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "demo/**"
+      - "scripts/visual/**"
+      - "tests/visual/**"
+  workflow_dispatch:
+    inputs:
+      update:
+        description: "Update baselines (uploads them as an artifact)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    name: Visual regression
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build demo
+        run: npm run build:demo
+
+      - name: Compare screenshots
+        env:
+          UPDATE: ${{ inputs.update }}
+          VISUAL_PLATFORM: linux
+        run: |
+          if [ "$UPDATE" = "true" ]; then
+            node scripts/visual/visual.mjs --update
+          else
+            node scripts/visual/visual.mjs
+          fi
+
+      - name: Upload changed and new shots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-output
+          path: tests/visual/output
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload baselines
+        if: inputs.update
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-baselines-linux
+          path: tests/visual/linux
+          retention-days: 14

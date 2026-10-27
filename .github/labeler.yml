@@ -39,6 +39,9 @@ tests:
       - any-glob-to-any-file:
           - src/**/*.test.ts
           - vitest.config.ts
+          - tests/**
+          - scripts/visual/**
+          - scripts/compat/**
 
 documentation:
   - changed-files:
