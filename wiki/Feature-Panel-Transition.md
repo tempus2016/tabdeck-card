@@ -2,7 +2,7 @@
 
 Animate the content when you switch tabs. A short fade, slide or zoom makes the card feel more polished.
 
-**Config keys:** `transition`, `transition_duration`, `transition_easing` (top-level)
+**Config keys:** `transition`, `transition_duration`, `transition_easing`, `transition_narrow` (top-level)
 
 ```yaml
 type: custom:tabdeck-card
@@ -26,5 +26,11 @@ tabs: [ ... ]
 - Runs via the Web Animations API on every switch, but not on the first render.
 - Automatically **skipped** when the user has *Reduce motion* turned on (`prefers-reduced-motion`).
 - `transition_duration: 0` turns the animation off without changing `transition`.
+- **Different on phones:** `transition_narrow` is used instead when the card is narrower than `narrow_width` (default 450 px), the same breakpoint as [`tab_display_narrow`](Feature-Responsive). For example, `transition_narrow: none` gives a wall panel a slide but keeps a phone snappy:
+
+  ```yaml
+  transition: slide
+  transition_narrow: none
+  ```
 - After a [swipe peek](Feature-Content-Layout#swipe-peek-swipe_peek) drag, the released panel finishes sliding into place instead of playing the transition.
-- Pick them in the [visual editor](Editor) under **Panel transition**, **Transition duration** and **Transition easing**.
+- Pick them in the [visual editor](Editor) under **Panel transition**, **Transition on narrow cards**, **Transition duration** and **Transition easing**.

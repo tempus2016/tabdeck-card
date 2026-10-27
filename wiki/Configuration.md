@@ -19,6 +19,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `badge_display` | `text` \| `dot` | `text` | Render badges as text or a dot. See [Badge display mode](Feature-Badge-Display). |
 | `badge_format` | `{precision, unit, max}` | — | Default numeric badge formatting for every tab. See [Badges](Badges#numeric-formatting-badge_format). |
 | `transition` | `none` \| `fade` \| `slide` \| `scale` \| `flip` \| `rise` | `none` | Animate content on tab switch. See [Panel transitions](Feature-Panel-Transition). |
+| `transition_narrow` | as `transition` | — | Transition used instead on cards narrower than `narrow_width` (e.g. `none` on phones). See [Panel transitions](Feature-Panel-Transition). |
 | `transition_duration` / `transition_easing` | ms / CSS easing | `180` / `ease` | Length and curve of the panel animation. See [Panel transitions](Feature-Panel-Transition). |
 | `indicator_size` | number (1–16) | `3` | Underline indicator thickness in px. See [Indicator thickness](Feature-Indicator-Size). |
 | `accent_indicator` | boolean | `true` | Colour the indicator by the selected tab's `accent`. See [Accent indicator](Feature-Accent-Indicator). |

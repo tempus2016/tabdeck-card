@@ -232,5 +232,6 @@ const it: Record<string, string> = {
   "editor.global.fullscreen": "Pulsante schermo intero",
   "editor.global.swipe_peek": "Anteprima allo scorrimento (il contenuto segue il dito)",
   "editor.global.unload_after": "Libera le tab inutilizzate dopo (minuti, 0 = mai)",
+  "editor.global.transition_narrow": "Transizione sulle schede strette (es. telefoni)",
 };
 export default it;

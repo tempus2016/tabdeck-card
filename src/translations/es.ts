@@ -232,5 +232,6 @@ const es: Record<string, string> = {
   "editor.global.fullscreen": "Botón de pantalla completa",
   "editor.global.swipe_peek": "Vista previa al deslizar (el contenido sigue al dedo)",
   "editor.global.unload_after": "Liberar pestañas sin uso tras (minutos, 0 = nunca)",
+  "editor.global.transition_narrow": "Transición en tarjetas estrechas (p. ej. móviles)",
 };
 export default es;

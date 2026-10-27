@@ -708,6 +708,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "badge_display", selector: { select: { mode: "dropdown", options: opts(["text", "dot"], "badge_display") } } },
       { name: "hide_inactive_badge", selector: { boolean: {} } },
       { name: "transition", selector: { select: { mode: "dropdown", options: opts(["none", "fade", "slide", "scale", "flip", "rise"], "transition") } } },
+      { name: "transition_narrow", selector: { select: { mode: "dropdown", options: opts(["", "none", "fade", "slide", "scale", "flip", "rise"], "transition") } } },
       { name: "transition_duration", selector: { number: { min: 0, max: 2000, step: 10, mode: "box" } } },
       { name: "transition_easing", selector: { text: {} } },
       { name: "indicator_size", selector: { number: { min: 1, max: 16, step: 1, mode: "slider" } } },
@@ -803,6 +804,7 @@ export class TabdeckCardEditor extends LitElement {
       customize: cfg.customize,
       rail_expand: cfg.rail_expand,
       edit_mode_reveal: cfg.edit_mode_reveal,
+      transition_narrow: cfg.transition_narrow ?? "",
       transition_duration: cfg.transition_duration,
       transition_easing: cfg.transition_easing,
       content_height: cfg.content_height,
@@ -883,6 +885,7 @@ export class TabdeckCardEditor extends LitElement {
         ? Math.min(2000, Math.max(0, Number(v.transition_duration)))
         : 180,
       transition_easing: v.transition_easing || "ease",
+      transition_narrow: v.transition_narrow || undefined,
       content_height: v.content_height === "tallest" ? "tallest" : cssLength(v.content_height) ?? "auto",
       content_max_height: cssLength(v.content_max_height),
       fullscreen: !!v.fullscreen,

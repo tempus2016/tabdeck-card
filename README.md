@@ -135,7 +135,7 @@ A ready-to-paste dashboard showcasing many features lives in
 | `accent_indicator` | boolean      | `true`       | Colour the indicator by the selected tab's accent. |
 | `badge_display` | string          | `text`       | `text` \| `dot`. |
 | `hide_inactive_badge` | boolean   | `false`      | Hide 0/off badges. |
-| `transition`  | string            | `none`       | Panel switch animation: `none` \| `fade` \| `slide` \| `scale` \| `flip` \| `rise` (+ `transition_duration`, `transition_easing`). |
+| `transition`  | string            | `none`       | Panel switch animation: `none` \| `fade` \| `slide` \| `scale` \| `flip` \| `rise` (+ `transition_duration`, `transition_easing`, `transition_narrow` for phones). |
 | `sticky` / `elevation` | boolean  | `false`      | Pin the bar / raise it with a shadow. |
 | `bar_background` | string         | —            | Custom tab-bar background colour. |
 | `header`      | boolean           | `false`      | Show the active tab's title above the content. |

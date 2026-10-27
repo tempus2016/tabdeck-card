@@ -181,6 +181,9 @@ export interface TabdeckCardConfig {
   // Panel animation length (ms) and CSS easing.
   transition_duration: number;
   transition_easing: string;
+  // Narrow cards (< narrow_width px), e.g. phones: use this transition
+  // instead (often `none`).
+  transition_narrow?: PanelTransition;
   // "auto" (each tab its own height), "tallest" (the content keeps the
   // tallest tab's height, so the page doesn't jump) or a CSS length.
   content_height: string;
@@ -447,6 +450,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     rail_expand: Boolean(raw?.rail_expand),
     edit_mode_reveal: raw?.edit_mode_reveal === undefined ? true : Boolean(raw.edit_mode_reveal),
     transition_duration: clampNumber(raw?.transition_duration, 0, 2000, 180),
+    transition_narrow: TRANSITIONS.includes(raw?.transition_narrow) ? raw.transition_narrow : undefined,
     transition_easing:
       typeof raw?.transition_easing === "string" && raw.transition_easing.trim() && !/[;{}"<>]/.test(raw.transition_easing)
         ? raw.transition_easing.trim()

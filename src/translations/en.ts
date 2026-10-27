@@ -232,5 +232,6 @@ const en: Record<string, string> = {
   "editor.global.fullscreen": "Full-screen button",
   "editor.global.swipe_peek": "Swipe peek (content follows the finger)",
   "editor.global.unload_after": "Free unused tabs after (minutes, 0 = never)",
+  "editor.global.transition_narrow": "Transition on narrow cards (e.g. phones)",
 };
 export default en;

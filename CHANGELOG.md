@@ -13,7 +13,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Content height** — `content_height: tallest` keeps the tallest tab's height so the page doesn't jump; a fixed `content_height` or `content_max_height` scrolls inside the card.
 - **Full screen** — `fullscreen: true` adds a button to the bar that opens the active tab over the whole window (Esc or the corner button closes it).
 - **Swipe peek** — `swipe_peek: true`: while swiping, the content follows the finger and the neighbouring tab slides in; release past a third (or flick) to change tab.
-- **More transitions** — `scale`, `flip` and `rise`, plus `transition_duration` and `transition_easing`; `slide` and `flip` now come in from the direction of travel.
+- **More transitions** — `scale`, `flip` and `rise`, plus `transition_duration` and `transition_easing`; `slide` and `flip` now come in from the direction of travel. `transition_narrow` picks a different transition (e.g. `none`) on cards narrower than `narrow_width`.
 - **Free unused tabs** — `unload_after: <minutes>` releases the card of a tab that hasn't been on screen for that long and rebuilds it when it's opened again.
 
 ## v1.1.0 — 2026-10-27

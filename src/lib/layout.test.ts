@@ -202,3 +202,12 @@ describe("sections", () => {
     expect(cardGridColumns({})).toBe(12);
   });
 });
+
+describe("transition_narrow", () => {
+  it("is an optional transition for narrow cards", () => {
+    expect(normalizeConfig(one).transition_narrow).toBeUndefined();
+    expect(normalizeConfig({ ...one, transition_narrow: "none" }).transition_narrow).toBe("none");
+    expect(normalizeConfig({ ...one, transition_narrow: "fade" }).transition_narrow).toBe("fade");
+    expect(normalizeConfig({ ...one, transition_narrow: "zoom" }).transition_narrow).toBeUndefined();
+  });
+});
