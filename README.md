@@ -54,7 +54,7 @@ A nested map card rendering correctly the moment its tab is selected — no
 - **Smart tabs** — a tab per floor, domain, device, to-do list, calendar, camera or zone; area tabs that fill themselves with tiles; count badges without Jinja, badge icons and progress rings; alerting tabs first, with long-press snooze.
 - **Persistence** — remember the active tab per `browser`, `url` (`#tab=name`, slug or index), or across devices via an `entity` with **live two-way sync**.
 - **Transitions** — optional `fade`/`slide`/`scale`/`flip`/`rise` panel animations with your own duration and easing (respects reduced-motion).
-- **Theming** — CSS variables via `styles`, no card-mod needed.
+- **Theming** — CSS variables via `styles`, no card-mod needed; HA theme colour names and HA's colour picker; 11 presets (incl. `bubble`, `mushroom`, `material-you`); readable text on solid fills and contrast warnings; `density`; per-tab pictures, icon animations and fonts; haptics.
 - **Power users** — `tab_defaults` for every tab, reusable `tab_templates` (`use` + `vars`), a `debug` panel, and a public API (`selectTab()`, `tabdeck-tab-changed`).
 - **Accessible** — `tablist` semantics, full keyboard navigation (Arrows, Home/End, skips disabled).
 - **Translated** — editor and card text in English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português, following your HA language. [Help translate](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Languages).
@@ -162,7 +162,8 @@ A ready-to-paste dashboard showcasing many features lives in
 | `styles`      | object            | `{}`         | CSS-variable overrides (see Theming). |
 | `tab_defaults` / `tab_templates` | object | — | Keys for every tab / named tab blueprints (`use` + `vars` on a tab). |
 | `debug`       | boolean           | `false`      | Panel with conditions, templates, start reason and timings. |
-| `preset`      | string            | —            | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` style bundle; explicit keys win. |
+| `preset`      | string            | —            | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` \| `neumorphic` \| `ha-tile` \| `mushroom` \| `bubble` \| `fluent` \| `material-you` style bundle; explicit keys win. |
+| `density` / `haptic` | string    | `default` / — | `compact` \| `comfortable` tab bar; companion-app vibration on tab switches. |
 | `badge_format` | object           | —            | Default numeric badge format `{precision, unit, max}`. |
 | `auto_rotate` / `idle_return` | number | —      | Cycle tabs every N s / return to the default tab after N s idle. |
 | `scroll_spy`  | boolean           | `false`      | Stack all tabs as sections; the bar scrolls to and tracks them. |
@@ -195,6 +196,8 @@ A ready-to-paste dashboard showcasing many features lives in
 | `background` | string | —       | Content background while open: colour, gradient or image URL (may be a template). |
 | `area` / `floor` / `label` | string | — | No card needed: tiles of the entities there (`domains` filters). |
 | `badge_icon` / `ring` | string | —    | Icon badge; progress ring around the icon (`ring_max`, `ring_color`). |
+| `picture` / `icon_animation` | string | — | Round picture instead of the icon (entity or URL); `spin` / `pulse` / `bounce` / `shake` / `beat`. |
+| `font_size` / `font_weight` / `font_family` | string | — | This tab's label font. |
 | `pin`        | string | —       | Ask for a code before the tab opens (convenience lock, not security). |
 
 ### Visibility conditions

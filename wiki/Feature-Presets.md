@@ -20,6 +20,12 @@ tabs: [ ... ]
 | `glass` | `pill`, `sticky`, translucent frosted bar (`color-mix` background + `--tabdeck-bar-backdrop: blur(12px)`). |
 | `minimal` | `text` style, labels only, dot badges. |
 | `rail` | `position: left`, `rail` style, icons only. |
+| `neumorphic` | Soft extruded look: an inset track and a raised, card-coloured selected tab (via `--tabdeck-bar-shadow` / `--tabdeck-indicator-shadow`). |
+| `ha-tile` | Like HA's tile card: `boxed` chips with 12 px corners, 52 px tall, medium-weight labels. |
+| `mushroom` | Mushroom-style chips: `pill`, 12 px corners, 40 px tall. |
+| `bubble` | Bubble Card: a solid accent bubble on a soft track, readable text, an inverted badge on the selected tab. |
+| `fluent` | Windows Fluent: a short rounded underline, 40 px, semi-bold labels. |
+| `material-you` | Material You: a tonal pill in the theme's accent, `justify`, 40 px. |
 
 Every preset sets the same group of keys: `position`, `style`, `align`, `tab_display`, `badge_display`, `indicator_size`, `indicator_radius`, `elevation`, `sticky`, `bar_background`, plus any preset `styles` variables.
 

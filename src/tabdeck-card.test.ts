@@ -671,8 +671,9 @@ describe("templated tab fields", () => {
       name: "Garage open",
       subtitle: "sub:open",
       icon: "mdi:garage-open",
-      color: "red",
-      accent: "orange",
+      // Theme colour names resolve as HA's own cards do.
+      color: "var(--red-color, red)",
+      accent: "var(--orange-color, orange)",
     });
     expect(el.shadowRoot.querySelector(".content-title").textContent).toContain("Garage open");
   });
