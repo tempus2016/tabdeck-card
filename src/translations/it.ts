@@ -209,5 +209,6 @@ const it: Record<string, string> = {
   "card.search": "Cerca una tab",
   "card.search_placeholder": "Digita per filtrare…",
   "card.search_none": "Nessuna tab corrispondente",
+  "editor.global.history": "Il tasto Indietro torna alla tab precedente",
 };
 export default it;

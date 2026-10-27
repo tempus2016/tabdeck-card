@@ -164,6 +164,9 @@ export interface TabdeckCardConfig {
   search: boolean;
   // Keyboard shortcuts: 1–9 open tabs, [ ] step, / opens search.
   hotkeys: boolean;
+  // Tab switches become browser history entries (Back returns to the
+  // previous tab).
+  history: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -377,6 +380,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     hide_bar: Boolean(raw?.hide_bar),
     search: Boolean(raw?.search),
     hotkeys: Boolean(raw?.hotkeys),
+    history: Boolean(raw?.history),
     edit_mode_reveal: raw?.edit_mode_reveal === undefined ? true : Boolean(raw.edit_mode_reveal),
   };
 }

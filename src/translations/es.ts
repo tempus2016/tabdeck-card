@@ -209,5 +209,6 @@ const es: Record<string, string> = {
   "card.search": "Buscar una pestaña",
   "card.search_placeholder": "Escribe para filtrar…",
   "card.search_none": "No hay pestañas que coincidan",
+  "editor.global.history": "El botón Atrás vuelve a la pestaña anterior",
 };
 export default es;

@@ -177,7 +177,31 @@ export class TabdeckCard extends LitElement {
     if (this._config?.scroll_spy) this.updateComplete.then(() => this._syncSpyObserver());
     if (this._config?.dock) this.updateComplete.then(() => this._syncDock());
     document.addEventListener("keydown", this._onHotkey);
+    window.addEventListener("popstate", this._onPopState);
   }
+
+  // --- history (back button) ------------------------------------------------
+  // Set while applying a popstate, so the switch isn't pushed again.
+  private _fromPop = false;
+
+  private _historyState(index: number): any {
+    const prev = history.state && typeof history.state === "object" ? history.state : {};
+    return { ...prev, tabdeck: { ...(prev.tabdeck ?? {}), [this._cardKey]: index } };
+  }
+
+  private _onPopState = (e: PopStateEvent): void => {
+    if (!this._config?.history || !this._built) return;
+    const index = e.state?.tabdeck?.[this._cardKey];
+    if (typeof index !== "number" || index === this._selected) return;
+    if (!this._isContentTab(this._visibleTabs()[index])) return;
+    this._fromPop = true;
+    try {
+      this._collapsed = false;
+      this._selectIndex(index);
+    } finally {
+      this._fromPop = false;
+    }
+  };
 
   // --- hotkeys --------------------------------------------------------------
   // Page-wide while the card is on screen. Typing in a field, modified keys
@@ -204,6 +228,7 @@ export class TabdeckCard extends LitElement {
     super.disconnectedCallback();
     for (const ev of INTERACTION_EVENTS) this.removeEventListener(ev, this._onInteraction);
     document.removeEventListener("keydown", this._onHotkey);
+    window.removeEventListener("popstate", this._onPopState);
     this._stopTimer();
     this._spyObserver?.disconnect();
     this._spyObserver = undefined;
@@ -311,6 +336,10 @@ export class TabdeckCard extends LitElement {
         : undefined,
     });
     this._selected = this._ensureContentTab(this._selected);
+    // Tag the current entry, so Back to it restores the starting tab.
+    if (this._config.history && typeof history !== "undefined") {
+      history.replaceState(this._historyState(this._selected), "", location.href);
+    }
     this._lastEntityValue = this._rememberEntityState();
     this._built = true;
     this.requestUpdate();
@@ -743,8 +772,12 @@ export class TabdeckCard extends LitElement {
         index: this._selected,
         tabName: tab?.name,
       });
-      if (r.hash && typeof location !== "undefined") {
-        history.replaceState(null, "", r.hash);
+      if (this._config.history && !this._fromPop) {
+        // One entry per user switch, tagged with this deck's key so Back can
+        // tell our entries from HA's (dialogs, views).
+        history.pushState(this._historyState(this._selected), "", r.hash ?? location.href);
+      } else if (r.hash && typeof location !== "undefined") {
+        history.replaceState(this._config.history ? this._historyState(this._selected) : null, "", r.hash);
       }
       if (this._config.remember === "entity") this._writeRememberEntity(this._selected);
     }

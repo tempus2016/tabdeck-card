@@ -72,3 +72,19 @@ An exact name match wins over a slug match.
 - With `remember: url`, give your tabs **unique names** so the hash maps unambiguously.
 - `default_tab` still applies as the fallback when no remembered value is found.
 - Lazy-mounted tabs (`lazy: true`) keep state once built; switching away does not destroy them.
+
+
+## Back button (`history`)
+
+With **`history: true`** every tab you open becomes a browser history entry. The phone's **back gesture** or the browser's **Back** button then returns to the previous tab instead of leaving the dashboard. Forward works too.
+
+```yaml
+type: custom:tabdeck-card
+history: true
+remember: url      # optional: each entry also gets its #tab= link
+tabs: [ ... ]
+```
+
+- Only switches **you** make are recorded. Auto-rotate, idle return, `auto_select` and entity sync don't add entries.
+- Entries are tagged per deck, so Home Assistant's own history (views, more-info dialogs) isn't disturbed. Back with a dialog open closes the dialog and leaves the tab alone.
+- Combine with `remember: url` and each entry also carries its `#tab=` link.

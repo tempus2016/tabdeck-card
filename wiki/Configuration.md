@@ -43,6 +43,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `hide_bar` | boolean | `false` | Render only the content, no tab bar. See [Grouped tabs](Feature-Grouped-Tabs#related-hide_bar-and-the-public-api). |
 | `search` | boolean | `false` | 🔍 quick-switch filter over the tabs. See [Search & shortcuts](Feature-Search-Hotkeys). |
 | `hotkeys` | boolean | `false` | Keyboard shortcuts: 1–9, [ ], /. See [Search & shortcuts](Feature-Search-Hotkeys#keyboard-shortcuts). |
+| `history` | boolean | `false` | Back button returns to the previous tab. See [Back button](Navigation-and-Persistence#back-button-history). |
 | `styles` | map | — | CSS variables/properties applied to the card. See [Theming](Feature-Theming). |
 
 > **Legacy:** `options.defaultTabIndex` is still accepted as a fallback for `default_tab`.

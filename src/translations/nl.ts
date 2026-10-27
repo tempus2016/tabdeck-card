@@ -209,5 +209,6 @@ const nl: Record<string, string> = {
   "card.search": "Tab zoeken",
   "card.search_placeholder": "Typ om te filteren…",
   "card.search_none": "Geen overeenkomende tabs",
+  "editor.global.history": "Terugknop gaat naar de vorige tab",
 };
 export default nl;

@@ -41,6 +41,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Public API** — `selectTab(nameOrIndex)`, `selectedTab`, and a `tabdeck-tab-changed` event on every tab change, for browser_mod, scripts and other cards.
 - **Quick-switch search** — `search: true` adds a 🔍 filter (case/accent-insensitive, names and subtitles, ↑↓/Enter/Esc).
 - **Keyboard shortcuts** — `hotkeys: true`: 1–9 open tabs, [ ] step, / opens search; ignored while typing, with modifiers, or when the deck isn't visible.
+- **Back button** — `history: true` makes each tab you open a browser history entry, so Back / the phone's back gesture returns to the previous tab. Automatic switches add no entries; HA's own history (dialogs, views) is untouched.
 
 ### Fixed
 - Editor button icons (Add tab) render on current WebAwesome-based HA builds.
