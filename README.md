@@ -48,9 +48,10 @@ A nested map card rendering correctly the moment its tab is selected — no
 - **Edit-mode helpers** — hidden tabs appear faded while you edit the dashboard; rotation pauses.
 - **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`, generated tabs via `auto_tabs` (Jinja, or **one tab per area/label**).
 - **Layouts** — `scroll_spy` anchor mode, `collapsible` deck, responsive `split` view (side by side on wide cards) and `tab_display_narrow`.
+- **Content** — `layout: masonry` inside a tab, `header_cards` / `footer_cards` on every tab, per-tab `background` (colour, gradient or image, may be a template), `content_height: tallest` so the page doesn't jump, a `fullscreen` button, and `swipe_peek` carousel swiping.
 - **Wall panels** — `auto_rotate` through tabs, `idle_return` to the default tab.
 - **Persistence** — remember the active tab per `browser`, `url` (`#tab=name`, slug or index), or across devices via an `entity` with **live two-way sync**.
-- **Transitions** — optional `fade`/`slide` panel animations (respects reduced-motion).
+- **Transitions** — optional `fade`/`slide`/`scale`/`flip`/`rise` panel animations with your own duration and easing (respects reduced-motion).
 - **Theming** — CSS variables via `styles`, no card-mod needed.
 - **Accessible** — `tablist` semantics, full keyboard navigation (Arrows, Home/End, skips disabled).
 - **Translated** — editor and card text in English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português, following your HA language. [Help translate](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Languages).
@@ -134,11 +135,16 @@ A ready-to-paste dashboard showcasing many features lives in
 | `accent_indicator` | boolean      | `true`       | Colour the indicator by the selected tab's accent. |
 | `badge_display` | string          | `text`       | `text` \| `dot`. |
 | `hide_inactive_badge` | boolean   | `false`      | Hide 0/off badges. |
-| `transition`  | string            | `none`       | Panel switch animation: `none` \| `fade` \| `slide`. |
+| `transition`  | string            | `none`       | Panel switch animation: `none` \| `fade` \| `slide` \| `scale` \| `flip` \| `rise` (+ `transition_duration`, `transition_easing`). |
 | `sticky` / `elevation` | boolean  | `false`      | Pin the bar / raise it with a shadow. |
 | `bar_background` | string         | —            | Custom tab-bar background colour. |
 | `header`      | boolean           | `false`      | Show the active tab's title above the content. |
 | `unmount_hidden` | boolean        | `false`      | Keep only the active tab's card in the DOM. |
+| `unload_after` | number           | —            | Free tabs not opened for this many minutes (rebuilt on return). |
+| `header_cards` / `footer_cards` | list | —     | Cards above the bar / below the content on every tab. |
+| `content_height` | string \| number | `auto`    | `auto` \| `tallest` (no page jump) \| a fixed height; `content_max_height` scrolls inside. |
+| `fullscreen`  | boolean           | `false`      | Full-screen button: open the active tab over the whole window. |
+| `swipe_peek`  | boolean           | `false`      | Content follows the finger while swiping; the next tab slides in. |
 | `scrollable`  | `auto` \| boolean | `auto`       | Scroll the tab bar when tabs overflow. |
 | `remember`    | string            | `none`       | `none` \| `browser` \| `url` \| `entity` (+ `remember_entity`, `storage_key`). |
 | `swipe_wrap`  | boolean           | `false`      | Swipe wraps around the ends. |
@@ -175,6 +181,8 @@ A ready-to-paste dashboard showcasing many features lives in
 | `default_if` | list   | —       | Conditions that make this the default tab on load. |
 | `visibility` | list   | —       | Conditions (see below); the tab is hidden when unmet. |
 | `card` / `cards` / `columns` | object/list/number | — | A single card, or multiple `cards` (optionally in a `columns` grid). |
+| `layout`     | string | —       | `masonry`: balance `cards` into `columns` (or `min_column_width` px). |
+| `background` | string | —       | Content background while open: colour, gradient or image URL (may be a template). |
 
 ### Visibility conditions
 

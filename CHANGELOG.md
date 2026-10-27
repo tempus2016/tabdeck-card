@@ -3,6 +3,18 @@
 All notable changes are documented here. Each GitHub release uses the matching
 section below as its release notes (see `.github/workflows/release.yml`).
 
+## Unreleased
+
+### Added
+- **Masonry inside a tab** — `layout: masonry` balances a tab's `cards` into columns like HA's masonry view (`columns`, or `min_column_width` to fit the width).
+- **Header and footer cards** — `header_cards` / `footer_cards` stay on screen on every tab (a summary row above the tabs, controls below).
+- **Tab backgrounds** — a tab's `background` (colour, gradient, CSS variable or image path / URL; may be a template) fills the content area while it's open.
+- **Content height** — `content_height: tallest` keeps the tallest tab's height so the page doesn't jump; a fixed `content_height` or `content_max_height` scrolls inside the card.
+- **Full screen** — `fullscreen: true` adds a button to the bar that opens the active tab over the whole window (Esc or the corner button closes it).
+- **Swipe peek** — `swipe_peek: true`: while swiping, the content follows the finger and the neighbouring tab slides in; release past a third (or flick) to change tab.
+- **More transitions** — `scale`, `flip` and `rise`, plus `transition_duration` and `transition_easing`; `slide` and `flip` now come in from the direction of travel.
+- **Free unused tabs** — `unload_after: <minutes>` releases the card of a tab that hasn't been on screen for that long and rebuilds it when it's opened again.
+
 ## v1.1.0 — 2026-10-27
 
 The biggest Tabdeck release yet: **nearly 40 new features**. Tabs can now **react to your home** (live icons, alerts, formatted badges), the card can **run a wall panel** by itself, the deck can be a **phone-style dock**, a **dropdown menu** or a **side-by-side split view**, and the editor can **build a deck for you** from your own entities or **convert one from another card**. It also speaks **eight languages**, and there's a **[live demo](https://tempus2016.github.io/tabdeck-card/)** to try everything in the browser before you install it.

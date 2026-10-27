@@ -38,6 +38,7 @@
 - [Disabled tabs](Feature-Disabled-Tabs)
 - [Multiple cards per tab](Feature-Multiple-Cards)
 - [Panel transitions](Feature-Panel-Transition)
+- [Content layout](Feature-Content-Layout)
 - [Duplicate tab](Feature-Duplicate-Tab)
 - [Expand/Collapse all](Feature-Editor-Expand-Collapse)
 - [Edit mode helpers](Feature-Edit-Mode)

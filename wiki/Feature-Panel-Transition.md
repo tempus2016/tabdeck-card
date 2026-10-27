@@ -1,12 +1,14 @@
 # Panel transitions
 
-Animate the content when you switch tabs — a subtle fade or slide makes the card feel more polished.
+Animate the content when you switch tabs. A short fade, slide or zoom makes the card feel more polished.
 
-**Config key:** `transition` (top-level) · **Values:** `none` (default) · `fade` · `slide`
+**Config keys:** `transition`, `transition_duration`, `transition_easing` (top-level)
 
 ```yaml
 type: custom:tabdeck-card
-transition: slide      # none | fade | slide
+transition: slide              # none | fade | slide | scale | flip | rise
+transition_duration: 250       # ms, default 180
+transition_easing: ease-out    # any CSS easing, default ease
 tabs: [ ... ]
 ```
 
@@ -15,10 +17,14 @@ tabs: [ ... ]
 | Value | Effect on tab switch |
 | --- | --- |
 | `none` | No animation (default). |
-| `fade` | The new panel fades in (opacity 0 → 1). |
-| `slide` | The new panel slides in from the right while fading. |
+| `fade` | The new panel fades in. |
+| `slide` | The new panel slides in from the side you're moving towards: from the right for a later tab, from the left for an earlier one. |
+| `scale` | The new panel grows slightly into place while fading in. |
+| `flip` | The new panel turns in around its vertical axis, from the direction of travel. |
+| `rise` | The new panel rises a little while fading in. |
 
-- The animation runs for ~180 ms via the Web Animations API, replaying on every switch.
-- It is automatically **skipped** when the user has *Reduce motion* enabled (`prefers-reduced-motion`).
-- No effect on the very first render — only when changing tabs.
-- Pick it from the **Panel transition** dropdown in the [visual editor](Editor).
+- Runs via the Web Animations API on every switch, but not on the first render.
+- Automatically **skipped** when the user has *Reduce motion* turned on (`prefers-reduced-motion`).
+- `transition_duration: 0` turns the animation off without changing `transition`.
+- After a [swipe peek](Feature-Content-Layout#swipe-peek-swipe_peek) drag, the released panel finishes sliding into place instead of playing the transition.
+- Pick them in the [visual editor](Editor) under **Panel transition**, **Transition duration** and **Transition easing**.
