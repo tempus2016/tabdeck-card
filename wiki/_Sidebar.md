@@ -46,3 +46,4 @@
 - [Convert from another card](Feature-Convert)
 - [Languages](Feature-Languages)
 - [Dock & floating action tabs](Feature-Dock)
+- [Dots & content arrows](Feature-Dots-Arrows)

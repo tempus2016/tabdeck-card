@@ -1327,3 +1327,33 @@ describe("dock reconnect", () => {
     expect(calls).toContain("sync");
   });
 });
+
+describe("content arrows", () => {
+  const tabs = [
+    { name: "A", card: { type: "markdown" } },
+    { name: "B", card: { type: "light" }, disabled: true },
+    { name: "C", card: { type: "light" } },
+  ];
+  const bar = (el: any) => el.shadowRoot.querySelector("tabdeck-tabbar");
+
+  it("steps over disabled tabs and hides at the ends without wrap", async () => {
+    const el = await mount({ content_arrows: true, tabs });
+    const prev = () => el.shadowRoot.querySelector(".nav-arrow.prev");
+    const next = () => el.shadowRoot.querySelector(".nav-arrow.next");
+    expect(prev()).toBeNull();
+    next().click();
+    await el.updateComplete;
+    expect(bar(el).selected).toBe(2);
+    expect(next()).toBeNull();
+    prev().click();
+    await el.updateComplete;
+    expect(bar(el).selected).toBe(0);
+  });
+
+  it("wraps with swipe_wrap", async () => {
+    const el = await mount({ content_arrows: true, swipe_wrap: true, tabs });
+    el.shadowRoot.querySelector(".nav-arrow.prev").click();
+    await el.updateComplete;
+    expect(bar(el).selected).toBe(2);
+  });
+});

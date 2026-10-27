@@ -34,6 +34,8 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Showcase** — a Showcase wiki page of community decks and starter ideas, plus a *Show and tell* discussion form (screenshot, description, YAML, consent to feature) linked from the issue chooser.
 - **Dock** — `dock: true` pins the bar to the bottom of the screen as phone-style navigation (icon over label, badges on the icon, safe-area aware, follows HA's sidebar); it reverts to a normal bar while editing.
 - **Floating action tabs** — per-tab `fab: true` renders a raised round accent button (floats above the dock); pair it with `tap_action`.
+- **Pagination dots** — `tab_display: dots` shows a centred row of dots (current one stretched, alerts in red; names still read to screen readers).
+- **Content arrows** — `content_arrows: true` adds ‹ › buttons in side gutters to step between tabs (skips disabled/action tabs; wraps with `swipe_wrap`).
 
 ### Fixed
 - Editor button icons (Add tab) render on current WebAwesome-based HA builds.

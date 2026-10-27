@@ -7,7 +7,8 @@ export type TabPosition = "top" | "bottom" | "left" | "right";
 export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text" | "rail";
 export type RememberMode = "none" | "browser" | "url" | "entity";
 // "active": icon only, except the selected tab, which shows icon + label + subtitle.
-export type TabDisplay = "both" | "icon" | "label" | "active";
+// "dots": pagination dots (name read out to screen readers).
+export type TabDisplay = "both" | "icon" | "label" | "active" | "dots";
 export type TabAlign = "start" | "center" | "end" | "justify";
 export type BadgeDisplay = "text" | "dot";
 export type PanelTransition = "none" | "fade" | "slide";
@@ -135,12 +136,14 @@ export interface TabdeckCardConfig {
   edit_mode_reveal: boolean;
   // Phone-style navigation: the bar is pinned to the bottom of the screen.
   dock: boolean;
+  // ‹ › buttons over the content to step to the previous / next tab.
+  content_arrows: boolean;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
 const STYLES: TabStyle[] = ["underline", "pill", "segmented", "boxed", "text", "rail"];
 const REMEMBER: RememberMode[] = ["none", "browser", "url", "entity"];
-const DISPLAYS: TabDisplay[] = ["both", "icon", "label", "active"];
+const DISPLAYS: TabDisplay[] = ["both", "icon", "label", "active", "dots"];
 const ALIGNS: TabAlign[] = ["start", "center", "end", "justify"];
 const BADGE_DISPLAYS: BadgeDisplay[] = ["text", "dot"];
 const TRANSITIONS: PanelTransition[] = ["none", "fade", "slide"];
@@ -323,6 +326,7 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     idle_return:
       Number(raw?.idle_return) > 0 ? Math.max(5, Number(raw.idle_return)) : undefined,
     dock: Boolean(raw?.dock),
+    content_arrows: Boolean(raw?.content_arrows),
     edit_mode_reveal: raw?.edit_mode_reveal === undefined ? true : Boolean(raw.edit_mode_reveal),
   };
 }

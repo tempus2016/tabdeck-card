@@ -200,5 +200,9 @@ const it: Record<string, string> = {
   "convert.note.dashboard": "Ogni vista è diventata una tab. Plance di grandi dimensioni possono appesantire la scheda; valuta lazy: true.",
   "editor.global.dock": "Dock: fissa la barra in fondo allo schermo (navigazione da telefono)",
   "editor.tab.fab": "Stile pulsante d'azione flottante",
+  "editor.global.content_arrows": "Frecce precedente / successiva sul contenuto",
+  "editor.opt.tab_display.dots": "Punti",
+  "card.prev_tab": "Tab precedente",
+  "card.next_tab": "Tab successiva",
 };
 export default it;

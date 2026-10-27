@@ -200,5 +200,9 @@ const en: Record<string, string> = {
   "convert.note.dashboard": "Each view became a tab. Large dashboards can make a heavy card; consider lazy: true.",
   "editor.global.dock": "Dock: pin the bar to the bottom of the screen (phone navigation)",
   "editor.tab.fab": "Floating action button style",
+  "editor.global.content_arrows": "Previous / next arrows over the content",
+  "editor.opt.tab_display.dots": "Dots",
+  "card.prev_tab": "Previous tab",
+  "card.next_tab": "Next tab",
 };
 export default en;
