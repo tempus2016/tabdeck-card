@@ -87,10 +87,55 @@ tabs:
 `,
   },
   {
+    id: "groups",
+    title: "Menus, search & arrange",
+    yaml: `type: custom:tabdeck-card
+style: pill
+search: true
+hotkeys: true
+customize: true
+tabs:
+  - name: Home
+    icon: mdi:home
+    card: { type: weather-forecast, entity: weather.home }
+  - name: Rooms
+    icon: mdi:floor-plan
+    children_display: menu
+    children:
+      - { name: Kitchen, icon: mdi:fridge, card: { type: tile, entity: light.kitchen } }
+      - { name: Living room, icon: mdi:sofa, card: { type: tile, entity: light.living_room } }
+      - { name: Bedroom, icon: mdi:bed, card: { type: tile, entity: light.bedroom } }
+  - name: Climate
+    icon: mdi:thermostat
+    children:
+      - { name: Hall, card: { type: thermostat, entity: climate.hall } }
+      - { name: Loft, card: { type: thermostat, entity: climate.loft } }
+  - name: Media
+    icon: mdi:television
+    card: { type: media-control, entity: media_player.lounge_tv }
+`,
+  },
+  {
+    id: "slides",
+    title: "Dots & arrows",
+    yaml: `type: custom:tabdeck-card
+tab_display: dots
+content_arrows: true
+swipe: true
+swipe_mouse: true
+swipe_wrap: true
+tabs:
+  - { name: Weather, card: { type: weather-forecast, entity: weather.home } }
+  - { name: Power, card: { type: sensor, entity: sensor.power } }
+  - { name: People, card: { type: entities, entities: [person.alex, person.sam] } }
+`,
+  },
+  {
     id: "rail",
     title: "Side rail",
     yaml: `type: custom:tabdeck-card
 preset: rail
+rail_expand: true
 header: true
 tabs:
   - name: Energy

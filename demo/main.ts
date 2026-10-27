@@ -81,4 +81,10 @@ for (const b of document.querySelectorAll<HTMLButtonElement>("[data-width]")) {
   });
 }
 
+// Example links (#groups) and Back/Forward switch examples too.
+window.addEventListener("hashchange", () => {
+  const id = location.hash.slice(1);
+  if (EXAMPLES.some((x) => x.id === id)) load(id);
+});
+
 load(location.hash.slice(1));
