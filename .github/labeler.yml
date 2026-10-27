@@ -13,6 +13,11 @@ editor:
   - changed-files:
       - any-glob-to-any-file:
           - src/editor/**
+          - src/lib/explain.ts
+          - src/lib/starters.ts
+          - src/lib/convert.ts
+          - src/lib/i18n.ts
+          - src/translations/**
 
 nested cards:
   - changed-files:
@@ -43,6 +48,8 @@ documentation:
           - wiki/**
           - images/**
           - examples/**
+          - demo/**
+          - vite.demo.config.ts
 
 ci:
   - changed-files:
