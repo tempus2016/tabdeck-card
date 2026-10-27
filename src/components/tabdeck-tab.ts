@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { defineOnce } from "../lib/define";
+import { readableText } from "../lib/color";
 import type { BadgeDisplay, TabDisplay } from "../lib/config";
 
 // A badge value counts as "active" (worth a dot) when it isn't an empty/zero/
@@ -51,6 +52,12 @@ export class TabdeckTab extends LitElement {
   @property() ringColor?: string;
   // An icon shown as the badge.
   @property() badgeIcon?: string;
+  // A picture (URL) shown round instead of the icon.
+  @property() picture?: string;
+  // spin | pulse | bounce | shake | beat (reflected for the CSS).
+  @property({ reflect: true, attribute: "icon-animation" }) iconAnimation?: string;
+  // This tab's label font: CSS size / weight / family.
+  @property({ attribute: false }) font?: { size?: string; weight?: string; family?: string };
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -70,7 +77,8 @@ export class TabdeckTab extends LitElement {
     }
   };
 
-  updated(): void {
+  updated(changed: Map<string, unknown>): void {
+    this._applyFont(changed);
     this.setAttribute("aria-selected", this.selected ? "true" : "false");
     this.tabIndex = this.selected || this.action ? 0 : -1;
     if (this.accent) this.style.setProperty("--tabdeck-accent", this.accent);
@@ -83,6 +91,7 @@ export class TabdeckTab extends LitElement {
     // Dots have no visible text, so name the tab for assistive tech.
     if (this.display === "dots" && this.label) this.setAttribute("aria-label", this.label);
     else this.removeAttribute("aria-label");
+    this._applyReadableText();
   }
 
   render() {
@@ -94,7 +103,7 @@ export class TabdeckTab extends LitElement {
     // "active" is icon-only for unselected tabs and "both" for the selected one.
     const display =
       this.display === "active" ? (this.selected ? "both" : "icon") : this.display;
-    const hasIcon = !!this.icon;
+    const hasIcon = !!this.icon || !!this.picture;
     const showIcon = display !== "label" && hasIcon;
     const showLabel = display !== "icon" || !hasIcon;
     return html`
@@ -118,8 +127,11 @@ export class TabdeckTab extends LitElement {
   }
 
   private _renderIcon() {
+    const glyph = this.picture
+      ? html`<img class="picture icon" src=${this.picture} alt="" loading="lazy" />`
+      : html`<ha-icon class="icon" icon=${this.icon}></ha-icon>`;
     if (this.ring === undefined || this.ring === null || !Number.isFinite(this.ring)) {
-      return html`<ha-icon icon=${this.icon}></ha-icon>`;
+      return glyph;
     }
     // pathLength=100 lets the dash array be the percentage directly.
     return html`<span class="icon-wrap">
@@ -135,8 +147,31 @@ export class TabdeckTab extends LitElement {
           style=${this.ringColor ? `stroke:${this.ringColor}` : ""}
         ></circle>
       </svg>
-      <ha-icon icon=${this.icon}></ha-icon>
+      ${glyph}
     </span>`;
+  }
+
+  private _applyFont(changed: Map<string, unknown>): void {
+    if (changed.has("font")) {
+      const f = this.font ?? {};
+      for (const [key, value] of [["size", f.size], ["weight", f.weight], ["family", f.family]] as const) {
+        if (value) this.style.setProperty(`--tabdeck-tab-font-${key}`, value);
+        else this.style.removeProperty(`--tabdeck-tab-font-${key}`);
+      }
+    }
+  }
+
+  // Black or white text on solid fills (a coloured badge, a FAB), whichever
+  // reads better, unless a colour is set explicitly.
+  private _applyReadableText(): void {
+    const badge = this.renderRoot.querySelector(".badge:not(.icon-badge)") as HTMLElement | null;
+    if (badge) {
+      const text = this.badgeColor ? readableText(getComputedStyle(badge).backgroundColor) : undefined;
+      badge.style.color = text ?? "";
+    }
+    if (this.fab && !this.color) {
+      this.style.color = readableText(getComputedStyle(this).backgroundColor) ?? "";
+    }
   }
 
   private _onBadgeClick(e: Event): void {
@@ -180,19 +215,88 @@ export class TabdeckTab extends LitElement {
       display: inline-flex;
       align-items: center;
       box-sizing: border-box;
-      padding: 0 16px;
-      height: var(--tabdeck-tab-height, 48px);
+      padding: var(--tabdeck-tab-padding, var(--tabdeck-density-padding, 0 16px));
+      height: var(--tabdeck-tab-height, var(--tabdeck-density-height, 48px));
       cursor: pointer;
       color: var(--secondary-text-color);
-      font-size: var(--tabdeck-tab-font-size, 14px);
-      font-family: var(--paper-font-body1_-_font-family, inherit);
+      font-size: var(--tabdeck-tab-font-size, var(--tabdeck-density-font-size, 14px));
+      font-weight: var(--tabdeck-tab-font-weight, normal);
+      font-family: var(--tabdeck-tab-font-family, var(--paper-font-body1_-_font-family, inherit));
+      border-radius: var(--tabdeck-tab-radius, 0);
       user-select: none;
       white-space: nowrap;
       outline: none;
       transition: color 120ms ease;
     }
     :host([selected]) {
-      color: var(--tabdeck-accent, var(--primary-color));
+      color: var(--tabdeck-selected-color, var(--tabdeck-selected-auto, var(--tabdeck-accent, var(--primary-color))));
+    }
+    /* icon_animation */
+    :host([icon-animation="spin"]) .icon {
+      animation: tabdeck-spin 1.6s linear infinite;
+    }
+    :host([icon-animation="pulse"]) .icon {
+      animation: tabdeck-pulse 1.4s ease-in-out infinite;
+    }
+    :host([icon-animation="bounce"]) .icon {
+      animation: tabdeck-bounce 1s ease-in-out infinite;
+    }
+    :host([icon-animation="shake"]) .icon {
+      animation: tabdeck-shake 0.9s ease-in-out infinite;
+    }
+    :host([icon-animation="beat"]) .icon {
+      animation: tabdeck-beat 1.2s ease-in-out infinite;
+    }
+    @keyframes tabdeck-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    @keyframes tabdeck-pulse {
+      50% {
+        transform: scale(1.18);
+        opacity: 0.7;
+      }
+    }
+    @keyframes tabdeck-bounce {
+      50% {
+        transform: translateY(-3px);
+      }
+    }
+    @keyframes tabdeck-shake {
+      20%,
+      60% {
+        transform: rotate(-12deg);
+      }
+      40%,
+      80% {
+        transform: rotate(12deg);
+      }
+    }
+    @keyframes tabdeck-beat {
+      15%,
+      45% {
+        transform: scale(1.2);
+      }
+      30% {
+        transform: scale(1);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      :host([icon-animation]) .icon {
+        animation: none;
+      }
+    }
+    .picture {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+    }
+    .icon-wrap .picture {
+      width: 22px;
+      height: 22px;
     }
     /* alert: a gentle pulsing tint + alert-coloured label/icon. */
     :host([alert]) {
@@ -377,11 +481,18 @@ export class TabdeckTab extends LitElement {
       height: 18px;
       padding: 0 5px;
       border-radius: 9px;
-      background: var(--tabdeck-accent, var(--primary-color));
-      color: var(--text-primary-color, #fff);
+      background: var(--tabdeck-badge-background, var(--tabdeck-accent, var(--primary-color)));
+      color: var(--tabdeck-badge-color, var(--text-primary-color, #fff));
       font-size: 11px;
       line-height: 18px;
       text-align: center;
+    }
+    :host([selected]) .badge {
+      background: var(
+        --tabdeck-selected-badge-background,
+        var(--tabdeck-badge-background, var(--tabdeck-accent, var(--primary-color)))
+      );
+      color: var(--tabdeck-selected-badge-color, var(--tabdeck-badge-color, var(--text-primary-color, #fff)));
     }
     .badge-dot {
       width: 8px;

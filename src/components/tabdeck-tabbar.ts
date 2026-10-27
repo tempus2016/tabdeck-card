@@ -1,6 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { property, state } from "lit/decorators.js";
 import { defineOnce } from "../lib/define";
+import { readableText } from "../lib/color";
 import type { BadgeDisplay, TabAlign, TabDisplay, TabPosition, TabStyle } from "../lib/config";
 import { computeIndicatorRect } from "../lib/indicator";
 import { localize } from "../lib/i18n";
@@ -29,6 +30,9 @@ interface TabItem {
   ringColor?: string;
   // Icon shown as the badge.
   badgeIcon?: string;
+  picture?: string;
+  iconAnimation?: string;
+  font?: { size?: string; weight?: string; family?: string };
   // Grouped tab: its children, picked from a dropdown on the tab.
   menu?: { name?: string; icon?: string }[];
 }
@@ -73,6 +77,8 @@ export class TabdeckTabbar extends LitElement {
   @property() language = "en";
   // Optional custom bar background colour.
   @property() barBackground?: string;
+  // compact | default | comfortable (reflected for the CSS).
+  @property({ reflect: true }) density = "default";
   // Vertical bars only: icons until hovered / focused, then labels too. The
   // expanded rail overlays the content instead of pushing it aside.
   @property({ type: Boolean }) railExpand = false;
@@ -532,6 +538,21 @@ export class TabdeckTabbar extends LitElement {
   // Push the selected tab's accent onto the host as --tabdeck-accent so the
   // moving indicator (a sibling of the tabs) takes that colour. Off → fall back
   // to the theme primary colour.
+  // A solid indicator (e.g. the bubble preset) gets readable selected text:
+  // black or white, unless --tabdeck-selected-color says otherwise. Tinted
+  // (translucent) indicators keep the accent-coloured text.
+  private _applyReadableSelected(): void {
+    const indicator = this.renderRoot?.querySelector?.(".indicator") as HTMLElement | null;
+    // Only pill and boxed: their default indicator is a translucent tint, so a
+    // solid one was asked for. (Segmented's is the card colour, behind
+    // accent-coloured text, and stays that way.)
+    const bg = indicator && ["pill", "boxed"].includes(this.tabStyle) ? getComputedStyle(indicator).backgroundColor : "";
+    const solid = /^rgb\(/.test(bg) || /^rgba\(.*,\s*1\)$/.test(bg);
+    const text = solid ? readableText(bg) : undefined;
+    if (text) this.style.setProperty("--tabdeck-selected-auto", text);
+    else this.style.removeProperty("--tabdeck-selected-auto");
+  }
+
   private _applyAccent(): void {
     const accent = this.accentIndicator
       ? this.items[this.selected]?.accent
@@ -585,6 +606,7 @@ export class TabdeckTabbar extends LitElement {
     this.toggleAttribute("rail-expand", this._railActive);
     this.toggleAttribute("expanded", this._railActive && this._railOpen);
     this._applyAccent();
+    this._applyReadableSelected();
     this._applySticky();
     this._position();
     // Tab widths can change in the tabs' own (later) update — e.g. display
@@ -660,6 +682,9 @@ export class TabdeckTabbar extends LitElement {
               .ring=${item.ring}
               .ringColor=${item.ringColor}
               .badgeIcon=${item.badgeIcon}
+              .picture=${item.picture}
+              .iconAnimation=${item.iconAnimation}
+              .font=${item.font}
               .hasMenu=${!!item.menu?.length}
               aria-haspopup=${item.menu?.length ? "menu" : "false"}
               aria-expanded=${item.menu?.length ? String(this._groupOpen === index) : "false"}
@@ -1187,6 +1212,17 @@ export class TabdeckTabbar extends LitElement {
       opacity: 0;
       pointer-events: none;
       z-index: 0;
+      box-shadow: var(--tabdeck-indicator-shadow, none);
+    }
+    :host([density="compact"]) {
+      --tabdeck-density-height: 36px;
+      --tabdeck-density-padding: 0 10px;
+      --tabdeck-density-font-size: 13px;
+    }
+    :host([density="comfortable"]) {
+      --tabdeck-density-height: 56px;
+      --tabdeck-density-padding: 0 20px;
+      --tabdeck-density-font-size: 15px;
     }
     .indicator.animate {
       transition: left 200ms ease, top 200ms ease, width 200ms ease,
@@ -1206,25 +1242,23 @@ export class TabdeckTabbar extends LitElement {
       z-index: 1;
     }
     .bar.style-underline .indicator {
-      background: var(--tabdeck-accent, var(--primary-color));
+      background: var(--tabdeck-indicator-color, var(--tabdeck-accent, var(--primary-color)));
     }
     .bar.style-pill .indicator {
-      background: color-mix(
-        in srgb,
-        var(--tabdeck-accent, var(--primary-color)) 18%,
-        transparent
+      background: var(
+        --tabdeck-indicator-color,
+        color-mix(in srgb, var(--tabdeck-accent, var(--primary-color)) 18%, transparent)
       );
       border-radius: var(--tabdeck-indicator-radius, 999px);
     }
     .bar.style-segmented .indicator {
-      background: var(--card-background-color);
+      background: var(--tabdeck-indicator-color, var(--card-background-color));
       border-radius: var(--tabdeck-indicator-radius, 7px);
     }
     .bar.style-boxed .indicator {
-      background: color-mix(
-        in srgb,
-        var(--tabdeck-accent, var(--primary-color)) 20%,
-        transparent
+      background: var(
+        --tabdeck-indicator-color,
+        color-mix(in srgb, var(--tabdeck-accent, var(--primary-color)) 20%, transparent)
       );
       border-radius: var(--tabdeck-indicator-radius, 10px);
     }

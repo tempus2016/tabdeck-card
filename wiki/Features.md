@@ -86,7 +86,11 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Public API](Feature-Grouped-Tabs#related-hide_bar-and-the-public-api)** — `selectTab()`, `selectedTab`, `tabdeck-tab-changed`.
 
 ## Theming
-- **[Style presets](Feature-Presets)** — one-line looks: `ios`, `material`, `glass`, `minimal`, `rail` (`preset`).
+- **[Style presets](Feature-Presets)** — one-line looks: `ios`, `material`, `glass`, `minimal`, `rail`, `neumorphic`, `ha-tile`, `mushroom`, `bubble`, `fluent`, `material-you` (`preset`).
+- **[Theme colours & colour picker](Feature-Theming#theme-colour-names)** — HA theme colour names, HA's colour picker in the editor.
+- **[Readable text & contrast warnings](Feature-Theming#readable-text-and-contrast)** — automatic black/white on solid fills; the editor flags low contrast.
+- **[Density](Feature-Theming#density)** — `compact` or `comfortable` tab bar.
+- **[Pictures, icon animations, fonts, haptics](Feature-Tab-Look)** — `picture`, `icon_animation`, `font_*`, `haptic`.
 - **[Theming & styles passthrough](Feature-Theming)** — set CSS variables from config (`styles`).
 - **[Per-tab styles](Feature-Theming#per-tab-styles)** — `styles` on a tab, applied while it's active.
 

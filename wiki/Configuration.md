@@ -9,7 +9,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `tabs` | list | **required**\* | The tabs to show. See [Per-tab options](#per-tab-options). \*Optional when `auto_tabs` is set. |
 | `auto_tabs` | map | — | Generate a tab per item from a Jinja list (`template` + optional `tab_template`), or from a built-in `source` (`areas`, `labels`, `floors`, `domains`, `devices`, `todo`, `calendars`, `cameras`, `zones`; with `domains`, `exclude`, `content: tiles`). See [Dynamic tabs](Feature-Dynamic-Tabs). |
 | `default_tab` | number \| string | `0` | Tab shown first. A number is a 0-based index; a string matches a tab `name`. |
-| `preset` | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` | — | A bundle of styling options; explicit keys override it. See [Style presets](Feature-Presets). |
+| `preset` | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` \| `neumorphic` \| `ha-tile` \| `mushroom` \| `bubble` \| `fluent` \| `material-you` | — | A bundle of styling options; explicit keys override it. See [Style presets](Feature-Presets). |
 | `position` | `top` \| `bottom` \| `left` \| `right` | `top` | Where the tab bar sits relative to the content. |
 | `style` | `underline` \| `pill` \| `segmented` \| `boxed` \| `text` | `underline` | Visual style of the tab bar. See [Extra bar styles](Feature-Bar-Styles). |
 | `tab_display` | `both` \| `icon` \| `label` \| `active` \| `dots` | `both` | Show icons, labels, both — or icons with only the selected tab expanded. See [Tab display mode](Feature-Tab-Display). |
@@ -61,6 +61,8 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `styles` | map | — | CSS variables/properties applied to the card. See [Theming](Feature-Theming). |
 | `tab_defaults` | map | — | Keys applied to every tab (a tab's own keys win; `styles` merge). See [Reuse](Feature-Reuse#tab_defaults). |
 | `tab_templates` | map | — | Named tab blueprints; a tab uses one with `use` + `vars`. See [Reuse](Feature-Reuse#tab_templates--use). |
+| `density` | `default` \| `compact` \| `comfortable` | `default` | Tab bar size. See [Theming](Feature-Theming#density). |
+| `haptic` | `selection` \| `light` \| `medium` \| `heavy` \| … | — | Companion-app vibration on tab switches. See [Tab look](Feature-Tab-Look#haptic-feedback-haptic). |
 | `debug` | boolean | `false` | A panel under the card with conditions, templates, start reason and timings. See [Debug panel](Feature-Debug). |
 
 > **Legacy:** `options.defaultTabIndex` is still accepted as a fallback for `default_tab`.
@@ -87,6 +89,9 @@ Each item in `tabs`:
 | `badge_icon` | icon | — | An icon as the badge. See [Badges](Badges#badge-icon-badge_icon). |
 | `ring` / `ring_max` / `ring_color` | entity / template / number, number, colour | — / `100` / — | Progress ring around the icon. See [Badges](Badges#progress-ring-ring). |
 | `area` / `floor` / `label` / `domains` | id / list | — | No card needed: tiles of the entities there. See [Dynamic tabs](Feature-Dynamic-Tabs#area-floor-and-label-tabs-without-a-card-auto-content). |
+| `picture` | entity id / URL / template | — | A round picture instead of the icon. See [Tab look](Feature-Tab-Look#pictures-instead-of-icons-picture). |
+| `icon_animation` | `spin` \| `pulse` \| `bounce` \| `shake` \| `beat` (or template) | — | Animate the icon. See [Tab look](Feature-Tab-Look#icon-animations-icon_animation). |
+| `font_size` / `font_weight` / `font_family` | CSS | — | This tab's label font. See [Tab look](Feature-Tab-Look#fonts-per-tab-font_size-font_weight-font_family). |
 | `use` / `vars` | string / map | — | Fill this tab from a `tab_templates` blueprint. See [Reuse](Feature-Reuse#tab_templates--use). |
 | `pin` / `pin_timeout` | string / minutes | — | Ask for a code before the tab opens (not security). See [PIN-locked tabs](Feature-PIN). |
 | `disabled` | boolean | `false` | Show the tab greyed-out and non-selectable. See [Disabled tabs](Feature-Disabled-Tabs). |

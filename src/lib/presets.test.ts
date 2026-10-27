@@ -6,7 +6,10 @@ const tabs = [{ name: "A", card: { type: "markdown" } }];
 
 describe("presets", () => {
   it("lists the presets", () => {
-    expect(PRESET_NAMES).toEqual(["default", "ios", "material", "glass", "minimal", "rail"]);
+    expect(PRESET_NAMES).toEqual([
+      "default", "ios", "material", "glass", "minimal", "rail",
+      "neumorphic", "ha-tile", "mushroom", "bubble", "fluent", "material-you",
+    ]);
   });
 
   it("every preset sets the full visual key set", () => {

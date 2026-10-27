@@ -14,6 +14,8 @@ export type TabDisplay = "both" | "icon" | "label" | "active" | "dots";
 export type TabAlign = "start" | "center" | "end" | "justify";
 export type BadgeDisplay = "text" | "dot";
 export type PanelTransition = TransitionMode;
+export type HapticType = "selection" | "light" | "medium" | "heavy" | "success" | "warning" | "failure";
+const HAPTICS: HapticType[] = ["selection", "light", "medium", "heavy", "success", "warning", "failure"];
 
 export interface TabdeckTabConfig {
   name?: string;
@@ -84,6 +86,15 @@ export interface TabdeckTabConfig {
   children?: any[];
   children_display?: "row" | "menu";
   children_options?: Record<string, any>;
+  // Icon animation (spin, pulse, bounce, shake, beat); may be a template.
+  icon_animation?: string;
+  // A picture instead of the icon: an image URL, or an entity (a person's
+  // photo via entity_picture); may be a template.
+  picture?: string;
+  // This tab's label font (CSS values; numbers are px for the size).
+  font_size?: string;
+  font_weight?: string;
+  font_family?: string;
   // Reuse: fill the top-level tab_templates[use] blueprint with these vars
   // (kept so the editor round-trips them).
   use?: string;
@@ -251,6 +262,10 @@ export interface TabdeckCardConfig {
   tab_templates?: Record<string, Record<string, any>>;
   // A panel under the card showing conditions, templates and timings.
   debug: boolean;
+  // Companion-app vibration on tab switches the person makes.
+  haptic?: HapticType;
+  // Tab bar size: compact, default or comfortable.
+  density: "compact" | "default" | "comfortable";
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -379,6 +394,11 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
       raw?.styles && typeof raw.styles === "object" && !Array.isArray(raw.styles)
         ? raw.styles
         : undefined,
+    icon_animation: typeof raw?.icon_animation === "string" && raw.icon_animation ? raw.icon_animation : undefined,
+    picture: typeof raw?.picture === "string" && raw.picture.trim() ? raw.picture.trim() : undefined,
+    font_size: cssLength(raw?.font_size),
+    font_weight: safeCss(raw?.font_weight),
+    font_family: safeCss(raw?.font_family),
     use: typeof raw?.use === "string" && raw.use ? raw.use : undefined,
     vars: raw?.vars && typeof raw.vars === "object" && !Array.isArray(raw.vars) ? raw.vars : undefined,
     group,
@@ -432,6 +452,13 @@ function normalizeAutoRotate(raw: any): AutoRotateConfig | undefined {
 }
 
 // `split: 900` or `{ min_width: 900, columns: 2 }`.
+// A CSS value that can't escape its declaration (numbers allowed).
+function safeCss(raw: any): string | undefined {
+  if (typeof raw === "number" && Number.isFinite(raw)) return String(raw);
+  if (typeof raw !== "string" || !raw.trim() || /[;{}<>]/.test(raw)) return undefined;
+  return raw.trim();
+}
+
 function plainMap(raw: any): Record<string, any> | undefined {
   return raw && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw).length ? raw : undefined;
 }
@@ -571,6 +598,8 @@ export function normalizeConfig(raw: any, opts: { expand?: boolean } = {}): Tabd
     tab_defaults: tabDefaults,
     tab_templates: tabTemplates,
     debug: Boolean(raw?.debug),
+    haptic: raw?.haptic === true ? "selection" : HAPTICS.includes(raw?.haptic) ? raw.haptic : undefined,
+    density: raw?.density === "compact" || raw?.density === "comfortable" ? raw.density : "default",
     unload_after: Number(raw?.unload_after) > 0 ? Math.max(1, Number(raw.unload_after)) : undefined,
   };
 }

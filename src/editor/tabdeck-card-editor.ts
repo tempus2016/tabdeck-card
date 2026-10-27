@@ -12,6 +12,7 @@ import { applyConversion, convertConfig, type ConvertResult } from "../lib/conve
 import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
 import { isDefaultTabTemplate } from "../lib/sources";
 import { cssLength } from "../lib/layout";
+import { contrastRatio, cssColor, isThemeColor, parseRgb } from "../lib/color";
 import "../components/tabdeck-tabbar";
 
 // MDI icon paths for the per-tab reorder/delete buttons. Inlined rather than
@@ -42,7 +43,23 @@ const DEFAULT_TAB_ICON = "mdi:tab";
 // searchable icon picker (with live previews); the text/select/boolean
 // selectors let ha-form resolve the right sub-elements for whatever HA frontend
 // version is running, so we never hard-code version-specific element names.
-const TAB_SCHEMA = [
+// Colour fields get HA's colour picker (theme colours) while empty or set to a
+// theme colour; a custom CSS value (hex, var(), gradient) keeps a text field.
+const COLOR_FIELDS = new Set(["accent", "color", "badge_color", "ring_color"]);
+
+function tabSchema(tab: Record<string, any>, opts: (values: string[], field: string) => any[]) {
+  return TAB_SCHEMA.map((f) => {
+    if (COLOR_FIELDS.has(f.name) && (!tab[f.name] || isThemeColor(tab[f.name]))) {
+      return { name: f.name, selector: { ui_color: {} } };
+    }
+    if (f.name === "icon_animation") {
+      return { name: f.name, selector: { select: { mode: "dropdown", options: opts(["", "spin", "pulse", "bounce", "shake", "beat"], "icon_animation") } } };
+    }
+    return f;
+  });
+}
+
+const TAB_SCHEMA: { name: string; selector: any }[] = [
   { name: "name", selector: { text: {} } },
   { name: "subtitle", selector: { text: {} } },
   { name: "icon", selector: { icon: {} } },
@@ -52,6 +69,11 @@ const TAB_SCHEMA = [
   { name: "badge_color", selector: { text: {} } },
   { name: "background", selector: { text: {} } },
   { name: "badge_icon", selector: { icon: {} } },
+  { name: "picture", selector: { text: {} } },
+  { name: "icon_animation", selector: { text: {} } },
+  { name: "font_size", selector: { text: {} } },
+  { name: "font_weight", selector: { text: {} } },
+  { name: "font_family", selector: { text: {} } },
   { name: "ring", selector: { text: {} } },
   { name: "ring_max", selector: { number: { min: 1, step: 1, mode: "box" } } },
   { name: "ring_color", selector: { text: {} } },
@@ -695,6 +717,44 @@ export class TabdeckCardEditor extends LitElement {
     return undefined;
   }
 
+  // ha-form select options as {value,label}; labels localised where a
+  // translation exists (editor.opt.<field>.<value>).
+  private _opts = (values: string[], field?: string) =>
+    values.map((v) => {
+      const key = `editor.opt.${field}.${v}`;
+      return { value: v, label: field && hasKey(key) ? this._t(key) : v };
+    });
+
+  // Resolve a CSS colour against the current theme (via a probe inside the
+  // editor, so theme variables apply) to [r, g, b].
+  private _resolveColor(value: string): number[] | undefined {
+    const probe = document.createElement("span");
+    probe.style.color = value;
+    if (!probe.style.color) return undefined;
+    this.renderRoot.appendChild(probe);
+    const rgb = parseRgb(getComputedStyle(probe).color);
+    probe.remove();
+    return rgb;
+  }
+
+  // Accent / colour too close to the card background to read (< 3:1).
+  private _contrastWarnings(tab: Record<string, any>): string[] {
+    const bg = this._resolveColor("var(--card-background-color, var(--ha-card-background, #fff))");
+    if (!bg) return [];
+    const out: string[] = [];
+    for (const field of ["accent", "color"]) {
+      const value = tab[field];
+      if (typeof value !== "string" || !value || value.includes("{")) continue;
+      const rgb = this._resolveColor(cssColor(value)!);
+      if (!rgb) continue;
+      const ratio = contrastRatio(rgb, bg);
+      if (ratio < 3) {
+        out.push(this._t("editor.contrast_low", { field: this._t(`editor.tab.${field}`), ratio: ratio.toFixed(1) }));
+      }
+    }
+    return out;
+  }
+
   private _globalSchema() {
     const cfg = this._config!;
     // ha-form's select selector wants options as {value,label} objects.
@@ -768,6 +828,8 @@ export class TabdeckCardEditor extends LitElement {
       { name: "event_id", selector: { text: {} } },
       { name: "unload_after", selector: { number: { min: 0, max: 1440, step: 1, mode: "box" } } },
       { name: "edit_mode_reveal", selector: { boolean: {} } },
+      { name: "density", selector: { select: { mode: "dropdown", options: opts(["default", "compact", "comfortable"], "density") } } },
+      { name: "haptic", selector: { select: { mode: "dropdown", options: opts(["", "selection", "light", "medium", "heavy"], "haptic") } } },
       { name: "debug", selector: { boolean: {} } },
     ];
   }
@@ -835,6 +897,8 @@ export class TabdeckCardEditor extends LitElement {
       fire_event: cfg.fire_event,
       event_id: cfg.event_id ?? "",
       debug: cfg.debug,
+      density: cfg.density,
+      haptic: cfg.haptic ?? "",
     };
   }
 
@@ -921,6 +985,8 @@ export class TabdeckCardEditor extends LitElement {
       fire_event: !!v.fire_event,
       event_id: v.event_id || undefined,
       debug: !!v.debug,
+      density: v.density === "compact" || v.density === "comfortable" ? v.density : "default",
+      haptic: v.haptic || undefined,
     });
   }
 
@@ -938,6 +1004,11 @@ export class TabdeckCardEditor extends LitElement {
       badge_color: v.badge_color || undefined,
       background: v.background || undefined,
       badge_icon: v.badge_icon || undefined,
+      picture: v.picture || undefined,
+      icon_animation: v.icon_animation || undefined,
+      font_size: cssLength(typeof v.font_size === "string" && /^\d+(\.\d+)?$/.test(v.font_size) ? Number(v.font_size) : v.font_size),
+      font_weight: v.font_weight ? String(v.font_weight) : undefined,
+      font_family: v.font_family || undefined,
       ring: v.ring === undefined || v.ring === null || v.ring === "" ? undefined : String(v.ring),
       ring_max: Number(v.ring_max) > 0 ? Number(v.ring_max) : undefined,
       ring_color: v.ring_color || undefined,
@@ -1351,6 +1422,11 @@ export class TabdeckCardEditor extends LitElement {
                           badge_color: tab.badge_color ?? "",
                           background: tab.background ?? "",
                           badge_icon: tab.badge_icon ?? "",
+                          picture: tab.picture ?? "",
+                          icon_animation: tab.icon_animation ?? "",
+                          font_size: tab.font_size ?? "",
+                          font_weight: tab.font_weight ?? "",
+                          font_family: tab.font_family ?? "",
                           ring: tab.ring ?? "",
                           ring_max: tab.ring_max,
                           ring_color: tab.ring_color ?? "",
@@ -1366,11 +1442,14 @@ export class TabdeckCardEditor extends LitElement {
                           enter_action: tab.enter_action,
                           leave_action: tab.leave_action,
                         }}
-                        .schema=${TAB_SCHEMA}
+                        .schema=${tabSchema(tab, this._opts)}
                         .computeLabel=${this._computeTabLabel}
                         @value-changed=${(e: CustomEvent) =>
                           this._onTabFieldsChanged(index, e)}
                       ></ha-form>
+                      ${this._contrastWarnings(tab).map(
+                        (w) => html`<div class="editor-warning contrast-warning" role="alert">⚠️ ${w}</div>`,
+                      )}
                       ${CONDITION_SECTIONS.map((sec) => this._renderConditions(index, tab, sec))}
                       <button class="edit-card" @click=${() => this._openCard(index)}>
                         <span class="edit-card-label">${this._t("editor.edit_card")}</span>

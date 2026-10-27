@@ -21,6 +21,7 @@ import { hassLanguage, localize } from "./lib/i18n";
 import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import { hideTabs, loadLayout, orderTabs, saveLayout, type UserLayout } from "./lib/customize";
 import { cssBackground, peekCommit, transitionFrames } from "./lib/layout";
+import { cssColor } from "./lib/color";
 import {
   autoContentCard,
   clearSnooze,
@@ -46,7 +47,7 @@ import { isActiveBadge } from "./components/tabdeck-tab";
 const INTERACTION_EVENTS = ["pointerdown", "keydown", "touchstart", "wheel"] as const;
 
 // Tab display fields that may be Jinja templates (rendered live by HA).
-const TEMPLATED_FIELDS = ["name", "subtitle", "icon", "color", "accent", "background"] as const;
+const TEMPLATED_FIELDS = ["name", "subtitle", "icon", "color", "accent", "background", "icon_animation", "picture"] as const;
 
 @customElement("tabdeck-card")
 export class TabdeckCard extends LitElement {
@@ -1084,6 +1085,11 @@ export class TabdeckCard extends LitElement {
     }
     const tab = visible[this._selected];
     if (changed && this._config?.fire_event) this._fireTabEvent(index, tab?.name, prev?.name);
+    // Companion-app haptics, for switches the person makes (automatic ones
+    // pass persist = false).
+    if (changed && persist && this._config?.haptic && !this._editing) {
+      window.dispatchEvent(new CustomEvent("haptic", { detail: this._config.haptic }));
+    }
     if (changed) {
       this.dispatchEvent(
         new CustomEvent("tabdeck-tab-changed", {
@@ -1457,10 +1463,10 @@ export class TabdeckCard extends LitElement {
           name: this._text(t.name),
           subtitle: this._text(t.subtitle) ?? (t.group?.display === "menu" ? this._groupChild.get(t) : undefined),
           icon: this._text(t.icon),
-          accent: this._text(t.accent),
-          color: this._text(t.color),
+          accent: cssColor(this._text(t.accent)),
+          color: cssColor(this._text(t.color)),
           disabled: t.disabled,
-          badgeColor: t.badge_color,
+          badgeColor: cssColor(t.badge_color),
           holdAction: !!t.hold_action || (!!cfg.alert_snooze && !!t.alert),
           badgeAction: !!t.badge_action,
           action: isActionTab(t),
@@ -1469,8 +1475,11 @@ export class TabdeckCard extends LitElement {
           ghost: this._editing && this._isHidden(t),
           fab: t.fab,
           ring: this._ring(t),
-          ringColor: t.ring_color,
+          ringColor: cssColor(t.ring_color),
           badgeIcon: t.badge_icon,
+          picture: this._picture(t),
+          iconAnimation: this._text(t.icon_animation),
+          font: t.font_size || t.font_weight || t.font_family ? { size: t.font_size, weight: t.font_weight, family: t.font_family } : undefined,
           menu: t.group?.display === "menu" ? t.group.items : undefined,
         }))}
         .selected=${this._selected}
@@ -1500,7 +1509,8 @@ export class TabdeckCard extends LitElement {
         .overflowMenu=${cfg.overflow_menu}
         .barLabel=${cfg.aria_label}
         .language=${hassLanguage(this._hass)}
-        .barBackground=${cfg.bar_background}
+        .barBackground=${cssColor(cfg.bar_background)}
+        .density=${cfg.density}
         @tabdeck-select=${this._onSelect}
       ></tabdeck-tabbar>
     `;
@@ -1718,6 +1728,14 @@ export class TabdeckCard extends LitElement {
     const snoozed = snoozedUntil(this._deckId, key, Date.now()) !== undefined;
     if (!met && snoozed) clearSnooze(this._deckId, key);
     return met && !snoozed;
+  }
+
+  // A tab's picture: an entity's entity_picture (a person's photo), or a URL.
+  private _picture(tab: TabdeckTabConfig): string | undefined {
+    const v = this._text(tab.picture);
+    if (!v) return undefined;
+    if (/^[a-z_]+\.[a-z0-9_]+$/.test(v)) return this._hass?.states?.[v]?.attributes?.entity_picture || undefined;
+    return v;
   }
 
   // Progress ring percentage (undefined: no ring).

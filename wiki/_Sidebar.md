@@ -21,6 +21,7 @@
 - [PIN-locked tabs](Feature-PIN)
 - [Reuse: defaults & templates](Feature-Reuse)
 - [Debug panel](Feature-Debug)
+- [Pictures, animations & fonts](Feature-Tab-Look)
 - [State-driven icons & names](Feature-Templated-Fields)
 - [Alert pulse](Feature-Alert)
 - [Auto-rotate & idle return](Feature-Kiosk)

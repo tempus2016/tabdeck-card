@@ -277,6 +277,15 @@ describe("tabdeck-card-editor", () => {
     expect(cfg.tabs[0].icon).toBeUndefined();
   });
 
+  it("uses HA's colour picker for theme colours and a text field for custom CSS", async () => {
+    const el = await mount({ tabs: [{ name: "A", accent: "red", color: "#123456", card: {} }] });
+    await expand(el, 0);
+    const schema = el.shadowRoot.querySelector(".tab-form").schema as any[];
+    expect(schema.find((f) => f.name === "accent").selector).toEqual({ ui_color: {} });
+    expect(schema.find((f) => f.name === "color").selector).toEqual({ text: {} });
+    expect(schema.find((f) => f.name === "badge_color").selector).toEqual({ ui_color: {} });
+  });
+
   it("keeps a YAML count badge when another tab field is edited", async () => {
     const badge = { count: "light.*", state: "on" };
     const el = await mount({ tabs: [{ name: "A", badge, card: {} }] });
