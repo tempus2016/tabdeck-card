@@ -54,7 +54,12 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 
 ## Dynamic behaviour
 - **[Dynamic tabs](Feature-Dynamic-Tabs)** — generate a tab per item from a live Jinja list (`auto_tabs`).
-- **[A tab per area / label](Feature-Dynamic-Tabs#built-in-sources-a-tab-per-area-or-label)** — `auto_tabs: { source: areas }`, no Jinja needed.
+- **[A tab per area / floor / label / domain / device / list / calendar / camera / zone](Feature-Dynamic-Tabs#built-in-sources-a-tab-per-area-floor-label-domain-device-list-calendar-camera-or-zone)** — `auto_tabs: { source: areas }`, no Jinja needed, with fitting default cards.
+- **[Auto content](Feature-Dynamic-Tabs#area-floor-and-label-tabs-without-a-card-auto-content)** — a tab with `area` / `floor` / `label` and no card shows tiles of its entities.
+- **[Count badges, badge icons & progress rings](Badges#count-badge-no-jinja)** — `badge: { count: light.*, state: on }`, `badge_icon`, `ring`.
+- **[Alerting tabs first & snooze](Feature-Alert#alerting-tabs-first-alert_first)** — `alert_first`, long-press to snooze (`alert_snooze`).
+- **[Remote control & events](Feature-Remote-Control)** — automations switch tabs (`remote_entity`, `remote_event`), HA hears tab changes (`fire_event`), defaults by time and device.
+- **[PIN-locked tabs](Feature-PIN)** — ask for a code before a tab opens (`pin`; a convenience lock, not security).
 - **[Visibility and/or/not groups](Tab-Visibility#logical-groups-and--or--not)** — nestable logical conditions for tab visibility.
 - **[Alert pulse](Feature-Alert)** — a tab pulses while its conditions are met (`alert`).
 - **[Auto-select a tab](Feature-Auto-Select)** — switch tab when an entity becomes active (`auto_select`).

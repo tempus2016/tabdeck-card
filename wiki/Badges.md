@@ -27,6 +27,53 @@ tabs:
     card: { ... }
 ```
 
+## Count badge (no Jinja)
+
+Count entities by pattern, without writing a template:
+
+```yaml
+tabs:
+  - name: Lights
+    icon: mdi:lightbulb-group
+    badge:
+      count: light.*              # one pattern or a list; * matches anything
+      state: "on"                 # optional: a state or list of states
+      area: living_room           # optional: only this area (device areas count)
+    card: { ... }
+```
+
+- Without `state`, it counts entities that are **active** (on, open, home, playing, a number above 0, …).
+- Patterns can be several: `count: [light.*, switch.*_lamp]`.
+- Count badges are YAML; the visual editor keeps them when you edit other fields.
+
+## Badge icon (`badge_icon`)
+
+Show an icon as the badge instead of text:
+
+```yaml
+    badge: binary_sensor.washer_done
+    badge_icon: mdi:check-bold      # shown while the badge is active
+```
+
+Without a `badge`, the icon is always shown, which is handy for marking a tab.
+
+## Progress ring (`ring`)
+
+Draw a ring around the tab's icon that fills with a value, such as a battery level or a washing machine's progress:
+
+```yaml
+tabs:
+  - name: Washer
+    icon: mdi:washing-machine
+    ring: sensor.washer_progress   # entity id, template or number
+    ring_max: 100                  # default 100
+    ring_color: "#4caf50"          # optional
+```
+
+- Values are clamped to 0–`ring_max`; a non-numeric state (`unavailable`) shows no ring.
+- Colours: `ring_color`, or the `--tabdeck-ring-color` and `--tabdeck-ring-track` variables.
+- The ring needs the tab to show its icon.
+
 ## Behaviour notes
 
 - A plain string that is neither an entity id nor a template is shown verbatim.

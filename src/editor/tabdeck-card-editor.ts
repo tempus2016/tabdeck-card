@@ -9,7 +9,7 @@ import { hasKey, hassLanguage, localize } from "../lib/i18n";
 import { applyStarter, buildStarter, STARTERS, type StarterKind } from "../lib/starters";
 import { applyConversion, convertConfig, type ConvertResult } from "../lib/convert";
 import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
-import { SOURCE_TAB_TEMPLATE } from "../lib/sources";
+import { isDefaultTabTemplate } from "../lib/sources";
 import { cssLength } from "../lib/layout";
 import "../components/tabdeck-tabbar";
 
@@ -50,6 +50,13 @@ const TAB_SCHEMA = [
   { name: "badge", selector: { text: {} } },
   { name: "badge_color", selector: { text: {} } },
   { name: "background", selector: { text: {} } },
+  { name: "badge_icon", selector: { icon: {} } },
+  { name: "ring", selector: { text: {} } },
+  { name: "ring_max", selector: { number: { min: 1, step: 1, mode: "box" } } },
+  { name: "ring_color", selector: { text: {} } },
+  { name: "area", selector: { area: {} } },
+  { name: "pin", selector: { text: {} } },
+  { name: "pin_timeout", selector: { number: { min: 0, max: 1440, step: 1, mode: "box" } } },
   { name: "disabled", selector: { boolean: {} } },
   { name: "fab", selector: { boolean: {} } },
   { name: "card_size", selector: { number: { min: 1, max: 20, step: 1, mode: "box" } } },
@@ -254,8 +261,8 @@ export class TabdeckCardEditor extends LitElement {
     if (!auto?.source) return cfg;
     const { template: _t, ...rest } = auto;
     const out: any = { ...rest };
-    if (out.tab_template === SOURCE_TAB_TEMPLATE) delete out.tab_template;
-    for (const k of ["domains", "exclude"]) if (out[k] === undefined) delete out[k];
+    if (isDefaultTabTemplate(out.tab_template)) delete out.tab_template;
+    for (const k of ["domains", "exclude", "content"]) if (out[k] === undefined) delete out[k];
     return { ...cfg, auto_tabs: out };
   }
 
@@ -751,6 +758,12 @@ export class TabdeckCardEditor extends LitElement {
       { name: "content_max_height", selector: { text: {} } },
       { name: "fullscreen", selector: { boolean: {} } },
       { name: "swipe_peek", selector: { boolean: {} } },
+      { name: "alert_first", selector: { boolean: {} } },
+      { name: "alert_snooze", selector: { number: { min: 0, max: 1440, step: 1, mode: "box" } } },
+      { name: "remote_entity", selector: { entity: { domain: ["input_text", "input_select", "select", "sensor"] } } },
+      { name: "remote_event", selector: { boolean: {} } },
+      { name: "fire_event", selector: { boolean: {} } },
+      { name: "event_id", selector: { text: {} } },
       { name: "unload_after", selector: { number: { min: 0, max: 1440, step: 1, mode: "box" } } },
       { name: "edit_mode_reveal", selector: { boolean: {} } },
     ];
@@ -812,6 +825,12 @@ export class TabdeckCardEditor extends LitElement {
       fullscreen: cfg.fullscreen,
       swipe_peek: cfg.swipe_peek,
       unload_after: cfg.unload_after ?? 0,
+      alert_first: cfg.alert_first,
+      alert_snooze: cfg.alert_snooze ?? 0,
+      remote_entity: cfg.remote_entity ?? "",
+      remote_event: cfg.remote_event,
+      fire_event: cfg.fire_event,
+      event_id: cfg.event_id ?? "",
     };
   }
 
@@ -891,6 +910,12 @@ export class TabdeckCardEditor extends LitElement {
       fullscreen: !!v.fullscreen,
       swipe_peek: !!v.swipe_peek,
       unload_after: Number(v.unload_after) > 0 ? Math.max(1, Number(v.unload_after)) : undefined,
+      alert_first: !!v.alert_first,
+      alert_snooze: Number(v.alert_snooze) > 0 ? Number(v.alert_snooze) : undefined,
+      remote_entity: v.remote_entity || undefined,
+      remote_event: !!v.remote_event,
+      fire_event: !!v.fire_event,
+      event_id: v.event_id || undefined,
     });
   }
 
@@ -903,9 +928,17 @@ export class TabdeckCardEditor extends LitElement {
       icon: v.icon || undefined,
       accent: v.accent || undefined,
       color: v.color || undefined,
-      badge: v.badge || undefined,
+      // A count badge ({ count: ... }) is YAML-only: keep it unless replaced.
+      badge: v.badge || (typeof this._config?.tabs[index]?.badge === "object" ? this._config.tabs[index].badge : undefined),
       badge_color: v.badge_color || undefined,
       background: v.background || undefined,
+      badge_icon: v.badge_icon || undefined,
+      ring: v.ring === undefined || v.ring === null || v.ring === "" ? undefined : String(v.ring),
+      ring_max: Number(v.ring_max) > 0 ? Number(v.ring_max) : undefined,
+      ring_color: v.ring_color || undefined,
+      area: v.area || undefined,
+      pin: v.pin ? String(v.pin) : undefined,
+      pin_timeout: Number(v.pin_timeout) > 0 ? Number(v.pin_timeout) : undefined,
       disabled: v.disabled ? true : undefined,
       fab: v.fab ? true : undefined,
       card_size: typeof v.card_size === "number" ? v.card_size : undefined,
@@ -1309,9 +1342,16 @@ export class TabdeckCardEditor extends LitElement {
                           icon: tab.icon ?? "",
                           accent: tab.accent ?? "",
                           color: tab.color ?? "",
-                          badge: tab.badge ?? "",
+                          badge: typeof tab.badge === "string" ? tab.badge : "",
                           badge_color: tab.badge_color ?? "",
                           background: tab.background ?? "",
+                          badge_icon: tab.badge_icon ?? "",
+                          ring: tab.ring ?? "",
+                          ring_max: tab.ring_max,
+                          ring_color: tab.ring_color ?? "",
+                          area: tab.area ?? "",
+                          pin: tab.pin ?? "",
+                          pin_timeout: tab.pin_timeout,
                           disabled: !!tab.disabled,
                           fab: !!tab.fab,
                           card_size: tab.card_size,

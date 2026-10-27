@@ -17,6 +17,31 @@ describe("tabdeck-tab", () => {
     }
   });
 
+  it("draws a progress ring around the icon", async () => {
+    const el = await mount({ label: "Washer", icon: "mdi:washing-machine", ring: 25, ringColor: "red" });
+    const ring = el.shadowRoot.querySelector(".ring") as SVGElement;
+    expect(ring).toBeTruthy();
+    const bar = el.shadowRoot.querySelector(".ring-value") as SVGCircleElement;
+    expect(bar.getAttribute("stroke-dasharray")).toBe("25 100");
+    expect(bar.style.stroke).toBe("red");
+    expect(el.shadowRoot.querySelector(".icon-wrap ha-icon")).toBeTruthy();
+    expect(ring.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("no ring without a value", async () => {
+    const el = await mount({ label: "A", icon: "mdi:a" });
+    expect(el.shadowRoot.querySelector(".ring")).toBeNull();
+  });
+
+  it("badge_icon shows an icon badge while the badge is active (or always without a value)", async () => {
+    const on = await mount({ label: "A", badge: "3", badgeIcon: "mdi:alert" });
+    expect(on.shadowRoot.querySelector(".badge.icon-badge ha-icon")?.getAttribute("icon")).toBe("mdi:alert");
+    const off = await mount({ label: "A", badge: "0", badgeIcon: "mdi:alert" });
+    expect(off.shadowRoot.querySelector(".icon-badge")).toBeNull();
+    const always = await mount({ label: "A", badgeIcon: "mdi:star" });
+    expect(always.shadowRoot.querySelector(".icon-badge")).toBeTruthy();
+  });
+
   it("renders the label and role=tab", async () => {
     const el = await mount({ label: "Lights" });
     expect(el.shadowRoot.textContent).toContain("Lights");

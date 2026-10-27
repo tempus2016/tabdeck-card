@@ -23,6 +23,11 @@ interface TabItem {
   ghost?: boolean;
   // Floating action button style.
   fab?: boolean;
+  // Progress ring around the icon (0–100) and its colour.
+  ring?: number;
+  ringColor?: string;
+  // Icon shown as the badge.
+  badgeIcon?: string;
   // Grouped tab: its children, picked from a dropdown on the tab.
   menu?: { name?: string; icon?: string }[];
 }
@@ -651,6 +656,9 @@ export class TabdeckTabbar extends LitElement {
               .action=${!!item.action}
               .ghost=${!!item.ghost}
               .fab=${!!item.fab}
+              .ring=${item.ring}
+              .ringColor=${item.ringColor}
+              .badgeIcon=${item.badgeIcon}
               .hasMenu=${!!item.menu?.length}
               aria-haspopup=${item.menu?.length ? "menu" : "false"}
               aria-expanded=${item.menu?.length ? String(this._groupOpen === index) : "false"}

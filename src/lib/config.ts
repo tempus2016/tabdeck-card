@@ -2,7 +2,7 @@ import type { LovelaceCardConfig } from "../types";
 import { normalizeBadgeFormat, type BadgeFormat } from "./badge";
 import { isPreset, withPreset, type PresetName } from "./presets";
 import { cssLength, type TransitionMode } from "./layout";
-import { buildSourceTemplate, SOURCES, SOURCE_TAB_TEMPLATE, type AutoTabsSource } from "./sources";
+import { buildSourceTemplate, defaultTabTemplate, SOURCES, type AutoTabsSource } from "./sources";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
 export type TabStyle = "underline" | "pill" | "segmented" | "boxed" | "text" | "rail";
@@ -20,8 +20,28 @@ export interface TabdeckTabConfig {
   icon?: string;
   accent?: string;
   color?: string;
-  badge?: string;
+  // An entity id, a Jinja template, or a count: { count: light.*, state: on }.
+  badge?: string | Record<string, any>;
   badge_color?: string;
+  // An icon shown as the badge (while the badge is active, or always when
+  // there's no badge value).
+  badge_icon?: string;
+  // Progress ring around the icon: an entity id, template or number, out of
+  // ring_max (default 100).
+  ring?: string;
+  ring_max?: number;
+  ring_color?: string;
+  // A code asked for before the tab opens (a convenience lock, not
+  // security: the config is readable by anyone who can edit the dashboard).
+  pin?: string;
+  // Minutes an unlock lasts (default: until the page is reloaded).
+  pin_timeout?: number;
+  // Auto content: no card needed, the tab shows tiles of the entities in
+  // this area / floor / label (optionally only these domains).
+  area?: string;
+  floor?: string;
+  label?: string;
+  domains?: string[];
   // Numeric badge formatting (precision / unit / max → "99+").
   badge_format?: BadgeFormat;
   disabled?: boolean;
@@ -92,6 +112,8 @@ export interface AutoTabsConfig {
   source?: AutoTabsSource;
   domains?: string[];
   exclude?: string[];
+  // "tiles": area / floor / label tabs get auto-generated tile grids.
+  content?: "entities" | "tiles";
 }
 
 export interface AutoRotateConfig {
@@ -196,6 +218,24 @@ export interface TabdeckCardConfig {
   fullscreen: boolean;
   // While swiping, the content follows the finger and the next tab slides in.
   swipe_peek: boolean;
+  // Tabs whose alert is active move to the front.
+  alert_first: boolean;
+  // Minutes a long-press on an alerting tab silences its pulse.
+  alert_snooze?: number;
+  // Default tab by time of day ({ "06:00": Morning }) and by browser
+  // ({ kitchen-panel: Cameras }; see deviceId()).
+  default_by_time?: Record<string, any>;
+  default_by_device?: Record<string, any>;
+  // Fire a tabdeck_tab_changed event on every tab change (admin users only:
+  // HA doesn't let other users fire events).
+  fire_event: boolean;
+  // This deck's name in events (default: storage_key).
+  event_id?: string;
+  // Follow this entity: when its state becomes a tab name, slug or index,
+  // switch to that tab (input_text / input_select set by an automation).
+  remote_entity?: string;
+  // Switch on tabdeck_select events ({ tab, deck?, device? }; admin users).
+  remote_event: boolean;
   // Minutes: a tab not opened for this long has its card freed (rebuilt
   // when it's opened again).
   unload_after?: number;
@@ -290,6 +330,16 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     color: raw?.color ?? undefined,
     badge: raw?.badge ?? undefined,
     badge_color: raw?.badge_color ?? undefined,
+    badge_icon: typeof raw?.badge_icon === "string" && raw.badge_icon ? raw.badge_icon : undefined,
+    ring: raw?.ring === undefined || raw.ring === null || raw.ring === "" ? undefined : String(raw.ring),
+    ring_max: Number(raw?.ring_max) > 0 ? Number(raw.ring_max) : undefined,
+    ring_color: typeof raw?.ring_color === "string" && raw.ring_color ? raw.ring_color : undefined,
+    pin: raw?.pin === undefined || raw.pin === null || raw.pin === "" ? undefined : String(raw.pin),
+    pin_timeout: Number(raw?.pin_timeout) > 0 ? Number(raw.pin_timeout) : undefined,
+    area: typeof raw?.area === "string" && raw.area ? raw.area : undefined,
+    floor: typeof raw?.floor === "string" && raw.floor ? raw.floor : undefined,
+    label: typeof raw?.label === "string" && raw.label ? raw.label : undefined,
+    domains: Array.isArray(raw?.domains) && raw.domains.length ? raw.domains.map(String) : undefined,
     badge_format: normalizeBadgeFormat(raw?.badge_format),
     disabled: raw?.disabled ? true : undefined,
     fab: raw?.fab ? true : undefined,
@@ -335,15 +385,17 @@ function normalizeAutoTabs(raw: any): AutoTabsConfig | undefined {
   if (SOURCES.includes(raw.source)) {
     const domains = Array.isArray(raw.domains) ? raw.domains.map(String) : undefined;
     const exclude = Array.isArray(raw.exclude) ? raw.exclude.map(String) : undefined;
+    const content = raw.content === "tiles" ? ("tiles" as const) : undefined;
     return {
       source: raw.source,
       domains,
       exclude,
+      content,
       template: buildSourceTemplate({ source: raw.source, domains, exclude }),
       tab_template:
         raw.tab_template && typeof raw.tab_template === "object"
           ? raw.tab_template
-          : SOURCE_TAB_TEMPLATE,
+          : defaultTabTemplate({ source: raw.source, content, domains }),
     };
   }
   if (typeof raw.template !== "string" || raw.template.trim() === "") return undefined;
@@ -366,6 +418,10 @@ function normalizeAutoRotate(raw: any): AutoRotateConfig | undefined {
 }
 
 // `split: 900` or `{ min_width: 900, columns: 2 }`.
+function plainMap(raw: any): Record<string, any> | undefined {
+  return raw && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw).length ? raw : undefined;
+}
+
 function cardList(raw: any): LovelaceCardConfig[] | undefined {
   return Array.isArray(raw) && raw.length > 0 ? raw : undefined;
 }
@@ -461,6 +517,14 @@ export function normalizeConfig(raw: any): TabdeckCardConfig {
     footer_cards: cardList(raw?.footer_cards),
     fullscreen: Boolean(raw?.fullscreen),
     swipe_peek: Boolean(raw?.swipe_peek),
+    alert_first: Boolean(raw?.alert_first),
+    alert_snooze: Number(raw?.alert_snooze) > 0 ? Number(raw.alert_snooze) : undefined,
+    default_by_time: plainMap(raw?.default_by_time),
+    default_by_device: plainMap(raw?.default_by_device),
+    fire_event: Boolean(raw?.fire_event),
+    event_id: typeof raw?.event_id === "string" && raw.event_id ? raw.event_id : undefined,
+    remote_entity: typeof raw?.remote_entity === "string" && raw.remote_entity ? raw.remote_entity : undefined,
+    remote_event: Boolean(raw?.remote_event),
     unload_after: Number(raw?.unload_after) > 0 ? Math.max(1, Number(raw.unload_after)) : undefined,
   };
 }

@@ -41,8 +41,8 @@ export function makeHassSubscribe(getHass: () => any): SubscribeFn {
   };
 }
 
-export function isTemplate(s: string | undefined): boolean {
-  return !!s && (s.includes("{{") || s.includes("{%"));
+export function isTemplate(s: unknown): s is string {
+  return typeof s === "string" && (s.includes("{{") || s.includes("{%"));
 }
 
 // Mirrors Home Assistant's `result_as_boolean`: booleans pass through, numbers

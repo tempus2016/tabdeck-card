@@ -20,6 +20,21 @@ import { hassLanguage, localize } from "./lib/i18n";
 import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import { hideTabs, loadLayout, orderTabs, saveLayout, type UserLayout } from "./lib/customize";
 import { cssBackground, peekCommit, transitionFrames } from "./lib/layout";
+import {
+  autoContentCard,
+  clearSnooze,
+  countBadge,
+  deviceId,
+  normalizeCountBadge,
+  orderAlertsFirst,
+  pickByDevice,
+  pickByTime,
+  pinUnlocked,
+  rememberPin,
+  ringPercent,
+  snooze,
+  snoozedUntil,
+} from "./lib/smart";
 import "./components/tabdeck-tabbar";
 import "./components/tabdeck-masonry-card";
 import "./components/tabdeck-sections-card";
@@ -114,6 +129,11 @@ export class TabdeckCard extends LitElement {
     this._collapsed = this._config.start_collapsed;
     this._fullscreen = false;
     this._seenAt.clear();
+    this._alertOrder = new Set();
+    this._autoSigs = [];
+    this._lastRemote = undefined;
+    this._pinFor = undefined;
+    this._unsubscribeRemote();
     this._autoPrev = undefined;
     this._lastEntityValue = undefined;
     this._genTabs = [];
@@ -213,6 +233,10 @@ export class TabdeckCard extends LitElement {
     const index = e.state?.tabdeck?.[this._cardKey];
     if (typeof index !== "number" || index === this._selected) return;
     if (!this._isContentTab(this._visibleTabs()[index])) return;
+    if (this._isLocked(this._visibleTabs()[index])) {
+      this._pinFor = { index, error: false };
+      return;
+    }
     this._fromPop = true;
     try {
       this._collapsed = false;
@@ -239,7 +263,7 @@ export class TabdeckCard extends LitElement {
       if (this.selectTab(Number(e.key) - 1)) e.preventDefault();
     } else if (e.key === "[" || e.key === "]") {
       const next = this._stepContent(this._selected, e.key === "]" ? 1 : -1, cfg.swipe_wrap);
-      if (next !== this._selected) this._selectIndex(next);
+      if (next !== this._selected) this._userSelect(next);
     }
   };
 
@@ -261,6 +285,7 @@ export class TabdeckCard extends LitElement {
     this._dockObserver = undefined;
     this._templates?.destroy();
     this._templates = undefined;
+    this._unsubscribeRemote();
   }
 
   // --- auto_rotate / idle_return -------------------------------------------
@@ -320,14 +345,20 @@ export class TabdeckCard extends LitElement {
     }
     if (cfg.idle_return && idleMs >= cfg.idle_return * 1000) {
       const home = this._computeDefaultIndex();
-      if (home !== this._selected) this._selectIndex(home, false);
+      if (home !== this._selected && !this._isLocked(this._visibleTabs()[home])) this._selectIndex(home, false);
       this._lastInteraction = now; // don't re-fire every tick
     }
   }
 
   // Next visible content tab after `from` (wraps, skips disabled/action).
   private _nextRotatable(from: number): number {
-    return this._stepContent(from, 1, true);
+    const visible = this._visibleTabs();
+    let i = from;
+    for (let n = 0; n < visible.length; n++) {
+      i = this._stepContent(i, 1, true);
+      if (i === from || !this._isLocked(visible[i])) return i;
+    }
+    return from;
   }
 
   private _computeCardKey(cfg: TabdeckCardConfig): string {
@@ -369,12 +400,17 @@ export class TabdeckCard extends LitElement {
         : undefined,
     });
     this._selected = this._ensureContentTab(this._selected);
+    if (this._isLocked(this._visibleTabs()[this._selected])) {
+      const open = this._visibleTabs().findIndex((t) => this._isContentTab(t) && !this._isLocked(t));
+      if (open >= 0) this._selected = open;
+    }
     // Tag the current entry, so Back to it restores the starting tab.
     if (this._config.history && typeof history !== "undefined") {
       history.replaceState(this._historyState(this._selected), "", location.href);
     }
     this._lastEntityValue = this._rememberEntityState();
     this._built = true;
+    this._refreshAlertOrder();
     this.requestUpdate();
   }
 
@@ -385,7 +421,192 @@ export class TabdeckCard extends LitElement {
     this._syncTemplates();
     this._runAutoSelect();
     this._syncRememberEntity();
+    this._syncAutoContent();
+    this._refreshAlertOrder();
+    this._syncRemoteEntity();
+    this._syncRemoteEvent();
     this.requestUpdate();
+  }
+
+  // --- auto content (area / floor / label tabs without a card) --------------
+  // JSON of each auto-content tab's current card, by original index.
+  private _autoSigs: (string | undefined)[] = [];
+
+  private _autoCard(t: TabdeckTabConfig): any {
+    if (t.card?.type || (!t.area && !t.floor && !t.label)) return undefined;
+    return autoContentCard(t, this._hass, localize(hassLanguage(this._hass), "card.no_entities"));
+  }
+
+  // Rebuild an auto-content tab's card when its entity list changes.
+  private _syncAutoContent(): void {
+    if (!this._manager || !this._built) return;
+    this._allTabs().forEach((t, i) => {
+      const card = this._autoCard(t);
+      if (!card) return;
+      const sig = JSON.stringify(card);
+      if (sig === this._autoSigs[i]) return;
+      this._autoSigs[i] = sig;
+      this._manager!.replace(i, card);
+    });
+  }
+
+  // --- alerts first / snooze ----------------------------------------------------
+  // Tabs moved to the front by alert_first; only changed here, so the order
+  // (and with it every index) holds still between hass updates.
+  private _alertOrder = new Set<TabdeckTabConfig>();
+
+  private _refreshAlertOrder(): void {
+    if (!this._config?.alert_first || !this._built) return;
+    const now = new Set(this._allTabs().filter((t) => this._isAlerting(t)));
+    const same = now.size === this._alertOrder.size && [...now].every((t) => this._alertOrder.has(t));
+    if (same) return;
+    const prevName = this._visibleTabs()[this._selected]?.name;
+    this._alertOrder = now;
+    this._restoreSelection(prevName);
+  }
+
+  private _snoozeKey(tab: TabdeckTabConfig): string {
+    return this._text(tab.name) ?? String(this._allTabs().indexOf(tab));
+  }
+
+  // --- remote control ----------------------------------------------------------
+  private get _deckId(): string {
+    return this._config?.event_id ?? this._config?.storage_key ?? this._cardKey;
+  }
+
+  // Index of a visible tab by index, exact name, or slug ("living-room").
+  private _indexOf(target: unknown): number {
+    const visible = this._visibleTabs();
+    if (typeof target === "number") return target;
+    const text = String(target ?? "").trim();
+    // Indexes, also as an input_number reports them ("2.0").
+    if (/^\d+(\.0+)?$/.test(text) && !visible.some((t) => t.name === text)) return Number(text);
+    const slug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const exact = visible.findIndex((t) => t.name === text);
+    if (exact >= 0) return exact;
+    return visible.findIndex((t) => t.name !== undefined && slug(t.name) === slug(text));
+  }
+
+  // A switch asked for by an automation (remote_entity / remote_event): not
+  // gated by a PIN (the config owner asked for it) and not remembered.
+  private _remoteSelect(target: unknown): void {
+    const i = this._indexOf(target);
+    if (!this._isContentTab(this._visibleTabs()[i])) return;
+    this._collapsed = false;
+    if (i !== this._selected) this._selectIndex(i, false);
+  }
+
+  private _lastRemote?: string;
+
+  private _syncRemoteEntity(): void {
+    const ent = this._config?.remote_entity;
+    if (!ent) return;
+    const value = this._hass?.states?.[ent]?.state;
+    if (value === undefined || value === this._lastRemote) return;
+    const first = this._lastRemote === undefined;
+    this._lastRemote = value;
+    if (first || !this._built || ["", "unknown", "unavailable"].includes(value)) return;
+    this._remoteSelect(value);
+  }
+
+  private _remoteSub?: Promise<(() => void) | undefined>;
+
+  private _syncRemoteEvent(): void {
+    const conn: any = (this._hass as any)?.connection;
+    if (!this._config?.remote_event || this._remoteSub || !this.isConnected || !conn?.subscribeEvents) return;
+    this._remoteSub = Promise.resolve(
+      conn.subscribeEvents((ev: any) => {
+        const data = ev?.data ?? {};
+        if (data.deck !== undefined && data.deck !== this._deckId) return;
+        if (data.device !== undefined && data.device !== deviceId()) return;
+        this._remoteSelect(data.tab);
+      }, "tabdeck_select"),
+    ).catch((err: any) => {
+      // Only admin users may subscribe to custom events.
+      console.warn("tabdeck-card: remote_event needs an admin user", err?.message ?? err);
+      return undefined;
+    });
+  }
+
+  private _unsubscribeRemote(): void {
+    const sub = this._remoteSub;
+    this._remoteSub = undefined;
+    void sub?.then((unsub) => unsub?.());
+  }
+
+  // --- PIN ------------------------------------------------------------------------
+  @state() private _pinFor?: { index: number; error: boolean };
+
+  private _isLocked(tab: TabdeckTabConfig | undefined): boolean {
+    if (!tab?.pin || this._editing) return false;
+    return !pinUnlocked(this._deckId, tab.name ?? "", Date.now(), tab.pin_timeout);
+  }
+
+  // A switch the person asked for: a PIN-locked tab asks for its code first.
+  private _userSelect(index: number, persist = true): void {
+    if (this._isLocked(this._visibleTabs()[index])) {
+      this._pinFor = { index, error: false };
+      return;
+    }
+    this._collapsed = false;
+    if (index !== this._selected) this._selectIndex(index, persist);
+  }
+
+  private _onPinSubmit(e: Event): void {
+    e.preventDefault();
+    const pending = this._pinFor;
+    if (!pending) return;
+    const tab = this._visibleTabs()[pending.index];
+    const input = this.renderRoot.querySelector(".pin-dialog input") as HTMLInputElement | null;
+    if (!tab || (input?.value ?? "") !== tab.pin) {
+      if (input) input.value = "";
+      this._pinFor = { ...pending, error: true };
+      return;
+    }
+    rememberPin(this._deckId, tab.name ?? "", Date.now());
+    this._pinFor = undefined;
+    this._collapsed = false;
+    if (pending.index !== this._selected) this._selectIndex(pending.index);
+  }
+
+  private _cancelPin = (): void => {
+    this._pinFor = undefined;
+  };
+
+  private _renderPin() {
+    const pending = this._pinFor;
+    const tab = pending ? this._visibleTabs()[pending.index] : undefined;
+    if (!pending || !tab) return nothing;
+    const lang = hassLanguage(this._hass);
+    return html`
+      <div class="pin-backdrop" @click=${this._cancelPin}>
+        <div
+          class="pin-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="tabdeck-pin-title"
+          @click=${(e: Event) => e.stopPropagation()}
+        >
+          <form @submit=${this._onPinSubmit}>
+            <div class="pin-title" id="tabdeck-pin-title">
+              ${localize(lang, "card.pin_title", { tab: this._text(tab.name) ?? "" })}
+            </div>
+            <input
+              type="password"
+              inputmode="numeric"
+              autocomplete="off"
+              aria-label=${localize(lang, "card.pin_label")}
+              @keydown=${(e: KeyboardEvent) => e.key === "Escape" && this._cancelPin()}
+            />
+            ${pending.error ? html`<div class="pin-error" role="alert">${localize(lang, "card.pin_wrong")}</div>` : nothing}
+            <div class="pin-actions">
+              <button type="button" class="pin-cancel" @click=${this._cancelPin}>${localize(lang, "card.cancel")}</button>
+              <button type="submit" class="pin-ok">${localize(lang, "card.open")}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
   }
 
   private _rememberEntityState(): string | undefined {
@@ -451,7 +672,12 @@ export class TabdeckCard extends LitElement {
 
   // Card configs aligned with _allTabs(); action tabs without a card get none.
   private _cardConfigs() {
-    return this._allTabs().map((t) => (isActionTab(t) && !t.card?.type ? null : t.card));
+    return this._allTabs().map((t, i) => {
+      if (isActionTab(t) && !t.card?.type) return null;
+      const auto = this._autoCard(t);
+      this._autoSigs[i] = auto ? JSON.stringify(auto) : undefined;
+      return auto ?? t.card;
+    });
   }
 
   // A tab that can become the active panel (not disabled, not an action tab).
@@ -491,8 +717,8 @@ export class TabdeckCard extends LitElement {
     if (!this._config) return [];
     if (this._editing) return this._allTabs();
     const shown = this._allTabs().filter((t) => !this._isHidden(t));
-    if (!this._config.customize) return shown;
-    return hideTabs(orderTabs(shown, this._layout), this._layout);
+    const arranged = this._config.customize ? hideTabs(orderTabs(shown, this._layout), this._layout) : shown;
+    return this._config.alert_first ? orderAlertsFirst(arranged, (t) => this._alertOrder.has(t)) : arranged;
   }
 
   // --- customize (per-browser order & hidden tabs) ---------------------------
@@ -538,7 +764,8 @@ export class TabdeckCard extends LitElement {
       }
     };
     for (const t of this._allTabs()) {
-      if (isTemplate(t.badge)) out.push(t.badge!);
+      if (isTemplate(t.badge)) out.push(t.badge);
+      if (isTemplate(t.ring)) out.push(t.ring);
       for (const f of TEMPLATED_FIELDS) if (isTemplate(t[f])) out.push(t[f]!);
       walk(t.visibility);
       walk(t.default_if);
@@ -565,6 +792,7 @@ export class TabdeckCard extends LitElement {
       this._templates = new TemplateRenderer(subscribe);
       this._templates.addEventListener("change", () => {
         void this._syncGeneratedTabs();
+        this._refreshAlertOrder();
         this.requestUpdate();
       });
     }
@@ -643,8 +871,14 @@ export class TabdeckCard extends LitElement {
         return i;
       }
     }
-    const orig = resolveDefaultIndex(this._config!);
-    const vIdx = visible.indexOf(this._allTabs()[orig] ?? this._config!.tabs[orig]);
+    const cfg = this._config!;
+    const target = pickByDevice(cfg.default_by_device, deviceId()) ?? pickByTime(cfg.default_by_time, new Date());
+    if (target !== undefined) {
+      const i = this._indexOf(target);
+      if (this._isContentTab(visible[i])) return i;
+    }
+    const orig = resolveDefaultIndex(cfg);
+    const vIdx = visible.indexOf(this._allTabs()[orig] ?? cfg.tabs[orig]);
     return vIdx >= 0 ? vIdx : 0;
   }
 
@@ -658,6 +892,10 @@ export class TabdeckCard extends LitElement {
     const tab = this._visibleTabs()[e.detail.index];
     if (e.detail.child !== undefined) {
       // A child picked from a grouped tab's menu: open the group, then the child.
+      if (this._isLocked(tab)) {
+        this._pinFor = { index: e.detail.index, error: false };
+        return;
+      }
       this._collapsed = false;
       if (e.detail.index !== this._selected) this._selectIndex(e.detail.index);
       const nested = this._manager?.get(this._allTabs().indexOf(tab!));
@@ -673,9 +911,8 @@ export class TabdeckCard extends LitElement {
         this._collapsed = !this._collapsed;
         return;
       }
-      this._collapsed = false;
     }
-    this._selectIndex(e.detail.index);
+    this._userSelect(e.detail.index);
   }
 
   // --- scroll_spy -----------------------------------------------------------
@@ -764,6 +1001,13 @@ export class TabdeckCard extends LitElement {
   private _onTabAction(e: CustomEvent<{ index: number; kind: "hold" | "badge" }>): void {
     const tab = this._visibleTabs()[e.detail.index];
     if (!tab || !this._hass) return;
+    // A long-press on an alerting tab silences its pulse for alert_snooze minutes.
+    if (e.detail.kind === "hold" && this._config?.alert_snooze && this._isAlerting(tab)) {
+      snooze(this._deckId, this._snoozeKey(tab), Date.now(), this._config.alert_snooze);
+      this._refreshAlertOrder();
+      this.requestUpdate();
+      return;
+    }
     const action = e.detail.kind === "badge" ? tab.badge_action : tab.hold_action;
     this._runAction(action, e.detail.kind === "badge" ? "tap" : "hold");
   }
@@ -773,14 +1017,12 @@ export class TabdeckCard extends LitElement {
   // Returns false when no such tab exists (or it can't be opened).
   selectTab(target: number | string): boolean {
     const visible = this._visibleTabs();
-    let i = -1;
-    if (typeof target === "number") i = target;
-    else {
-      const slug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      i = visible.findIndex((t) => t.name === target);
-      if (i < 0) i = visible.findIndex((t) => t.name !== undefined && slug(t.name) === slug(String(target)));
-    }
+    const i = typeof target === "number" ? target : this._indexOf(target);
     if (!this._isContentTab(visible[i])) return false;
+    if (this._isLocked(visible[i])) {
+      this._pinFor = { index: i, error: false };
+      return false;
+    }
     this._collapsed = false;
     if (i !== this._selected) this._selectIndex(i);
     return true;
@@ -825,6 +1067,7 @@ export class TabdeckCard extends LitElement {
       this._runAction(visible[index]?.enter_action, "tap");
     }
     const tab = visible[this._selected];
+    if (changed && this._config?.fire_event) this._fireTabEvent(index, tab?.name, prev?.name);
     if (changed) {
       this.dispatchEvent(
         new CustomEvent("tabdeck-tab-changed", {
@@ -978,6 +1221,10 @@ export class TabdeckCard extends LitElement {
     if (commit) {
       const dir = commit === "next" ? 1 : -1;
       const target = this._stepContent(this._selected, dir, !!this._config?.swipe_wrap);
+      if (this._isLocked(this._visibleTabs()[target])) {
+        this._pinFor = { index: target, error: false };
+        return;
+      }
       this._peekSettling = true;
       this._selectIndex(target);
       // Carry on from where the neighbour was released.
@@ -995,6 +1242,22 @@ export class TabdeckCard extends LitElement {
 
   private _reducedMotion(): boolean {
     return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  // fire_event: a tabdeck_tab_changed event in Home Assistant. Only admin
+  // users may fire events; for others it fails once, quietly.
+  private _eventWarned = false;
+
+  private _fireTabEvent(index: number, tab: string | undefined, previous: string | undefined): void {
+    const hass: any = this._hass;
+    if (!hass?.callApi) return;
+    Promise.resolve(
+      hass.callApi("POST", "events/tabdeck_tab_changed", { deck: this._deckId, tab, index, previous, device: deviceId() }),
+    ).catch((err: any) => {
+      if (this._eventWarned) return;
+      this._eventWarned = true;
+      console.warn("tabdeck-card: fire_event needs an admin user", err?.message ?? err);
+    });
   }
 
   // Persist the selected index to an HA helper entity (input_number/input_text),
@@ -1062,7 +1325,7 @@ export class TabdeckCard extends LitElement {
       dir === "next" ? 1 : -1,
       this._config.swipe_wrap,
     );
-    if (target !== this._selected) this._selectIndex(target);
+    if (target !== this._selected) this._userSelect(target);
   }
 
   protected updated(changed: PropertyValues): void {
@@ -1078,6 +1341,9 @@ export class TabdeckCard extends LitElement {
       else this._animatePanel(this._selected >= (changed.get("_selected") as number) ? 1 : -1);
     }
     this._applyStyles();
+    if (changed.has("_pinFor") && this._pinFor && !changed.get("_pinFor")) {
+      (this.renderRoot.querySelector(".pin-dialog input") as HTMLInputElement | null)?.focus();
+    }
     this._syncSpyObserver();
     this._syncDock();
   }
@@ -1173,13 +1439,16 @@ export class TabdeckCard extends LitElement {
           color: this._text(t.color),
           disabled: t.disabled,
           badgeColor: t.badge_color,
-          holdAction: !!t.hold_action,
+          holdAction: !!t.hold_action || (!!cfg.alert_snooze && !!t.alert),
           badgeAction: !!t.badge_action,
           action: isActionTab(t),
           badge: this._resolveBadgeFinal(t),
           alert: this._isAlerting(t),
           ghost: this._editing && this._isHidden(t),
           fab: t.fab,
+          ring: this._ring(t),
+          ringColor: t.ring_color,
+          badgeIcon: t.badge_icon,
           menu: t.group?.display === "menu" ? t.group.items : undefined,
         }))}
         .selected=${this._selected}
@@ -1293,6 +1562,7 @@ export class TabdeckCard extends LitElement {
       <div class="root pos-${docked ? "bottom" : cfg.position} ${docked ? "docked" : ""} ${cfg.hide_bar ? "no-bar" : ""}">
         ${cfg.hide_bar ? panels : docked || cfg.position === "bottom" ? html`${panels}${bar}` : html`${bar}${panels}`}
       </div>
+      ${this._renderPin()}
     `);
   }
 
@@ -1319,18 +1589,31 @@ export class TabdeckCard extends LitElement {
     const lang = hassLanguage(this._hass);
     return html`
       ${prev !== this._selected
-        ? html`<button class="nav-arrow prev" aria-label=${localize(lang, "card.prev_tab")} @click=${() => this._selectIndex(prev)}>‹</button>`
+        ? html`<button class="nav-arrow prev" aria-label=${localize(lang, "card.prev_tab")} @click=${() => this._userSelect(prev)}>‹</button>`
         : nothing}
       ${next !== this._selected
-        ? html`<button class="nav-arrow next" aria-label=${localize(lang, "card.next_tab")} @click=${() => this._selectIndex(next)}>›</button>`
+        ? html`<button class="nav-arrow next" aria-label=${localize(lang, "card.next_tab")} @click=${() => this._userSelect(next)}>›</button>`
         : nothing}
     `;
   }
 
   // A tab pulses while all of its `alert` conditions are met.
+  // A tab pulses while all of its `alert` conditions are met, unless the
+  // pulse was snoozed (a snooze ends early when the alert clears).
   private _isAlerting(tab: TabdeckTabConfig): boolean {
     if (!tab.alert || !this._hass) return false;
-    return isTabVisible(tab.alert, this._hass, this._templateResolver);
+    const met = isTabVisible(tab.alert, this._hass, this._templateResolver);
+    if (!this._config?.alert_snooze) return met;
+    const key = this._snoozeKey(tab);
+    const snoozed = snoozedUntil(this._deckId, key, Date.now()) !== undefined;
+    if (!met && snoozed) clearSnooze(this._deckId, key);
+    return met && !snoozed;
+  }
+
+  // Progress ring percentage (undefined: no ring).
+  private _ring(tab: TabdeckTabConfig): number | undefined {
+    if (tab.ring === undefined) return undefined;
+    return ringPercent(this._resolveBadge(tab.ring), tab.ring_max ?? 100);
   }
 
   // A display field that may be a Jinja template: the latest rendered value
@@ -1352,8 +1635,12 @@ export class TabdeckCard extends LitElement {
     return formatBadge(value, tab.badge_format ?? this._config?.badge_format);
   }
 
-  private _resolveBadge(badge?: string): string | undefined {
+  private _resolveBadge(badge?: string | Record<string, any>): string | undefined {
     if (!badge) return undefined;
+    if (typeof badge === "object") {
+      const spec = normalizeCountBadge(badge);
+      return spec && this._hass ? countBadge(spec, this._hass) : undefined;
+    }
     if (isTemplate(badge)) {
       const r = this._templates?.result(badge);
       return r === undefined || r === null ? undefined : String(r);
@@ -1540,6 +1827,65 @@ export class TabdeckCard extends LitElement {
       position: fixed;
       top: calc(8px + env(safe-area-inset-top, 0px));
       right: 12px;
+    }
+    /* PIN prompt */
+    .pin-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: var(--tabdeck-pin-z, 10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+    }
+    .pin-dialog {
+      width: min(320px, calc(100vw - 32px));
+      padding: 20px;
+      border-radius: var(--ha-card-border-radius, 12px);
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .pin-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .pin-dialog input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 20px;
+      letter-spacing: 0.3em;
+      text-align: center;
+      border: 1px solid var(--divider-color, #ccc);
+      border-radius: 8px;
+      background: var(--secondary-background-color, transparent);
+      color: inherit;
+    }
+    .pin-error {
+      margin-top: 8px;
+      color: var(--error-color, #db4437);
+      font-size: 13px;
+    }
+    .pin-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .pin-actions button {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font: inherit;
+      cursor: pointer;
+      background: none;
+      color: var(--primary-color);
+    }
+    .pin-actions .pin-ok {
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
     }
     /* swipe_peek: the neighbour panel shown beside the dragged one. */
     .content.dragging {
