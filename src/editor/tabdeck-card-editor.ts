@@ -5,7 +5,7 @@ import type { HomeAssistant } from "../types";
 import { normalizeConfig, normalizeTab, type TabdeckCardConfig } from "../lib/config";
 import { isTemplate, makeHassSubscribe, TemplateRenderer } from "../lib/templates";
 import { conditionsSignature, explainConditions, type ConditionExplanation } from "../lib/explain";
-import { hassLanguage, localize } from "../lib/i18n";
+import { hasKey, hassLanguage, localize } from "../lib/i18n";
 import { applyStarter, buildStarter, STARTERS, type StarterKind } from "../lib/starters";
 import { applyConversion, convertConfig, type ConvertResult } from "../lib/convert";
 import { PRESET_NAMES, applyPresetToConfig, isPreset } from "../lib/presets";
@@ -85,75 +85,15 @@ const CARD_TYPE_SCHEMA = [
   },
 ];
 
-const TAB_LABELS: Record<string, string> = {
-  name: "Tab name",
-  subtitle: "Subtitle",
-  icon: "Icon",
-  accent: "Accent colour",
-  color: "Text/icon colour",
-  badge: "Badge (entity id or template)",
-  badge_color: "Badge colour",
-  disabled: "Disable tab (greyed, not selectable)",
-  card_size: "Card size hint (rows)",
-  hold_action: "Long-press action",
-  badge_action: "Badge tap action",
-  tap_action: "Tap action (replaces opening the tab, e.g. navigate)",
-  enter_action: "Action when this tab is opened",
-  leave_action: "Action when leaving this tab",
-};
-
-const GLOBAL_LABELS: Record<string, string> = {
-  preset: "Style preset (applies a bundle of the options below)",
-  position: "Position",
-  style: "Style",
-  tab_display: "Tab display",
-  align: "Tab alignment",
-  badge_display: "Badge display",
-  hide_inactive_badge: "Hide inactive badges (0/off)",
-  transition: "Panel transition",
-  indicator_size: "Indicator thickness (px)",
-  indicator_radius: "Indicator corner radius (px)",
-  remember: "Remember selected tab",
-  remember_entity: "Remember entity (input_number/input_text)",
-  storage_key: "Storage key (browser mode)",
-  default_tab: "Default tab",
-  scrollable: "Scrollable",
-  lazy: "Lazy-mount inactive tabs",
-  unmount_hidden: "Unmount hidden tabs (save memory)",
-  swipe_wrap: "Swipe wraps around ends",
-  animated: "Animate indicator",
-  accent_indicator: "Colour indicator by tab accent",
-  header: "Show header (active tab title above content)",
-  aria_label: "Accessible name for the tab bar",
-  sticky: "Sticky tab bar",
-  elevation: "Raise bar with shadow",
-  scroll_buttons: "Scroll buttons when bar overflows",
-  overflow_menu: "Overflow ⋯ menu when bar overflows",
-  bar_background: "Tab bar background colour",
-  swipe: "Swipe to change tabs (mobile)",
-  swipe_mouse: "Mouse drag to change tabs (desktop)",
-  tab_display_narrow: "Tab display on narrow cards",
-  narrow_width: "Narrow below (px)",
-  split: "Side-by-side split at or above width (px, 0 = off)",
-  collapsible: "Collapsible (tap the active tab to fold content)",
-  start_collapsed: "Start collapsed",
-  scroll_spy: "Scroll-spy: stack tabs as sections",
-  auto_rotate: "Auto-rotate tabs every (seconds, 0 = off)",
-  idle_return: "Return to default tab after idle (seconds, 0 = off)",
-  edit_mode_reveal: "Show hidden tabs while editing the dashboard",
-};
-
 interface ConditionSection {
   key: "visibility" | "alert" | "default_if";
-  label: string;
-  hint: string;
 }
 
-// Per-tab condition lists editable in the visual editor.
+// Per-tab condition lists editable in the visual editor (labels: editor.cond.<key>.*).
 const CONDITION_SECTIONS: ConditionSection[] = [
-  { key: "visibility", label: "Visibility", hint: "show the tab only when…" },
-  { key: "alert", label: "Alert", hint: "pulse the tab when…" },
-  { key: "default_if", label: "Default when", hint: "start on this tab when…" },
+  { key: "visibility" },
+  { key: "alert" },
+  { key: "default_if" },
 ];
 
 export type CardEditorTag =
@@ -262,9 +202,10 @@ export class TabdeckCardEditor extends LitElement {
     return explainConditions(conditions, this._hass ?? ({ states: {} } as any), this._resolver);
   }
 
+  // Includes the UI language, so switching language redraws the labels.
   private _checkSignature(): string {
     if (!this._hass) return "";
-    return (this._config?.tabs ?? [])
+    return hassLanguage(this._hass) + "#" + (this._config?.tabs ?? [])
       .map((t) =>
         CONDITION_SECTIONS.map((sec) => conditionsSignature(this._explain((t as any)[sec.key]))).join("/"),
       )
@@ -323,7 +264,7 @@ export class TabdeckCardEditor extends LitElement {
     // (rather than silently locking the new tab to one card type).
     const tabs = [
       ...this._config.tabs,
-      { name: `Tab ${this._config.tabs.length + 1}`, card: {} as any },
+      { name: this._t("editor.tab_n", { n: this._config.tabs.length + 1 }), card: {} as any },
     ];
     // Appending doesn't shift existing indices, so keep what's open and also
     // expand the new tab so the user can configure it immediately.
@@ -354,7 +295,7 @@ export class TabdeckCardEditor extends LitElement {
     if (!src) return;
     // Deep clone so the copy doesn't share nested card/visibility objects.
     const copy = JSON.parse(JSON.stringify(src));
-    copy.name = `${src.name ?? `Tab ${index + 1}`} copy`;
+    copy.name = this._t("editor.copy_name", { name: src.name ?? this._t("editor.tab_n", { n: index + 1 }) });
     const tabs = this._config.tabs.slice();
     tabs.splice(index + 1, 0, copy);
     this._expanded = new Set();
@@ -396,8 +337,8 @@ export class TabdeckCardEditor extends LitElement {
       }
       ta.remove();
     }
-    const label = tab.name || `Tab ${index + 1}`;
-    this._flash(ok ? `Copied tab "${label}" — paste it into Import tab.` : "Couldn't access the clipboard.");
+    const label = tab.name || this._t("editor.tab_n", { n: index + 1 });
+    this._flash(ok ? this._t("editor.copied", { name: label }) : this._t("editor.clipboard_error"));
   }
 
   private _toggleConvert(): void {
@@ -554,7 +495,7 @@ export class TabdeckCardEditor extends LitElement {
     const tabLike = (o: any) =>
       o && typeof o === "object" && !Array.isArray(o) && (o.card || o.cards || o.tap_action);
     if (list.length === 0 || !list.every(tabLike)) {
-      this._importError = "That doesn't look like a tab (needs a card, cards or tap_action).";
+      this._importError = this._t("editor.import_error");
       return;
     }
     const start = this._config.tabs.length;
@@ -564,7 +505,7 @@ export class TabdeckCardEditor extends LitElement {
     this._expanded = expanded;
     this._importOpen = false;
     this._importValue = undefined;
-    this._flash(`Imported ${list.length} tab${list.length > 1 ? "s" : ""}.`);
+    this._flash(this._t(list.length > 1 ? "editor.imported_many" : "editor.imported_one", { count: list.length }));
     this._emit({ ...this._config, tabs });
   }
 
@@ -577,7 +518,7 @@ export class TabdeckCardEditor extends LitElement {
     };
     return html`
       <div class="import-panel">
-        <div class="import-hint">Paste a tab (or a list of tabs) copied with <b>Copy tab</b>, or any tab YAML.</div>
+        <div class="import-hint">${this._t("editor.import_hint")}</div>
         ${customElements.get("ha-yaml-editor")
           ? html`<ha-yaml-editor @value-changed=${onYaml}></ha-yaml-editor>`
           : html`<textarea
@@ -595,8 +536,8 @@ export class TabdeckCardEditor extends LitElement {
             ></textarea>`}
         ${this._importError ? html`<div class="import-error" role="alert">${this._importError}</div>` : nothing}
         <div class="import-actions">
-          <ha-button class="import-apply" @click=${this._applyImport}>Add</ha-button>
-          <ha-button class="import-cancel" @click=${this._toggleImport}>Cancel</ha-button>
+          <ha-button class="import-apply" @click=${this._applyImport}>${this._t("editor.add")}</ha-button>
+          <ha-button class="import-cancel" @click=${this._toggleImport}>${this._t("editor.cancel")}</ha-button>
         </div>
       </div>
     `;
@@ -657,9 +598,7 @@ export class TabdeckCardEditor extends LitElement {
     const names = cfg.tabs.map((t) => t.name ?? "").filter((n) => n);
     const dupes = names.filter((n, i) => names.indexOf(n) !== i);
     if (dupes.length > 0) {
-      out.push(
-        `Duplicate tab names (${[...new Set(dupes)].join(", ")}). "Remember: url" and default-tab-by-name may be ambiguous.`,
-      );
+      out.push(this._t("editor.warn_duplicates", { names: [...new Set(dupes)].join(", ") }));
     }
     return out;
   }
@@ -731,27 +670,32 @@ export class TabdeckCardEditor extends LitElement {
   private _globalSchema() {
     const cfg = this._config!;
     // ha-form's select selector wants options as {value,label} objects.
-    const opts = (values: string[]) => values.map((v) => ({ value: v, label: v }));
+    // Option labels are localised where a translation exists (editor.opt.<field>.<value>).
+    const opts = (values: string[], field?: string) =>
+      values.map((v) => {
+        const key = `editor.opt.${field}.${v}`;
+        return { value: v, label: field && hasKey(key) ? this._t(key) : v };
+      });
     const tabOptions = cfg.tabs.map((t, i) => ({
       value: t.name ?? String(i),
-      label: t.name || `Tab ${i + 1}`,
+      label: t.name || this._t("editor.tab_n", { n: i + 1 }),
     }));
     return [
       { name: "preset", selector: { select: { mode: "dropdown", options: opts(["", ...PRESET_NAMES]) } } },
-      { name: "position", selector: { select: { mode: "dropdown", options: opts(["top", "bottom", "left", "right"]) } } },
+      { name: "position", selector: { select: { mode: "dropdown", options: opts(["top", "bottom", "left", "right"], "position") } } },
       { name: "style", selector: { select: { mode: "dropdown", options: opts(["underline", "pill", "segmented", "boxed", "text", "rail"]) } } },
-      { name: "tab_display", selector: { select: { mode: "dropdown", options: opts(["both", "icon", "label", "active"]) } } },
-      { name: "align", selector: { select: { mode: "dropdown", options: opts(["start", "center", "end", "justify"]) } } },
-      { name: "badge_display", selector: { select: { mode: "dropdown", options: opts(["text", "dot"]) } } },
+      { name: "tab_display", selector: { select: { mode: "dropdown", options: opts(["both", "icon", "label", "active"], "tab_display") } } },
+      { name: "align", selector: { select: { mode: "dropdown", options: opts(["start", "center", "end", "justify"], "align") } } },
+      { name: "badge_display", selector: { select: { mode: "dropdown", options: opts(["text", "dot"], "badge_display") } } },
       { name: "hide_inactive_badge", selector: { boolean: {} } },
-      { name: "transition", selector: { select: { mode: "dropdown", options: opts(["none", "fade", "slide"]) } } },
+      { name: "transition", selector: { select: { mode: "dropdown", options: opts(["none", "fade", "slide"], "transition") } } },
       { name: "indicator_size", selector: { number: { min: 1, max: 16, step: 1, mode: "slider" } } },
       { name: "indicator_radius", selector: { number: { min: 0, max: 30, step: 1, mode: "slider" } } },
-      { name: "remember", selector: { select: { mode: "dropdown", options: opts(["none", "browser", "url", "entity"]) } } },
+      { name: "remember", selector: { select: { mode: "dropdown", options: opts(["none", "browser", "url", "entity"], "remember") } } },
       { name: "remember_entity", selector: { text: {} } },
       { name: "storage_key", selector: { text: {} } },
       { name: "default_tab", selector: { select: { mode: "dropdown", options: tabOptions } } },
-      { name: "scrollable", selector: { select: { mode: "dropdown", options: opts(["auto", "true", "false"]) } } },
+      { name: "scrollable", selector: { select: { mode: "dropdown", options: opts(["auto", "true", "false"], "scrollable") } } },
       { name: "lazy", selector: { boolean: {} } },
       { name: "unmount_hidden", selector: { boolean: {} } },
       { name: "swipe_wrap", selector: { boolean: {} } },
@@ -766,7 +710,7 @@ export class TabdeckCardEditor extends LitElement {
       { name: "bar_background", selector: { text: {} } },
       { name: "swipe", selector: { boolean: {} } },
       { name: "swipe_mouse", selector: { boolean: {} } },
-      { name: "tab_display_narrow", selector: { select: { mode: "dropdown", options: opts(["", "both", "icon", "label", "active"]) } } },
+      { name: "tab_display_narrow", selector: { select: { mode: "dropdown", options: opts(["", "both", "icon", "label", "active"], "tab_display") } } },
       { name: "narrow_width", selector: { number: { min: 100, max: 4000, step: 10, mode: "box" } } },
       { name: "split", selector: { number: { min: 0, max: 4000, step: 10, mode: "box" } } },
       { name: "collapsible", selector: { boolean: {} } },
@@ -953,11 +897,11 @@ export class TabdeckCardEditor extends LitElement {
     return html`
       <details class="conditions-section" data-key=${sec.key}>
         <summary>
-          ${sec.label}${conditions.length ? ` (${conditions.length})` : ""}
+          ${this._t(`editor.cond.${sec.key}.label`)}${conditions.length ? ` (${conditions.length})` : ""}
           ${check
             ? html`<span class="check-dot ${check.met ? "met" : "unmet"}" aria-hidden="true"></span>`
             : nothing}
-          <span class="conditions-hint">${sec.hint}</span>
+          <span class="conditions-hint">${this._t(`editor.cond.${sec.key}.hint`)}</span>
         </summary>
         ${check ? this._renderCheck(check) : nothing}
         ${body}
@@ -1051,8 +995,8 @@ export class TabdeckCardEditor extends LitElement {
     void this._ensureConditionsEditor();
   }
 
-  private _computeGlobalLabel = (s: { name: string }) => GLOBAL_LABELS[s.name] ?? s.name;
-  private _computeTabLabel = (s: { name: string }) => TAB_LABELS[s.name] ?? s.name;
+  private _computeGlobalLabel = (s: { name: string }) => this._t(`editor.global.${s.name}`);
+  private _computeTabLabel = (s: { name: string }) => this._t(`editor.tab.${s.name}`);
 
   render() {
     if (!this._config) return html``;
@@ -1071,11 +1015,11 @@ export class TabdeckCardEditor extends LitElement {
     return html`
       <div class="card-editor-view">
         <div class="card-editor-header">
-          <button class="back-to-list" @click=${this._closeCard}>← Back</button>
-          <span class="card-editor-title">${tab.name || `Tab ${index + 1}`}</span>
+          <button class="back-to-list" @click=${this._closeCard}>← ${this._t("editor.back")}</button>
+          <span class="card-editor-title">${tab.name || this._t("editor.tab_n", { n: index + 1 })}</span>
           ${hasType
             ? html`<button class="change-card-type" @click=${() => this._changeCardType(index)}>
-                Change card type
+                ${this._t("editor.change_type")}
               </button>`
             : nothing}
         </div>
@@ -1094,13 +1038,10 @@ export class TabdeckCardEditor extends LitElement {
           .hass=${this.hass}
           .data=${{}}
           .schema=${CARD_TYPE_SCHEMA}
-          .computeLabel=${() => "Card type"}
+          .computeLabel=${() => this._t("editor.card_type")}
           @value-changed=${(e: CustomEvent) => this._onTypeChosen(index, e)}
         ></ha-form>
-        <p class="card-type-hint">
-          Choose a card type to configure it. Enter a custom type (e.g.
-          <code>custom:my-card</code>) for cards not in the list.
-        </p>
+        <p class="card-type-hint">${this._t("editor.card_type_hint")}</p>
       </div>
     `;
   }
@@ -1127,7 +1068,7 @@ export class TabdeckCardEditor extends LitElement {
     }
     return html`
       <label class="card-label"
-        >Card (JSON)
+        >${this._t("editor.card_json")}
         <textarea
           class="tab-card-json"
           rows="10"
@@ -1136,7 +1077,7 @@ export class TabdeckCardEditor extends LitElement {
         ></textarea>
       </label>
       ${this._cardError === index
-        ? html`<div class="tab-card-error">Invalid JSON — not saved.</div>`
+        ? html`<div class="tab-card-error">${this._t("editor.invalid_json")}</div>`
         : nothing}
     `;
   }
@@ -1161,11 +1102,12 @@ export class TabdeckCardEditor extends LitElement {
     return html`
       <div class="editor">
         <div class="preview" aria-hidden="true">
+          <span class="preview-label">${this._t("editor.preview")}</span>
           <tabdeck-tabbar
             class="preview-bar"
             .items=${cfg.tabs.map((t, i) => ({
               // Templated fields only render on the live card; preview plain ones.
-              name: (!isTemplate(t.name) && t.name) || `Tab ${i + 1}`,
+              name: (!isTemplate(t.name) && t.name) || this._t("editor.tab_n", { n: i + 1 }),
               icon: isTemplate(t.icon) ? undefined : t.icon,
               accent: isTemplate(t.accent) ? undefined : t.accent,
               color: isTemplate(t.color) ? undefined : t.color,
@@ -1197,8 +1139,8 @@ export class TabdeckCardEditor extends LitElement {
 
         ${cfg.tabs.length > 1
           ? html`<div class="bulk-controls">
-              <button class="expand-all" @click=${this._expandAll}>Expand all</button>
-              <button class="collapse-all" @click=${this._collapseAll}>Collapse all</button>
+              <button class="expand-all" @click=${this._expandAll}>${this._t("editor.expand_all")}</button>
+              <button class="collapse-all" @click=${this._collapseAll}>${this._t("editor.collapse_all")}</button>
             </div>`
           : nothing}
 
@@ -1223,7 +1165,7 @@ export class TabdeckCardEditor extends LitElement {
                     <ha-svg-icon
                       class="drag-handle"
                       .path=${MDI_DRAG}
-                      title="Drag to reorder"
+                      title=${this._t("editor.drag")}
                       @click=${(e: Event) => e.stopPropagation()}
                     ></ha-svg-icon>
                     <ha-svg-icon
@@ -1234,13 +1176,13 @@ export class TabdeckCardEditor extends LitElement {
                       class="tab-icon"
                       .icon=${(!isTemplate(tab.icon) && tab.icon) || DEFAULT_TAB_ICON}
                     ></ha-icon>
-                    <span class="tab-title">${tab.name || `Tab ${index + 1}`}</span>
+                    <span class="tab-title">${tab.name || this._t("editor.tab_n", { n: index + 1 })}</span>
                     <span class="tab-type">${tab.card?.type ?? "—"}</span>
                   </div>
                   <div class="tab-controls">
                     <ha-icon-button
                       class="move-up"
-                      label="Move up"
+                      .label=${this._t("editor.move_up")}
                       .path=${MDI_ARROW_UP}
                       .disabled=${index === 0}
                       @click=${(e: Event) => {
@@ -1250,7 +1192,7 @@ export class TabdeckCardEditor extends LitElement {
                     ></ha-icon-button>
                     <ha-icon-button
                       class="move-down"
-                      label="Move down"
+                      .label=${this._t("editor.move_down")}
                       .path=${MDI_ARROW_DOWN}
                       .disabled=${index === cfg.tabs.length - 1}
                       @click=${(e: Event) => {
@@ -1260,7 +1202,7 @@ export class TabdeckCardEditor extends LitElement {
                     ></ha-icon-button>
                     <ha-icon-button
                       class="copy-tab"
-                      label="Copy tab"
+                      .label=${this._t("editor.copy_tab")}
                       .path=${MDI_EXPORT}
                       @click=${(e: Event) => {
                         e.stopPropagation();
@@ -1269,7 +1211,7 @@ export class TabdeckCardEditor extends LitElement {
                     ></ha-icon-button>
                     <ha-icon-button
                       class="duplicate-tab"
-                      label="Duplicate tab"
+                      .label=${this._t("editor.duplicate_tab")}
                       .path=${MDI_COPY}
                       @click=${(e: Event) => {
                         e.stopPropagation();
@@ -1278,7 +1220,7 @@ export class TabdeckCardEditor extends LitElement {
                     ></ha-icon-button>
                     <ha-icon-button
                       class="delete-tab"
-                      label="Delete tab"
+                      .label=${this._t("editor.delete_tab")}
                       .path=${MDI_DELETE}
                       @click=${(e: Event) => {
                         e.stopPropagation();
@@ -1316,7 +1258,7 @@ export class TabdeckCardEditor extends LitElement {
                       ></ha-form>
                       ${CONDITION_SECTIONS.map((sec) => this._renderConditions(index, tab, sec))}
                       <button class="edit-card" @click=${() => this._openCard(index)}>
-                        <span class="edit-card-label">Edit card</span>
+                        <span class="edit-card-label">${this._t("editor.edit_card")}</span>
                         <span class="edit-card-type">${tab.card?.type ?? "—"}</span>
                         <span class="edit-card-arrow">→</span>
                       </button>
@@ -1333,12 +1275,12 @@ export class TabdeckCardEditor extends LitElement {
           <ha-button class="add-tab" @click=${this._addTab}>
             <ha-svg-icon slot="start" .path=${MDI_PLUS}></ha-svg-icon>
             <ha-svg-icon slot="icon" .path=${MDI_PLUS}></ha-svg-icon>
-            Add tab
+            ${this._t("editor.add_tab")}
           </ha-button>
           <ha-button class="import-tab" @click=${this._toggleImport}>
             <ha-svg-icon slot="start" .path=${MDI_IMPORT}></ha-svg-icon>
             <ha-svg-icon slot="icon" .path=${MDI_IMPORT}></ha-svg-icon>
-            Import tab
+            ${this._t("editor.import_tab")}
           </ha-button>
           <ha-button class="starter-tab" @click=${this._toggleStarter}>
             <ha-svg-icon slot="start" .path=${MDI_CREATION}></ha-svg-icon>
@@ -1520,8 +1462,7 @@ export class TabdeckCardEditor extends LitElement {
       padding: 8px;
       pointer-events: none;
     }
-    .preview::before {
-      content: "Preview";
+    .preview-label {
       display: block;
       font-size: 11px;
       text-transform: uppercase;

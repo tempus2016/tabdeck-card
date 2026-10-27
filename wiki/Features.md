@@ -48,6 +48,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Conditional default tab](Feature-Conditional-Default)** — pick the starting tab by state (`default_if`).
 
 ## Editor
+- **[Languages](Feature-Languages)** — editor and card text in English, German, Spanish, French, Italian, Dutch, Polish and Portuguese, following your HA language.
 - **[Convert from another card](Feature-Convert)** — paste a tabbed-card, swipe-card, state-switch, stack, Bubble pop-ups, sections view or dashboard and get tabs.
 - **[Starter templates](Feature-Starter-Templates)** — one-click Rooms / Lights / Security / Media / Climate / Energy / Family decks built from your entities.
 - **[Why is this tab hidden?](Feature-Condition-Check)** — live ✅/❌ check of every visibility / alert / default condition, with current values.

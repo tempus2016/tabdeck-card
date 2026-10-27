@@ -37,6 +37,8 @@ export class TabdeckTab extends LitElement {
   // faded so it can still be reached while editing.
   @property({ type: Boolean, reflect: true }) ghost = false;
   @property() ghostLabel = "Hidden: its visibility conditions aren't met (shown while editing)";
+  // Accessible label for the badge (localised by the bar).
+  @property() badgeLabel?: string;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -116,7 +118,7 @@ export class TabdeckTab extends LitElement {
           class="badge${cls}"
           part="badge"
           style=${bg}
-          aria-label=${`badge: ${this.badge}`}
+          aria-label=${this.badgeLabel ?? `badge: ${this.badge}`}
           @click=${this._onBadgeClick}
           >${this.badge}</span>`
       : nothing;

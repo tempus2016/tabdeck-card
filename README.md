@@ -48,6 +48,7 @@ A nested map card rendering correctly the moment its tab is selected — no
 - **Transitions** — optional `fade`/`slide` panel animations (respects reduced-motion).
 - **Theming** — CSS variables via `styles`, no card-mod needed.
 - **Accessible** — `tablist` semantics, full keyboard navigation (Arrows, Home/End, skips disabled).
+- **Translated** — editor and card text in English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português, following your HA language. [Help translate](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Languages).
 
 ## Installation (HACS)
 

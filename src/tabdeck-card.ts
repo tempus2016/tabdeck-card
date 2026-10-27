@@ -16,6 +16,7 @@ import { loadInitialIndex, persistIndex } from "./lib/persistence";
 import { CardManager, getCreateCardElement } from "./lib/card-lifecycle";
 import { isTemplate, makeHassSubscribe, TemplateRenderer, type SubscribeFn } from "./lib/templates";
 import { formatBadge } from "./lib/badge";
+import { hassLanguage } from "./lib/i18n";
 import { detectSwipe, type SwipePoint } from "./lib/swipe";
 import "./components/tabdeck-tabbar";
 import { isActiveBadge } from "./components/tabdeck-tab";
@@ -837,7 +838,8 @@ export class TabdeckCard extends LitElement {
         .elevation=${cfg.elevation}
         .scrollButtons=${cfg.scroll_buttons}
         .overflowMenu=${cfg.overflow_menu}
-        .barLabel=${cfg.aria_label ?? "Tabs"}
+        .barLabel=${cfg.aria_label}
+        .language=${hassLanguage(this._hass)}
         .barBackground=${cfg.bar_background}
         @tabdeck-select=${this._onSelect}
       ></tabdeck-tabbar>
