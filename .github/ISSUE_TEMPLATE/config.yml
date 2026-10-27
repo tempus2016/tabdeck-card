@@ -3,3 +3,6 @@ contact_links:
   - name: 💬 Discussions
     url: https://github.com/tempus2016/tabdeck-card/discussions
     about: Questions, ideas, and general chat about Tabdeck Card
+  - name: 🙌 Share your deck
+    url: https://github.com/tempus2016/tabdeck-card/discussions/new?category=show-and-tell
+    about: Show off your Tabdeck setup — great ones are featured on the Showcase wiki page

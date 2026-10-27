@@ -1,0 +1,42 @@
+title: "[Showcase] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your deck! Good ones get added to the [Showcase](https://github.com/tempus2016/tabdeck-card/wiki/Showcase) wiki page (with credit), so other people can copy the idea.
+        Please remove anything private from screenshots and YAML (addresses, camera views, names you'd rather not share).
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag images or a short GIF here. Phone and desktop shots are both welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What does it do?
+      description: A sentence or two, e.g. "Wall tablet in the hall that rotates between weather, cameras and the calendar."
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Card YAML
+      description: The tabdeck-card config (inner cards can be trimmed). It's formatted as YAML automatically.
+      render: yaml
+  - type: dropdown
+    id: device
+    attributes:
+      label: Where is it used?
+      multiple: true
+      options:
+        - Phone
+        - Tablet / wall panel
+        - Desktop
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Showcase
+      options:
+        - label: It's OK to feature this on the Showcase wiki page with credit to my GitHub username.

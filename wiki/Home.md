@@ -14,6 +14,7 @@
 - **[Getting Started](Getting-Started)** — your first tabbed card in two minutes.
 - **[Configuration](Configuration)** — every option, with defaults and examples.
 - **[The Visual Editor](Editor)** — building decks without writing YAML.
+- **[Showcase](Showcase)** — decks from other users, and how to share yours.
 - **[Tab Visibility](Tab-Visibility)** — show/hide tabs by state, number, screen, or template.
 - **[Badges](Badges)** — entity- or template-driven badges on tabs.
 - **[Navigation & Persistence](Navigation-and-Persistence)** — swipe, keyboard, and remembering the selected tab.

@@ -31,6 +31,7 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Convert from another card** — paste a `tabbed-card`, `swipe-card`, `state-switch`, Bubble Card pop-ups, a stack / grid (split at `heading` cards), `conditional` cards, a sections view or a whole dashboard into the editor and get Tabdeck tabs, with options mapped and any lossy bits explained.
 - **Translations** — the editor and the card's built-in text follow the Home Assistant language: English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português (regional variants fall back to the base language, missing strings to English). Editor dropdowns show readable option names.
 - **Live demo** — a browser playground (https://tempus2016.github.io/tabdeck-card/) with example decks, an editable YAML box and pretend devices (guest mode, garage door, lights) that drive visibility, badges and alerts live. Built from `demo/` by the new Pages workflow.
+- **Showcase** — a Showcase wiki page of community decks and starter ideas, plus a *Show and tell* discussion form (screenshot, description, YAML, consent to feature) linked from the issue chooser.
 
 ### Fixed
 - Editor button icons (Add tab) render on current WebAwesome-based HA builds.

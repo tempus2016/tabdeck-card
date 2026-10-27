@@ -38,11 +38,13 @@ A nested map card rendering correctly the moment its tab is selected — no
 
 ## Features
 
-- **Visual GUI editor** — add, remove, **drag-to-reorder**, duplicate, **copy & import** tabs without YAML; collapsible tab blocks, native HA card editor, HA's native **condition builder** for visibility/alert/default, style **presets**, duplicate-name warnings.
+- **Get started fast** — **starter templates** (Rooms, Lights, Security, Media, Climate, Energy, Family) built from your own entities, and **convert from another card** (tabbed-card, swipe-card, state-switch, Bubble pop-ups, stacks, sections views, whole dashboards).
+- **Visual GUI editor** — add, remove, **drag-to-reorder**, duplicate, **copy & import** tabs without YAML; a live **"why is this tab hidden?"** check of every condition; collapsible tab blocks, native HA card editor, HA's native **condition builder** for visibility/alert/default, style **presets**, duplicate-name warnings.
 - **Keep-alive content** (or opt-in `unmount_hidden`) — maps/cameras/graphs render correctly without navigating away.
 - **Tab bar styling** — `top`/`bottom`/`left`/`right` positions; `underline`/`pill`/`segmented`/`boxed`/`text` styles; `tab_display` (icon/label/both/active); `align`; `indicator_size`; `sticky`; `elevation`; `bar_background`; per-tab `accent`/`color`.
 - **Per-tab** — `subtitle`, `badge` (text or `dot`, `badge_color`, `badge_format`, hide-inactive), `disabled`, multiple `cards`/`columns`, per-tab `styles`; `icon`/`name`/`color` can be **live templates**; pulsing `alert` conditions.
 - **Actions** — `tap_action` turns a tab into a **navigation link/button**; `hold_action`, `badge_action`, and `enter_action`/`leave_action` when a tab opens or closes (incl. `perform-action`).
+- **Edit-mode helpers** — hidden tabs appear faded while you edit the dashboard; rotation pauses.
 - **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`, generated tabs via `auto_tabs` (Jinja, or **one tab per area/label**).
 - **Layouts** — `scroll_spy` anchor mode, `collapsible` deck, responsive `split` view (side by side on wide cards) and `tab_display_narrow`.
 - **Wall panels** — `auto_rotate` through tabs, `idle_return` to the default tab.
@@ -103,7 +105,11 @@ tabs:
         - light.guest_room
 ```
 
-## Demo
+## Demo & showcase
+
+Try it in the [live demo](https://tempus2016.github.io/tabdeck-card/), browse other people's decks on the
+[Showcase](https://github.com/tempus2016/tabdeck-card/wiki/Showcase), and
+[share yours](https://github.com/tempus2016/tabdeck-card/discussions/new?category=show-and-tell).
 
 A ready-to-paste dashboard showcasing many features lives in
 [`examples/demo.yaml`](examples/demo.yaml).
