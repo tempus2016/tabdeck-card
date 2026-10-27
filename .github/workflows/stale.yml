@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   stale:
+    name: Sweep
     runs-on: ubuntu-latest
     steps:
       - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
@@ -28,7 +29,7 @@ jobs:
           close-issue-message: >
             Closing as stale because the requested information wasn't provided.
             Comment any time and we'll happily reopen it.
-          exempt-issue-labels: planned,in-progress,blocked,help wanted,good first issue,pinned,security
+          exempt-issue-labels: planned,in progress,blocked,confirmed,help wanted,good first issue
           # Issues only — leave pull requests alone.
           days-before-pr-stale: -1
           days-before-pr-close: -1

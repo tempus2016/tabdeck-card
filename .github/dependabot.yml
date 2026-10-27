@@ -8,7 +8,14 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    # Don't bump onto a release that is hours old — a freshly published action
+    # version is the one most likely to be yanked or compromised.
+    cooldown:
+      default-days: 7
 
+  # The runtime dependencies - lit and custom-card-helpers - end up in the bundle, so
+  # they are deliberately left out of the groups and each raises its own PR, which
+  # nothing merges unattended.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -16,3 +23,36 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
+    cooldown:
+      default-days: 7
+    groups:
+      # Everything that writes the bundle every install downloads: vite and what it
+      # drives, the minifier, and the compiler. A bump to any of them waits for a
+      # person (workflows/dependabot-auto-merge.yml excludes the same names).
+      bundle-tooling:
+        dependency-type: "development"
+        patterns:
+          - "vite"
+          - "rolldown"
+          - "rollup"
+          - "@rollup/*"
+          - "esbuild"
+          - "terser"
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"
+      # Tooling only the test jobs run. Today that is vitest and jsdom.
+      test-tooling:
+        dependency-type: "development"
+        exclude-patterns:
+          - "vite"
+          - "rolldown"
+          - "rollup"
+          - "@rollup/*"
+          - "esbuild"
+          - "terser"
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"

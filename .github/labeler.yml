@@ -1,0 +1,59 @@
+# Path-based pull request labels, applied by .github/workflows/labeler.yml.
+# Every label named here must exist — they are defined in .github/labels.yml.
+
+tab bar:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/components/**
+          - src/lib/presets.ts
+          - src/lib/indicator.ts
+          - src/lib/badge.ts
+
+editor:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/editor/**
+
+nested cards:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/card-lifecycle.ts
+
+behaviour:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/conditions.ts
+          - src/lib/persistence.ts
+          - src/lib/swipe.ts
+          - src/lib/templates.ts
+          - src/lib/sources.ts
+          - src/lib/generate.ts
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/**/*.test.ts
+          - vitest.config.ts
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - README.md
+          - CHANGELOG.md
+          - wiki/**
+          - images/**
+          - examples/**
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**
+          - vite.config.ts
+          - tsconfig.json
+          - scripts/**
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - package.json
+          - package-lock.json

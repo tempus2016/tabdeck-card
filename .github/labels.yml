@@ -1,0 +1,99 @@
+# Source of truth for repository labels, synced by .github/workflows/labels.yml.
+# Edit here and push to main to create or update labels. Deletion is disabled, so
+# labels not listed here are left alone.
+
+# Type
+- name: bug
+  color: d73a4a
+  description: Something isn't working
+- name: enhancement
+  color: a2eeef
+  description: New feature or request
+- name: documentation
+  color: 0075ca
+  description: README, wiki, or in-code documentation
+- name: question
+  color: d876e3
+  description: Further information is requested
+
+# Triage
+- name: needs-triage
+  color: ededed
+  description: Awaiting maintainer triage
+- name: needs-info
+  color: d4c5f9
+  description: Waiting on the reporter for more detail
+- name: confirmed
+  color: 0e8a16
+  description: Reproduced
+- name: blocked
+  color: b60205
+  description: Blocked by another issue or an upstream change
+- name: wontfix
+  color: ffffff
+  description: Deliberately not being changed
+- name: duplicate
+  color: cfd3d7
+  description: Already reported elsewhere
+- name: invalid
+  color: e4e669
+  description: This doesn't seem right
+- name: stale
+  color: 795548
+  description: Inactive while waiting for information
+
+# Area
+- name: tab bar
+  color: 1d76db
+  description: Tab rendering, styling, presets, and positioning
+- name: editor
+  color: 006b75
+  description: The visual editor and the card picker
+- name: nested cards
+  color: 5319e7
+  description: Cards inside a tab, their lifecycle and sizing
+- name: behaviour
+  color: c5def5
+  description: Switching, persistence, deep links, conditions, rotation, and actions
+- name: compatibility
+  color: e99695
+  description: Migration from tabbed-card, or behaviour alongside other custom cards
+- name: tests
+  color: c2e0c6
+  description: Test suite
+- name: ci
+  color: bfd4f2
+  description: Workflows, build, release plumbing
+- name: dependencies
+  color: 0366d6
+  description: Dependency updates
+
+# Conversation state, set automatically when somebody comments on an issue
+- name: Developer Reply
+  color: 5319e7
+  description: The developer replied last
+- name: Author Reply
+  color: 1d76db
+  description: Whoever opened the issue replied last
+- name: User Reply
+  color: 0e8a16
+  description: Somebody else replied last
+
+# Ways in for somebody who wants to help
+- name: good first issue
+  color: 7057ff
+  description: Small, self-contained, and someone new to the project could take it
+- name: help wanted
+  color: 008672
+  description: Worth doing, and not currently being worked on
+
+# Where a request has got to. One at a time: planned, then in progress, then implemented
+- name: planned
+  color: c5def5
+  description: Agreed and coming in a future update
+- name: in progress
+  color: fbca04
+  description: Being worked on now
+- name: implemented
+  color: 8250df
+  description: Out in a published release
