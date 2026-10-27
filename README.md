@@ -50,7 +50,8 @@ A nested map card rendering correctly the moment its tab is selected — no
 - **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`, generated tabs via `auto_tabs` (Jinja, or **one tab per area/label**).
 - **Layouts** — `scroll_spy` anchor mode, `collapsible` deck, responsive `split` view (side by side on wide cards) and `tab_display_narrow`.
 - **Content** — `layout: masonry` or `layout: sections` (like HA's sections view) inside a tab, `header_cards` / `footer_cards` on every tab, per-tab `background` (colour, gradient or image, may be a template), `content_height: tallest` so the page doesn't jump, a `fullscreen` button, and `swipe_peek` carousel swiping.
-- **Wall panels** — `auto_rotate` through tabs, `idle_return` to the default tab.
+- **Wall panels** — `auto_rotate` through tabs, `idle_return` to the default tab, automations switch tabs (`remote_entity`, `remote_event`) and hear tab changes (`fire_event`), starting tab by time of day or device, PIN-locked tabs.
+- **Smart tabs** — a tab per floor, domain, device, to-do list, calendar, camera or zone; area tabs that fill themselves with tiles; count badges without Jinja, badge icons and progress rings; alerting tabs first, with long-press snooze.
 - **Persistence** — remember the active tab per `browser`, `url` (`#tab=name`, slug or index), or across devices via an `entity` with **live two-way sync**.
 - **Transitions** — optional `fade`/`slide`/`scale`/`flip`/`rise` panel animations with your own duration and easing (respects reduced-motion).
 - **Theming** — CSS variables via `styles`, no card-mod needed.
@@ -146,6 +147,10 @@ A ready-to-paste dashboard showcasing many features lives in
 | `content_height` | string \| number | `auto`    | `auto` \| `tallest` (no page jump) \| a fixed height; `content_max_height` scrolls inside. |
 | `fullscreen`  | boolean           | `false`      | Full-screen button: open the active tab over the whole window. |
 | `swipe_peek`  | boolean           | `false`      | Content follows the finger while swiping; the next tab slides in. |
+| `alert_first` / `alert_snooze` | boolean / number | `false` / — | Alerting tabs first; long-press snoozes an alert for N minutes. |
+| `remote_entity` | string        | —            | Switch to the tab named by this entity's state (automations, wall panels). |
+| `remote_event` / `fire_event` | boolean | `false` | Switch on `tabdeck_select` events / fire `tabdeck_tab_changed` (admin users). |
+| `default_by_time` / `default_by_device` | object | — | Starting tab by time of day / by browser (`?tabdeck_device=`). |
 | `scrollable`  | `auto` \| boolean | `auto`       | Scroll the tab bar when tabs overflow. |
 | `remember`    | string            | `none`       | `none` \| `browser` \| `url` \| `entity` (+ `remember_entity`, `storage_key`). |
 | `swipe_wrap`  | boolean           | `false`      | Swipe wraps around the ends. |
@@ -184,6 +189,9 @@ A ready-to-paste dashboard showcasing many features lives in
 | `card` / `cards` / `columns` | object/list/number | — | A single card, or multiple `cards` (optionally in a `columns` grid). |
 | `layout`     | string | —       | `masonry`: balance `cards` into `columns` (or `min_column_width` px). `sections`: titled `sections` like HA's sections view (`max_columns`, per-section `column_span`). |
 | `background` | string | —       | Content background while open: colour, gradient or image URL (may be a template). |
+| `area` / `floor` / `label` | string | — | No card needed: tiles of the entities there (`domains` filters). |
+| `badge_icon` / `ring` | string | —    | Icon badge; progress ring around the icon (`ring_max`, `ring_color`). |
+| `pin`        | string | —       | Ask for a code before the tab opens (convenience lock, not security). |
 
 ### Visibility conditions
 

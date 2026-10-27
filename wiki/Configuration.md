@@ -7,7 +7,7 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `tabs` | list | **required**\* | The tabs to show. See [Per-tab options](#per-tab-options). \*Optional when `auto_tabs` is set. |
-| `auto_tabs` | map | — | Generate a tab per item from a Jinja list (`template` + optional `tab_template`), or per area/label (`source: areas \| labels`, `domains`, `exclude`). See [Dynamic tabs](Feature-Dynamic-Tabs). |
+| `auto_tabs` | map | — | Generate a tab per item from a Jinja list (`template` + optional `tab_template`), or from a built-in `source` (`areas`, `labels`, `floors`, `domains`, `devices`, `todo`, `calendars`, `cameras`, `zones`; with `domains`, `exclude`, `content: tiles`). See [Dynamic tabs](Feature-Dynamic-Tabs). |
 | `default_tab` | number \| string | `0` | Tab shown first. A number is a 0-based index; a string matches a tab `name`. |
 | `preset` | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` | — | A bundle of styling options; explicit keys override it. See [Style presets](Feature-Presets). |
 | `position` | `top` \| `bottom` \| `left` \| `right` | `top` | Where the tab bar sits relative to the content. |
@@ -44,6 +44,11 @@ All options live on the top-level card config (`type: custom:tabdeck-card`) exce
 | `swipe` | boolean | `false` | Allow left/right swipe gestures to change tabs (mobile). |
 | `auto_rotate` | number \| `{interval, resume_after}` | — | Cycle tabs every N seconds; pauses after interaction. See [Auto-rotate & idle return](Feature-Kiosk). |
 | `idle_return` | number (seconds) | — | Return to the default tab after inactivity. See [Auto-rotate & idle return](Feature-Kiosk). |
+| `alert_first` | boolean | `false` | Alerting tabs move to the front. See [Alert pulse](Feature-Alert#alerting-tabs-first-alert_first). |
+| `alert_snooze` | number (minutes) | — | Long-press an alerting tab to silence its pulse. See [Alert pulse](Feature-Alert#snooze-alert_snooze). |
+| `default_by_time` / `default_by_device` | map | — | Starting tab by time of day / by browser. See [Remote control & events](Feature-Remote-Control#default-tab-by-time-of-day-default_by_time). |
+| `remote_entity` | entity id | — | Switch to the tab named by this entity's state when it changes. See [Remote control & events](Feature-Remote-Control). |
+| `remote_event` / `fire_event` / `event_id` | boolean / boolean / string | `false` / `false` / — | Switch on `tabdeck_select` events; fire `tabdeck_tab_changed` (admin users). See [Remote control & events](Feature-Remote-Control#events-remote_event-fire_event). |
 | `edit_mode_reveal` | boolean | `true` | Show hidden tabs (faded) and pause rotation while editing the dashboard. See [Edit mode helpers](Feature-Edit-Mode). |
 | `dock` | boolean | `false` | Pin the bar to the bottom of the screen as phone-style navigation. See [Dock](Feature-Dock). |
 | `content_arrows` | boolean | `false` | ‹ › buttons beside the content to step between tabs. See [Dots & arrows](Feature-Dots-Arrows). |
@@ -75,6 +80,11 @@ Each item in `tabs`:
 | `color` | string (CSS colour) | — | Fixed label/icon colour for the tab. See [Per-tab colour](Feature-Tab-Color). |
 | `badge` | string | — | An entity id (shows its state) or a Jinja template. See [Badges](Badges). |
 | `badge_format` | `{precision, unit, max}` | — | Numeric badge formatting (overrides the top-level default). See [Badges](Badges#numeric-formatting-badge_format). |
+| `badge` (count form) | `{count, state, area}` | — | Count matching entities without Jinja. See [Badges](Badges#count-badge-no-jinja). |
+| `badge_icon` | icon | — | An icon as the badge. See [Badges](Badges#badge-icon-badge_icon). |
+| `ring` / `ring_max` / `ring_color` | entity / template / number, number, colour | — / `100` / — | Progress ring around the icon. See [Badges](Badges#progress-ring-ring). |
+| `area` / `floor` / `label` / `domains` | id / list | — | No card needed: tiles of the entities there. See [Dynamic tabs](Feature-Dynamic-Tabs#area-floor-and-label-tabs-without-a-card-auto-content). |
+| `pin` / `pin_timeout` | string / minutes | — | Ask for a code before the tab opens (not security). See [PIN-locked tabs](Feature-PIN). |
 | `disabled` | boolean | `false` | Show the tab greyed-out and non-selectable. See [Disabled tabs](Feature-Disabled-Tabs). |
 | `fab` | boolean | `false` | Render the tab as a raised round action button. See [Floating action tabs](Feature-Dock#floating-action-tabs). |
 | `children` / `children_display` / `children_options` | list / string / object | — / `row` / — | Sub-tabs as a second row or a ▾ menu. See [Grouped tabs](Feature-Grouped-Tabs). |

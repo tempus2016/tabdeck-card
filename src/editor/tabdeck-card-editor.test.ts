@@ -258,6 +258,28 @@ describe("tabdeck-card-editor", () => {
     expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].badge).toBe("sensor.unread");
   });
 
+  it("keeps a YAML count badge when another tab field is edited", async () => {
+    const badge = { count: "light.*", state: "on" };
+    const el = await mount({ tabs: [{ name: "A", badge, card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    await expand(el, 0);
+    formChange(el.shadowRoot.querySelector(".tab-form"), { name: "A", icon: "", accent: "red", badge: "" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].badge).toEqual(badge);
+  });
+
+  it("edits the PIN, ring and area of a tab", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    await expand(el, 0);
+    formChange(el.shadowRoot.querySelector(".tab-form"), { name: "A", pin: 4321, ring: "sensor.battery", ring_max: 100, area: "kitchen" });
+    const tab = handler.mock.calls.at(-1)![0].detail.config.tabs[0];
+    expect(tab.pin).toBe("4321");
+    expect(tab.ring).toBe("sensor.battery");
+    expect(tab.area).toBe("kitchen");
+  });
+
   it("shows an 'Edit card' button per tab and no raw JSON textarea in list view", async () => {
     const el = await mount({
       tabs: [{ name: "A", card: { type: "markdown" } }, { name: "B", card: { type: "light" } }],

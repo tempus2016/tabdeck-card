@@ -45,6 +45,11 @@ export class TabdeckTab extends LitElement {
   @property() ghostLabel = "Hidden: its visibility conditions aren't met (shown while editing)";
   // Accessible label for the badge (localised by the bar).
   @property() badgeLabel?: string;
+  // Progress ring around the icon (0–100; undefined = none).
+  @property({ type: Number }) ring?: number;
+  @property() ringColor?: string;
+  // An icon shown as the badge.
+  @property() badgeIcon?: string;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -93,7 +98,7 @@ export class TabdeckTab extends LitElement {
     const showLabel = display !== "icon" || !hasIcon;
     return html`
       <div class="inner">
-        ${showIcon ? html`<ha-icon icon=${this.icon}></ha-icon>` : nothing}
+        ${showIcon ? this._renderIcon() : nothing}
         ${showLabel && this.label
           ? html`<span class="text">
               <span class="label">${this.label}</span>
@@ -111,6 +116,28 @@ export class TabdeckTab extends LitElement {
     `;
   }
 
+  private _renderIcon() {
+    if (this.ring === undefined || this.ring === null || !Number.isFinite(this.ring)) {
+      return html`<ha-icon icon=${this.icon}></ha-icon>`;
+    }
+    // pathLength=100 lets the dash array be the percentage directly.
+    return html`<span class="icon-wrap">
+      <svg class="ring" viewBox="0 0 36 36" aria-hidden="true">
+        <circle class="ring-track" cx="18" cy="18" r="16" pathLength="100"></circle>
+        <circle
+          class="ring-value"
+          cx="18"
+          cy="18"
+          r="16"
+          pathLength="100"
+          stroke-dasharray="${Math.round(this.ring)} 100"
+          style=${this.ringColor ? `stroke:${this.ringColor}` : ""}
+        ></circle>
+      </svg>
+      <ha-icon icon=${this.icon}></ha-icon>
+    </span>`;
+  }
+
   private _onBadgeClick(e: Event): void {
     if (!this.badgeAction) return;
     // Don't let a badge click also select the tab.
@@ -121,6 +148,16 @@ export class TabdeckTab extends LitElement {
   private _renderBadge() {
     const bg = this.badgeColor ? `background:${this.badgeColor}` : "";
     const cls = this.badgeAction ? " clickable" : "";
+    if (this.badgeIcon && (this.badge === undefined || isActiveBadge(this.badge))) {
+      return html`<span
+        class="badge icon-badge${cls}"
+        part="badge"
+        style=${bg}
+        aria-label=${this.badgeLabel ?? `badge: ${this.badge ?? ""}`}
+        @click=${this._onBadgeClick}
+        ><ha-icon icon=${this.badgeIcon}></ha-icon
+      ></span>`;
+    }
     if (this.badgeDisplay === "dot") {
       return isActiveBadge(this.badge)
         ? html`<span class="badge-dot${cls}" part="badge-dot" style=${bg} @click=${this._onBadgeClick}></span>`
@@ -298,6 +335,41 @@ export class TabdeckTab extends LitElement {
     }
     ha-icon {
       --mdc-icon-size: 22px;
+    }
+    .icon-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+    }
+    .icon-wrap ha-icon {
+      --mdc-icon-size: 18px;
+    }
+    .ring {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .ring circle {
+      fill: none;
+      stroke-width: 3;
+    }
+    .ring-track {
+      stroke: var(--tabdeck-ring-track, rgba(127, 127, 127, 0.25));
+    }
+    .ring-value {
+      stroke: var(--tabdeck-ring-color, var(--tabdeck-accent, var(--primary-color)));
+      stroke-linecap: round;
+    }
+    .icon-badge {
+      padding: 0 3px;
+    }
+    .icon-badge ha-icon {
+      --mdc-icon-size: 13px;
     }
     .badge {
       min-width: 18px;

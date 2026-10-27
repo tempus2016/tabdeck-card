@@ -17,6 +17,8 @@
 **Features**
 - [All features](Features)
 - [Dynamic tabs](Feature-Dynamic-Tabs)
+- [Remote control & events](Feature-Remote-Control)
+- [PIN-locked tabs](Feature-PIN)
 - [State-driven icons & names](Feature-Templated-Fields)
 - [Alert pulse](Feature-Alert)
 - [Auto-rotate & idle return](Feature-Kiosk)

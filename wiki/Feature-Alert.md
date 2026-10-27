@@ -42,6 +42,14 @@ alert:
 
 > In the visual editor, use the tab's **Alert** condition builder. See [The Visual Editor](Editor#condition-builders).
 
+## Alerting tabs first (`alert_first`)
+
+With **`alert_first: true`**, tabs whose alert is active move to the front of the bar, keeping their order among themselves, and go back when the alert clears. The selected tab stays selected.
+
+## Snooze (`alert_snooze`)
+
+**`alert_snooze: 30`** lets you **long-press** an alerting tab to silence its pulse for 30 minutes. The snooze is per browser and ends early when the alert clears, so the next alert pulses again. While `alert_snooze` is on, a long-press on an alerting tab snoozes it instead of running its `hold_action`.
+
 ## Styling
 
 | Variable | Default | Effect |

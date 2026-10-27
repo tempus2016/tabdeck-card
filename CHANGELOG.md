@@ -19,6 +19,14 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Full screen** — `fullscreen: true` adds a button to the bar that opens the active tab over the whole window (Esc or the corner button closes it).
 - **Swipe peek** — `swipe_peek: true`: while swiping, the content follows the finger and the neighbouring tab slides in; release past a third (or flick) to change tab.
 - **More transitions** — `scale`, `flip` and `rise`, plus `transition_duration` and `transition_easing`; `slide` and `flip` now come in from the direction of travel. `transition_narrow` picks a different transition (e.g. `none`) on cards narrower than `narrow_width`.
+- **More auto-tab sources** — `auto_tabs.source` adds `floors`, `domains`, `devices`, `todo`, `calendars`, `cameras` and `zones`, each with a fitting default card (to-do list, calendar, camera, zone map with a people count); `content: tiles` gives area / floor / label tabs tile grids.
+- **Auto content** — a tab with `area`, `floor` or `label` (and optional `domains`) and no card shows tiles of its entities, following HA's registry live.
+- **Count badges** — `badge: { count: light.*, state: on, area: kitchen }` counts entities without Jinja.
+- **Badge icons and progress rings** — `badge_icon` shows an icon as the badge; `ring` (entity, template or number, out of `ring_max`) draws a progress ring around the tab icon.
+- **Alerting tabs first** — `alert_first` moves tabs with an active alert to the front; `alert_snooze` lets a long-press silence a pulse for N minutes.
+- **Starting tab by time or device** — `default_by_time` (`{"06:00": Morning}`) and `default_by_device` (browsers named once with `?tabdeck_device=`, or browser_mod IDs).
+- **Remote control** — `remote_entity` follows an entity (an automation sets an `input_text` to a tab name); `remote_event` switches on `tabdeck_select` events and `fire_event` fires `tabdeck_tab_changed` (both admin users only, as HA requires).
+- **PIN-locked tabs** — `pin` asks for a code before a tab opens (`pin_timeout` for how long it stays unlocked). A convenience lock, not security.
 - **Visual regression tests** — CI screenshots every demo example (desktop, phone, light theme) and compares it pixel by pixel with saved baselines (`npm run test:visual`).
 - **Home Assistant compatibility check** — a monthly workflow runs the card in fresh Home Assistant `stable` and `beta` containers (dashboard, HA cards inside the deck, visual editor) and keeps a "works with Home Assistant" badge in the README up to date (`npm run test:ha` runs it against your own instance).
 - **Free unused tabs** — `unload_after: <minutes>` releases the card of a tab that hasn't been on screen for that long and rebuilds it when it's opened again.

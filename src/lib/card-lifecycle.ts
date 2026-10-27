@@ -44,6 +44,13 @@ export class CardManager extends EventTarget {
     return this._elements;
   }
 
+  // Swap the card at `index` for one built from a new config (auto-content
+  // tabs whose entity list changed).
+  replace(index: number, config: LovelaceCardConfig | null): void {
+    this._configs[index] = config;
+    this._elements[index] = this._make(config, index);
+  }
+
   // Free a built card (unload_after); its config is kept so ensure() can
   // rebuild it.
   unload(index: number): void {

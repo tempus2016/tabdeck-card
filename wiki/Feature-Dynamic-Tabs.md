@@ -21,9 +21,9 @@ auto_tabs:
       entity: "{{ item }}"
 ```
 
-## Built-in sources: a tab per area or label
+## Built-in sources: a tab per area, floor, label, domain, device, list, calendar, camera or zone
 
-No Jinja needed. Set `source` and Tabdeck builds **one tab per Home Assistant area** (or **label**), each listing that area's entities:
+No Jinja needed. Set `source` and Tabdeck builds **one tab per Home Assistant area** (or one of the other sources below), each showing what belongs to it:
 
 ```yaml
 type: custom:tabdeck-card
@@ -54,12 +54,58 @@ auto_tabs:
 
 - `source` replaces `template` (if both are set, `source` wins). The visual editor keeps the short `source` form in your YAML; the generated Jinja is never written out.
 
+### All sources
+
+| `source` | One tab per… | Default content |
+| --- | --- | --- |
+| `areas` | area (its registry icon) | entities card of the area's entities |
+| `labels` | label | entities card of the labelled entities |
+| `floors` | floor (its registry icon) | entities card of every entity in the floor's areas |
+| `domains` | domain in `domains` (default: light, switch, climate, cover, fan, media_player, lock, camera, vacuum) | entities card of that domain's entities |
+| `devices` | device (sorted by name; use `domains` to keep it short) | entities card of the device's entities |
+| `todo` | to-do list | HA's to-do list card; the badge shows the open items |
+| `calendars` | calendar | HA's calendar card (list view) |
+| `cameras` | camera | picture-entity card of the camera |
+| `zones` | zone | map of the zone and the people in it; the badge counts them |
+
+- `domains` filters the entities of `areas`, `labels`, `floors` and `devices`; for `domains` it picks the domains.
+- `exclude` takes area / floor / label / device ids, domains, or entity ids (`camera.doorbell`) for the per-entity sources.
+- Each item has `id`, `name`, `icon` and, where it applies, `entities` and `count`, for your own `tab_template`.
+
+### Tiles instead of a list: `content: tiles`
+
+For `areas`, `floors` and `labels`, **`content: tiles`** gives each tab a grid of HA tile cards instead of an entities card:
+
+```yaml
+auto_tabs:
+  source: floors
+  content: tiles
+  domains: [light, switch, climate]   # optional
+```
+
+## Area, floor and label tabs without a card (auto content)
+
+A static tab with **`area`**, **`floor`** or **`label`** and no `card` fills itself with tile cards for every entity there, the way HA's own area dashboards do:
+
+```yaml
+tabs:
+  - name: Kitchen
+    icon: mdi:silverware-fork-knife
+    area: kitchen               # or floor: ground_floor, or label: lights
+    domains: [light, switch]    # optional: only these domains
+```
+
+- Entities placed in the area through their **device** are included; **hidden** entities and **config / diagnostic** ones are left out.
+- The tab updates when entities are added, removed or moved in HA.
+- With nothing to show, the tab says so instead of staying empty.
+- The visual editor has an **Area** picker for this; `floor`, `label` and `domains` are YAML.
+
 ## Options
 
 | Key | Type | Description |
 | --- | --- | --- |
 | `template` | string (Jinja) | **Required** unless `source` is set. Rendered by Home Assistant; must resolve to a **list**. Each element becomes a tab. |
-| `source` | `areas` \| `labels` | Built-in source instead of `template` (see above), with optional `domains` and `exclude`. |
+| `source` | `areas` \| `labels` \| `floors` \| `domains` \| `devices` \| `todo` \| `calendars` \| `cameras` \| `zones` | Built-in source instead of `template` (see above), with optional `domains`, `exclude` and `content: tiles`. |
 | `tab_template` | tab config | Optional blueprint. When present, it's filled once per list item using the placeholders below. When **absent**, each list element is used directly as a complete tab config. |
 
 ## Placeholders (inside `tab_template`)
