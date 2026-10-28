@@ -1,27 +1,52 @@
 name: Announce Release in Discussions
 
+# Runs when a release is published by a person, and is called by release.yml
+# right after it publishes one: a release published by GITHUB_TOKEN doesn't
+# trigger other workflows. Can also be run by hand for a given tag.
 on:
   release:
     types: [published]
+  workflow_call:
+    inputs:
+      tag:
+        description: "Release tag"
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. v1.2.0"
+        type: string
+        required: true
 
 permissions: {}
 
 jobs:
   announce:
     runs-on: ubuntu-latest
-    # Skip pre-releases entirely — only stable releases get a discussion thread.
-    # Without this, every -alpha.N / -beta.N pushed for testing posts noise.
-    if: github.event.release.prerelease == false
     permissions:
+      contents: read
       discussions: write
 
     steps:
       - name: Create Discussion Announcement
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9 2026-06-17
+        env:
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const release = context.payload.release;
+            const { data: release } = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: process.env.TAG,
+            });
+            // Only stable releases get a discussion thread; every -alpha.N /
+            // -beta.N pushed for testing would otherwise post noise.
+            if (release.prerelease || release.draft) {
+              console.log(`${release.tag_name} is a pre-release or draft: no announcement.`);
+              return;
+            }
             const tag = release.tag_name;
             const name = release.name || tag;
             const body = release.body || '_No release notes provided._';

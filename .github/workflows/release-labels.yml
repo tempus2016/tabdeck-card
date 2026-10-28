@@ -7,9 +7,24 @@ name: Label released issues
 # one. Issues closed as not planned, and ones labelled as not needing work,
 # are skipped.
 
+# Runs when a release is published by a person, and is called by release.yml
+# right after it publishes one: a release published by GITHUB_TOKEN doesn't
+# trigger other workflows. Can also be run by hand for a given tag.
 on:
   release:
     types: [published]
+  workflow_call:
+    inputs:
+      tag:
+        description: "Release tag"
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. v1.2.0"
+        type: string
+        required: true
 
 permissions:
   issues: write
@@ -18,13 +33,20 @@ permissions:
 jobs:
   label:
     runs-on: ubuntu-latest
-    if: github.event.release.prerelease == false
     steps:
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
         with:
           script: |
             const { owner, repo } = context.repo;
-            const current = context.payload.release;
+            const { data: current } = await github.rest.repos.getReleaseByTag({
+              owner, repo, tag: process.env.TAG,
+            });
+            if (current.prerelease || current.draft) {
+              console.log(`${current.tag_name} is a pre-release or draft: nothing to label.`);
+              return;
+            }
 
             const releases = await github.paginate(github.rest.repos.listReleases, {
               owner, repo, per_page: 100,
