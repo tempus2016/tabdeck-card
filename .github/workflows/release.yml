@@ -64,6 +64,13 @@ jobs:
           fi
           echo "----- release notes -----"; cat RELEASE_NOTES.md
 
+      - name: Checksums
+        # SHA256SUMS lets anyone check a downloaded file without GitHub tooling:
+        # `sha256sum -c SHA256SUMS`.
+        run: |
+          (cd dist && sha256sum -- *.js) > SHA256SUMS
+          cat SHA256SUMS
+
       - name: Attest the bundle's provenance
         # Signed statement that dist/tabdeck-card.js was built by this workflow from
         # this commit, checkable with `gh attestation verify`.
@@ -76,6 +83,7 @@ jobs:
           name: release
           path: |
             dist/tabdeck-card.js
+            SHA256SUMS
             RELEASE_NOTES.md
           if-no-files-found: error
           retention-days: 7
@@ -95,5 +103,7 @@ jobs:
       # and HACS only counts downloads of an asset with that exact name.
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
-          files: dist/tabdeck-card.js
+          files: |
+            dist/tabdeck-card.js
+            SHA256SUMS
           body_path: RELEASE_NOTES.md
