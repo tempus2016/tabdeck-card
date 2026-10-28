@@ -259,7 +259,21 @@ async function main() {
       return out;
     });
     check("tab bar shows the visible tabs", JSON.stringify(r.tabs) === JSON.stringify(["Home", "Grid"]), JSON.stringify(r.tabs));
-    check("template badge renders", r.badge === "5", `badge=${r.badge}`);
+    // On a miss, ask Home Assistant directly so the report shows why.
+    const why =
+      r.badge === "5"
+        ? ""
+        : await page.evaluate(
+            () =>
+              new Promise((resolve) => {
+                const conn = document.querySelector("home-assistant").hass.connection;
+                setTimeout(() => resolve("render_template: no reply in 10s"), 10000);
+                conn
+                  .subscribeMessage((msg) => resolve(`render_template: ${JSON.stringify(msg)}`), { type: "render_template", template: "{{ 2 + 3 }}", report_errors: true })
+                  .catch((e) => resolve(`render_template failed: ${JSON.stringify(e)}`));
+              }),
+          );
+    check("template badge renders", r.badge === "5", `badge=${r.badge}${why ? `; ${why}` : ""}`);
     check("header card renders", r.header);
     check("sections: HA heading card", r.headingCards >= 1, `${r.headingCards} found`);
     check("HA tile cards inside the deck", r.tileCards >= 2, `${r.tileCards} found`);
