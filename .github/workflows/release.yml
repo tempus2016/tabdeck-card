@@ -68,7 +68,7 @@ jobs:
         # SHA256SUMS lets anyone check a downloaded file without GitHub tooling:
         # `sha256sum -c SHA256SUMS`.
         run: |
-          (cd dist && sha256sum *.js) > SHA256SUMS
+          (cd dist && sha256sum -- *.js) > SHA256SUMS
           cat SHA256SUMS
 
       - name: Attest the bundle's provenance
