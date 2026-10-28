@@ -134,9 +134,35 @@ function deckConfig(entity) {
   };
 }
 
+// A fresh Home Assistant can restart once while it finishes setting up
+// (seen on stable right after onboarding). Wait until it reports RUNNING and
+// has stayed up for a few seconds before using it.
+async function waitForHa(token, { settleMs = 8000, timeoutMs = 180000 } = {}) {
+  const start = Date.now();
+  let upSince = 0;
+  while (Date.now() - start < timeoutMs) {
+    let running = false;
+    try {
+      running = (await api("/api/config", { token })).state === "RUNNING";
+    } catch {
+      running = false;
+    }
+    if (!running) upSince = 0;
+    else if (!upSince) upSince = Date.now();
+    else if (Date.now() - upSince >= settleMs) return;
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  throw new Error("Home Assistant didn't settle into RUNNING in time");
+}
+
+// A frontend error caused by Home Assistant reloading the page (a restart),
+// not by the card.
+const RELOADED = /Execution context was destroyed|navigation|Target (page, context or browser )?closed|net::ERR_/i;
+
 async function main() {
   const token = opt("--token") ?? (args.includes("--onboard") ? await onboard() : undefined);
   if (!token) throw new Error("Pass --token <token> or --onboard.");
+  await waitForHa(token);
   const { version } = await api("/api/config", { token });
   const checks = [];
   const check = (name, ok, detail = "") => checks.push({ name, ok: !!ok, detail });
@@ -191,15 +217,27 @@ async function main() {
     { token, url: URL_BASE },
   );
   if (CDP) await page.screenshot();
-  await page.goto(`${URL_BASE}/${DASHBOARD}/compat`);
 
   const deep = `window.__deep = (sel, root = document) => { const f = []; (function w(n) { if (!n) return; if (n.matches && n.matches(sel)) f.push(n); if (n.shadowRoot) w(n.shadowRoot); for (const k of n.children || []) w(k); })(root); return f; };`;
-  try {
+  // The browser checks, run against a freshly loaded dashboard. Returns the
+  // results instead of recording them, so a run cut short by a restart
+  // leaves nothing behind.
+  const frontend = async () => {
+    const out = [];
+    const check = (name, ok, detail = "") => out.push({ name, ok: !!ok, detail });
+    // A run cut short may have switched the helper on already.
+    await api("/api/services/input_boolean/turn_off", { method: "POST", token, body: { entity_id: entity } });
+    await page.goto(`${URL_BASE}/${DASHBOARD}/compat`);
     await page.waitForFunction(() => !!customElements.get("tabdeck-card"), null, { timeout: 60000 });
     check("card loads (custom element registered)", true);
     await page.evaluate(deep);
     await page.waitForFunction(() => window.__deep("tabdeck-card")[0]?.shadowRoot?.querySelector("tabdeck-tabbar"), null, { timeout: 30000 });
-    await page.waitForTimeout(3000);
+    // The template badge comes from a server subscription, which can be slow
+    // right after a restart. Wait for it (the check below reports a miss).
+    await page
+      .waitForFunction(() => window.__deep("tabdeck-card")[0].shadowRoot.querySelector("tabdeck-tabbar").items[0]?.badge !== undefined, null, { timeout: 20000 })
+      .catch(() => {});
+    await page.waitForTimeout(1000);
     const r = await page.evaluate(async () => {
       const el = window.__deep("tabdeck-card")[0];
       const bar = el.shadowRoot.querySelector("tabdeck-tabbar");
@@ -221,7 +259,21 @@ async function main() {
       return out;
     });
     check("tab bar shows the visible tabs", JSON.stringify(r.tabs) === JSON.stringify(["Home", "Grid"]), JSON.stringify(r.tabs));
-    check("template badge renders", r.badge === "5", `badge=${r.badge}`);
+    // On a miss, ask Home Assistant directly so the report shows why.
+    const why =
+      r.badge === "5"
+        ? ""
+        : await page.evaluate(
+            () =>
+              new Promise((resolve) => {
+                const conn = document.querySelector("home-assistant").hass.connection;
+                setTimeout(() => resolve("render_template: no reply in 10s"), 10000);
+                conn
+                  .subscribeMessage((msg) => resolve(`render_template: ${JSON.stringify(msg)}`), { type: "render_template", template: "{{ 2 + 3 }}", report_errors: true })
+                  .catch((e) => resolve(`render_template failed: ${JSON.stringify(e)}`));
+              }),
+          );
+    check("template badge renders", r.badge === "5", `badge=${r.badge}${why ? `; ${why}` : ""}`);
     check("header card renders", r.header);
     check("sections: HA heading card", r.headingCards >= 1, `${r.headingCards} found`);
     check("HA tile cards inside the deck", r.tileCards >= 2, `${r.tileCards} found`);
@@ -243,8 +295,25 @@ async function main() {
       return { tag: editor.localName, forms };
     });
     check("visual editor renders HA forms", ed.forms >= 1, `${ed.forms} ha-form`);
-  } catch (e) {
-    check("frontend run", false, e.message);
+    return out;
+  };
+
+  // One retry when Home Assistant reloads the page mid-run.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      checks.push(...(await frontend()));
+      if (attempt > 1) console.warn("frontend: passed on the second run, after Home Assistant reloaded the page");
+      break;
+    } catch (e) {
+      if (attempt < 2 && RELOADED.test(e.message)) {
+        console.warn(`frontend: Home Assistant reloaded the page (${e.message.split("\n")[0]}); waiting and retrying`);
+        await waitForHa(token);
+        errors.length = 0;
+        continue;
+      }
+      check("frontend run", false, e.message);
+      break;
+    }
   }
   const ours = errors.filter((e) => /tabdeck/i.test(e));
   check("no errors from the card", ours.length === 0, ours.join(" | "));
