@@ -3,7 +3,7 @@
 All notable changes are documented here. Each GitHub release uses the matching
 section below as its release notes (see `.github/workflows/release.yml`).
 
-## Unreleased
+## v1.2.0 — 2026-10-28
 
 ### Added
 - **Masonry inside a tab** — `layout: masonry` balances a tab's `cards` into columns like HA's masonry view (`columns`, or `min_column_width` to fit the width).
