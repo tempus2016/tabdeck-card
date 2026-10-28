@@ -225,12 +225,19 @@ async function main() {
   const frontend = async () => {
     const out = [];
     const check = (name, ok, detail = "") => out.push({ name, ok: !!ok, detail });
+    // A run cut short may have switched the helper on already.
+    await api("/api/services/input_boolean/turn_off", { method: "POST", token, body: { entity_id: entity } });
     await page.goto(`${URL_BASE}/${DASHBOARD}/compat`);
     await page.waitForFunction(() => !!customElements.get("tabdeck-card"), null, { timeout: 60000 });
     check("card loads (custom element registered)", true);
     await page.evaluate(deep);
     await page.waitForFunction(() => window.__deep("tabdeck-card")[0]?.shadowRoot?.querySelector("tabdeck-tabbar"), null, { timeout: 30000 });
-    await page.waitForTimeout(3000);
+    // The template badge comes from a server subscription, which can be slow
+    // right after a restart. Wait for it (the check below reports a miss).
+    await page
+      .waitForFunction(() => window.__deep("tabdeck-card")[0].shadowRoot.querySelector("tabdeck-tabbar").items[0]?.badge !== undefined, null, { timeout: 20000 })
+      .catch(() => {});
+    await page.waitForTimeout(1000);
     const r = await page.evaluate(async () => {
       const el = window.__deep("tabdeck-card")[0];
       const bar = el.shadowRoot.querySelector("tabdeck-tabbar");
