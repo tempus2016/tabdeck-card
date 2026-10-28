@@ -8,8 +8,8 @@
 //   node scripts/visual/visual.mjs --update   write new baselines
 //
 // Options:
-//   --base-url <url>  load an already-hosted copy of site/ instead of serving it
-//   --cdp <url>       drive a remote Chrome over CDP (e.g. browserless)
+//   --base-url <url>  load an already-hosted copy of site/demo/ instead of serving it
+//   --cdp <url>       drive a remote Chrome over CDP (a headless Chrome service)
 //   --only <id>       just one example
 //
 // Baselines live in tests/visual/<platform>/ because fonts render differently
@@ -25,7 +25,7 @@ import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const SITE = join(ROOT, "site");
+const SITE = join(ROOT, "site/demo");
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
 const opt = (name) => {
@@ -36,7 +36,7 @@ const opt = (name) => {
 const UPDATE = flag("--update");
 const CDP = opt("--cdp");
 const ONLY = opt("--only");
-const PLATFORM = process.env.VISUAL_PLATFORM || (CDP ? "browserless" : process.platform);
+const PLATFORM = process.env.VISUAL_PLATFORM || (CDP ? "remote" : process.platform);
 const BASELINES = join(ROOT, "tests/visual", PLATFORM);
 const OUTPUT = join(ROOT, "tests/visual/output");
 // A shot fails when more than this share of its pixels differ.
@@ -51,16 +51,16 @@ const TYPES = {
   ".json": "application/json",
 };
 
-// Serve site/ on a free localhost port.
+// Serve site/demo/ (where build:demo puts the demo) on a free localhost port.
 async function serveSite() {
   if (!existsSync(join(SITE, "index.html"))) {
-    throw new Error("site/ is missing: run `npm run build:demo` first.");
+    throw new Error("site/demo/ is missing: run `npm run build:demo` first.");
   }
   const server = createServer(async (req, res) => {
     try {
       const path = decodeURIComponent(new URL(req.url, "http://x").pathname);
       const file = resolve(SITE, "." + (path.endsWith("/") ? path + "index.html" : path));
-      if (!file.startsWith(SITE)) throw new Error("outside site/");
+      if (!file.startsWith(SITE)) throw new Error("outside site/demo/");
       const body = await readFile(file);
       res.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream" });
       res.end(body);
@@ -135,7 +135,7 @@ async function main() {
   for (const shot of shots) {
     // A fresh load per shot, so no state carries over between examples.
     await page.goto(`${baseUrl}?shot=${shot.name}#${shot.id}`);
-    // Remote browsers (browserless) only apply the viewport on a screenshot.
+    // Some remote browsers only apply the viewport on a screenshot.
     if (CDP) await page.screenshot();
     await settle(page);
     await page.evaluate(({ width, light }) => {
@@ -150,7 +150,7 @@ async function main() {
     }, shot);
     await page.waitForTimeout(500);
     // A page shot clipped to the preview: element shots came back blank
-    // through browserless.
+    // through a remote browser.
     const box = await page.evaluate(() => {
       const r = document.querySelector("#stage").getBoundingClientRect();
       return { x: Math.floor(r.x + scrollX), y: Math.floor(r.y + scrollY), width: Math.ceil(r.width), height: Math.ceil(r.height) };
