@@ -3,6 +3,11 @@
 All notable changes are documented here. Each GitHub release uses the matching
 section below as its release notes (see `.github/workflows/release.yml`).
 
+## Unreleased
+
+### Fixed
+- **Template badges and conditions after a layout change** — when Home Assistant moved the card in the page (it does this while laying out a dashboard), template badges and template visibility stayed empty until some entity changed. They now come back straight away.
+
 ## v1.2.0 — 2026-10-28
 
 ### Added

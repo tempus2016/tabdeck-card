@@ -315,6 +315,20 @@ describe("tabdeck-card templates", () => {
     expect(bar().items[0].badge).toBe("7");
   });
 
+  it("resubscribes when moved in the DOM, without waiting for a new hass", async () => {
+    const { hass, subs } = hassWithTemplates();
+    const el = await mountWith(
+      { tabs: [{ name: "A", badge: "{{ 2 + 3 }}", card: { type: "markdown" } }] },
+      hass,
+    );
+    el.remove();
+    document.body.appendChild(el);
+    expect(subs).toHaveLength(2);
+    subs[1].cb({ result: 5 });
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("tabdeck-tabbar").items[0].badge).toBe("5");
+  });
+
   it("hides a tab with a template condition until it renders true", async () => {
     const { hass, push } = hassWithTemplates();
     const el = await mountWith(

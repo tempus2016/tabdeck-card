@@ -188,6 +188,9 @@ export class TabdeckCard extends LitElement {
     this._syncTimer();
     this._syncUnloadTimer();
     this._syncWidthObserver();
+    // disconnectedCallback dropped the template subscriptions. Restore them
+    // now: a quiet instance may not send a new hass for a long time.
+    if (this._hass) this._syncTemplates();
     // HA moves cards around the DOM during layout; re-observe on reconnect.
     if (this._config?.scroll_spy) this.updateComplete.then(() => this._syncSpyObserver());
     if (this._config?.dock) this.updateComplete.then(() => this._syncDock());
