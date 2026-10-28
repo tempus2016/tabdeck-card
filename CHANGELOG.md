@@ -3,13 +3,6 @@
 All notable changes are documented here. Each GitHub release uses the matching
 section below as its release notes (see `.github/workflows/release.yml`).
 
-## v1.4.0 — 2026-11-02
-
-### Added
-- **Faster dashboards** — the visual editor (with its helpers and translations) is now a separate file, `tabdeck-card-editor-<hash>.js`, loaded only when the card editor is opened. The card file dashboards load drops from 82 KB to 41 KB gzipped. HACS installs both files; manual installs copy both to `config/www/`.
-- **Tab defaults and templates** — `tab_defaults` applies keys to every tab (including generated ones); `tab_templates` names blueprints a tab fills with `use` + `vars` (`{{ item.<var> }}`). The editor keeps both short in the YAML.
-- **Debug panel** — `debug: true` shows each tab's conditions (✓/✗), badge, alert and lock state, why the deck started on its tab, the live template results, and build / render timings.
-
 ## Unreleased
 
 ### Added
@@ -18,6 +11,16 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **More presets** — `neumorphic`, `ha-tile`, `mushroom`, `bubble`, `fluent` and `material-you`, plus new styling variables (`--tabdeck-indicator-color`, `--tabdeck-indicator-shadow`, `--tabdeck-selected-color`, `--tabdeck-badge-*`, `--tabdeck-tab-font-weight`, …).
 - **Pictures, icon animations and fonts** — per-tab `picture` (a person's photo or any image), `icon_animation` (spin, pulse, bounce, shake, beat; templatable), `font_size` / `font_weight` / `font_family`, and a top-level `density: compact | comfortable`.
 - **Haptic feedback** — `haptic: light` (etc.) vibrates through the companion app when the person switches tabs.
+
+### Changed
+- Colour names that are also Home Assistant theme colours (`red`, `blue`, `orange`, …) now resolve to the theme's version (`var(--red-color)`), as in HA's own cards, so they may look slightly different.
+
+## v1.4.0 — 2026-11-02
+
+### Added
+- **Faster dashboards** — the visual editor (with its helpers and translations) is now a separate file, `tabdeck-card-editor-<hash>.js`, loaded only when the card editor is opened. The card file dashboards load drops from 82 KB to 41 KB gzipped. HACS installs both files; manual installs copy both to `config/www/`.
+- **Tab defaults and templates** — `tab_defaults` applies keys to every tab (including generated ones); `tab_templates` names blueprints a tab fills with `use` + `vars` (`{{ item.<var> }}`). The editor keeps both short in the YAML.
+- **Debug panel** — `debug: true` shows each tab's conditions (✓/✗), badge, alert and lock state, why the deck started on its tab, the live template results, and build / render timings.
 
 ## v1.3.0 — 2026-10-31
 
@@ -53,9 +56,6 @@ section below as its release notes (see `.github/workflows/release.yml`).
 - **Visual regression tests** — CI screenshots every demo example (desktop, phone, light theme) and compares it pixel by pixel with saved baselines (`npm run test:visual`).
 - **Home Assistant compatibility check** — a monthly workflow runs the card in fresh Home Assistant `stable` and `beta` containers (dashboard, HA cards inside the deck, visual editor) and keeps a "works with Home Assistant" badge in the README up to date (`npm run test:ha` runs it against your own instance).
 - **Free unused tabs** — `unload_after: <minutes>` releases the card of a tab that hasn't been on screen for that long and rebuilds it when it's opened again.
-
-### Changed
-- Colour names that are also Home Assistant theme colours (`red`, `blue`, `orange`, …) now resolve to the theme's version (`var(--red-color)`), as in HA's own cards, so they may look slightly different.
 
 ## v1.1.0 — 2026-10-27
 
