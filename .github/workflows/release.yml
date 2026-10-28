@@ -107,3 +107,25 @@ jobs:
             dist/tabdeck-card.js
             SHA256SUMS
           body_path: RELEASE_NOTES.md
+
+  # A release published with GITHUB_TOKEN doesn't trigger other workflows, so
+  # the follow-ups are called directly once the release exists.
+  labels:
+    name: Label released issues
+    needs: publish
+    permissions:
+      issues: write
+      contents: read
+    uses: ./.github/workflows/release-labels.yml
+    with:
+      tag: ${{ github.ref_name }}
+
+  announce:
+    name: Announce in Discussions
+    needs: publish
+    permissions:
+      discussions: write
+      contents: read
+    uses: ./.github/workflows/release-announcement.yml
+    with:
+      tag: ${{ github.ref_name }}
