@@ -190,4 +190,45 @@ describe("isTabVisible", () => {
       expect(isTabVisible(conds, hass, () => false)).toBe(false);
     });
   });
+
+  // Home Assistant's condition editor now writes core-style `entity_id`
+  // (discussion #93) — it must work alongside lovelace-style `entity`.
+  describe("core-style entity_id", () => {
+    const hass = hassWith({
+      "media_player.bedroom": { state: "on" },
+      "sensor.temp": { state: "21" },
+      "light.a": { state: "on" },
+      "light.b": { state: "off" },
+    });
+
+    it("reads entity_id on state and numeric_state conditions", () => {
+      expect(isTabVisible([{ condition: "state", entity_id: "media_player.bedroom", state: ["on"] }], hass)).toBe(true);
+      expect(isTabVisible([{ condition: "state", entity_id: "media_player.bedroom", state: "off" }], hass)).toBe(false);
+      expect(isTabVisible([{ condition: "numeric_state", entity_id: "sensor.temp", above: 20 }], hass)).toBe(true);
+    });
+
+    it("prefers entity_id over entity, as Home Assistant does", () => {
+      expect(
+        isTabVisible([{ condition: "state", entity_id: "light.a", entity: "light.b", state: "on" }], hass),
+      ).toBe(true);
+    });
+
+    it("requires every entity in an entity_id list to match", () => {
+      expect(isTabVisible([{ condition: "state", entity_id: ["light.a", "media_player.bedroom"], state: "on" }], hass)).toBe(true);
+      expect(isTabVisible([{ condition: "state", entity_id: ["light.a", "light.b"], state: "on" }], hass)).toBe(false);
+    });
+
+    it("works inside an or group mixing both styles (the reported config)", () => {
+      const conds = [
+        {
+          condition: "or",
+          conditions: [
+            { condition: "state", entity: "media_player.bedroom", state: ["playing"] },
+            { condition: "state", entity_id: "media_player.bedroom", state: ["on"] },
+          ],
+        },
+      ];
+      expect(isTabVisible(conds, hass)).toBe(true);
+    });
+  });
 });
