@@ -78,4 +78,9 @@ describe("explainConditions", () => {
     );
     expect(c).not.toBe(a);
   });
+
+  it("reports the entity of a core-style entity_id condition", () => {
+    const r = explainConditions([{ condition: "state", entity_id: "input_boolean.guest", state: "on" }], hass);
+    expect(r.items[0]).toMatchObject({ met: false, entity: "input_boolean.guest", current: "off", missing: false });
+  });
 });

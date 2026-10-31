@@ -1,5 +1,5 @@
 import type { HomeAssistant } from "../types";
-import { checkOne, type TemplateResolver } from "./conditions";
+import { checkOne, conditionEntities, type TemplateResolver } from "./conditions";
 
 // A condition evaluated against live state, for the editor's "why is this tab
 // hidden?" panel. Structured (not text) so the editor can localise it.
@@ -34,10 +34,9 @@ const asList = (v: any): string[] => (Array.isArray(v) ? v.map(String) : [String
 function explainOne(c: any, hass: HomeAssistant, resolver?: TemplateResolver): ConditionExplanation {
   const type = String(c?.condition ?? "unknown");
   const met = checkOne(c, hass, resolver);
-  const stateObj = c?.entity ? hass.states?.[c.entity] : undefined;
-  const entityInfo = c?.entity
-    ? { entity: String(c.entity), current: stateObj?.state, missing: !stateObj }
-    : {};
+  const entity = conditionEntities(c)[0];
+  const stateObj = entity ? hass.states?.[entity] : undefined;
+  const entityInfo = entity ? { entity, current: stateObj?.state, missing: !stateObj } : {};
   switch (type) {
     case "state": {
       const negate = c.state === undefined && c.state_not !== undefined;

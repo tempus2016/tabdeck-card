@@ -1,27 +1,40 @@
 import type { HomeAssistant } from "../types";
 
+// The entities a state/numeric_state condition reads. Home Assistant's
+// condition editor writes core-style `entity_id` (a string or a list, every
+// entity must match) and prefers it over lovelace-style `entity`.
+export function conditionEntities(c: any): string[] {
+  const ids = c?.entity_id || c?.entity;
+  if (Array.isArray(ids)) return ids.filter((id) => typeof id === "string" && id);
+  return typeof ids === "string" && ids ? [ids] : [];
+}
+
+function everyEntity(c: any, hass: HomeAssistant, test: (current: string) => boolean): boolean {
+  const ids = conditionEntities(c);
+  return ids.length > 0 && ids.every((id) => hass.states[id] !== undefined && test(hass.states[id].state));
+}
+
 function checkState(c: any, hass: HomeAssistant): boolean {
-  const stateObj = hass.states[c.entity];
-  if (!stateObj) return false;
-  const current = stateObj.state;
-  if (Array.isArray(c.state)) return c.state.includes(current);
-  if (c.state !== undefined) return current === c.state;
-  if (c.state_not !== undefined) {
-    return Array.isArray(c.state_not)
-      ? !c.state_not.includes(current)
-      : current !== c.state_not;
-  }
-  return false;
+  return everyEntity(c, hass, (current) => {
+    if (Array.isArray(c.state)) return c.state.includes(current);
+    if (c.state !== undefined) return current === c.state;
+    if (c.state_not !== undefined) {
+      return Array.isArray(c.state_not)
+        ? !c.state_not.includes(current)
+        : current !== c.state_not;
+    }
+    return false;
+  });
 }
 
 function checkNumeric(c: any, hass: HomeAssistant): boolean {
-  const stateObj = hass.states[c.entity];
-  if (!stateObj) return false;
-  const value = Number(stateObj.state);
-  if (Number.isNaN(value)) return false;
-  if (c.above !== undefined && !(value > Number(c.above))) return false;
-  if (c.below !== undefined && !(value < Number(c.below))) return false;
-  return c.above !== undefined || c.below !== undefined;
+  return everyEntity(c, hass, (current) => {
+    const value = Number(current);
+    if (Number.isNaN(value)) return false;
+    if (c.above !== undefined && !(value > Number(c.above))) return false;
+    if (c.below !== undefined && !(value < Number(c.below))) return false;
+    return c.above !== undefined || c.below !== undefined;
+  });
 }
 
 function checkScreen(c: any): boolean {
