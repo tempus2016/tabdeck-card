@@ -12,7 +12,7 @@ import {
   type TabdeckTabConfig,
 } from "./lib/config";
 import { expandGeneratedTabs } from "./lib/generate";
-import { isTabVisible } from "./lib/conditions";
+import { conditionEntities, isTabVisible } from "./lib/conditions";
 import { loadInitialIndex, persistIndex } from "./lib/persistence";
 import { CardManager, getCreateCardElement } from "./lib/card-lifecycle";
 import { isTemplate, makeHassSubscribe, TemplateRenderer, type SubscribeFn } from "./lib/templates";
@@ -1615,13 +1615,14 @@ export class TabdeckCard extends LitElement {
   // One-line description of a condition, for the debug panel.
   private _describeCondition(c: any): string {
     if (!c || typeof c !== "object") return String(c);
-    const kind = c.condition ?? (c.entity ? "state" : "?");
+    const kind = c.condition ?? (c.entity || c.entity_id ? "state" : "?");
+    const ids = conditionEntities(c).join(", ");
     if (Array.isArray(c.conditions)) return `${kind}(${c.conditions.map((x: any) => this._describeCondition(x)).join(", ")})`;
     switch (kind) {
       case "state":
-        return `state ${c.entity} ${c.state_not !== undefined ? "≠ " + [].concat(c.state_not).join("|") : "= " + [].concat(c.state).join("|")}`;
+        return `state ${ids} ${c.state_not !== undefined ? "≠ " + [].concat(c.state_not).join("|") : "= " + [].concat(c.state).join("|")}`;
       case "numeric_state":
-        return `numeric ${c.entity}${c.above !== undefined ? " > " + c.above : ""}${c.below !== undefined ? " < " + c.below : ""}`;
+        return `numeric ${ids}${c.above !== undefined ? " > " + c.above : ""}${c.below !== undefined ? " < " + c.below : ""}`;
       case "screen":
         return `screen ${c.media_query}`;
       case "template":
