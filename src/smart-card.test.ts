@@ -259,4 +259,21 @@ describe("debug panel", () => {
     expect(rows[1]).toContain("badge 0");
     expect(text).toMatch(/build \d+(\.\d+)? ms/);
   });
+
+  it("names entity_id conditions (string or list) as the editor writes them", async () => {
+    const el = await mount(
+      {
+        debug: true,
+        tabs: [
+          { name: "A", card: { type: "a" } },
+          { name: "B", visibility: [{ condition: "state", entity_id: "light.x", state: "on" }], card: { type: "b" } },
+          { name: "C", visibility: [{ condition: "numeric_state", entity_id: ["sensor.a", "sensor.b"], above: 5 }], card: { type: "c" } },
+        ],
+      },
+      { states: { "light.x": st("off"), "sensor.a": st("9"), "sensor.b": st("2") } },
+    );
+    const rows = [...el.shadowRoot.querySelectorAll(".debug tr.tab-row")].map((r) => r.textContent!.replace(/\s+/g, " "));
+    expect(rows[1]).toContain("state light.x = on ✗");
+    expect(rows[2]).toContain("numeric sensor.a, sensor.b > 5 ✗");
+  });
 });
