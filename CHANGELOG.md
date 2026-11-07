@@ -5,80 +5,113 @@ section below as its release notes (see `.github/workflows/release.yml`).
 
 ## v1.5.0 — 2026-11-07
 
-Tabdeck 1.5.0 is about how the deck looks. Colour options now take **Home Assistant's theme colour names** and the editor shows **HA's own colour picker** for them. Text on solid fills **picks black or white by itself**, and the editor **warns about low contrast**. There are **six new presets** (`neumorphic`, `ha-tile`, `mushroom`, `bubble`, `fluent`, `material-you`). Tabs can show **a person's photo** instead of an icon, **animate their icon**, and set **their own font**. A **compact or comfortable density** resizes the whole bar, and **haptic feedback** makes the companion app vibrate on a tab switch. Every new option is opt-in. The one visible change for existing decks is that theme colour names such as `red` now follow your theme (see Changed).
+This release is about how the tab bar looks. Colour options take Home Assistant's own colour names and the editor has HA's colour picker for them. Text on a solid colour turns black or white so it stays readable, and the editor warns when a tab colour is hard to read. Six new presets match the look of HA's tile card, Mushroom, Bubble Card and others. Tabs can show a person's photo, animate their icon and use their own font. The whole bar can be made compact or roomier, and the companion app can vibrate when you change tab. Colour names such as `red` now follow your theme, so a deck that uses them may change shade (see Upgrading).
 
 ## Added
 
-- **Theme colour names and HA's colour picker.** `accent`, `color`, `badge_color`, `ring_color` and `bar_background` accept Home Assistant's theme colour names (`red`, `light-blue`, `amber`, `primary`, `accent`, …), the same names HA's own cards use. A name resolves to your theme's colour (`red` becomes `var(--red-color, red)`), so it changes with the theme. Any other CSS colour (`#e91e63`, `rgb(…)`, `var(--my-color)`) still works as written. In the visual editor these fields show **HA's colour picker** while they're empty or hold a theme colour. A custom CSS value keeps a text field, so it's never hidden. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), [#168](https://github.com/tempus2016/tabdeck-card/issues/168))
+- **Colour options take Home Assistant's colour names, and the editor has HA's colour picker.** `accent`, `color`, `badge_color` and `ring_color` on a tab, and `bar_background` on the card, accept the names HA's own cards use: `red`, `light-blue`, `deep-orange`, `amber`, `blue-grey`, `primary`, `accent` and the rest of HA's list. A name becomes your theme's version of that colour, `red` as `var(--red-color, red)`, so it changes with the theme. Names such as `light-blue` and `deep-orange` used to do nothing, because they aren't CSS colours. Any other CSS colour, `#e91e63`, `rgb(…)` or `var(--my-color)`, works as written. In the visual editor, the accent, tab colour, badge colour and ring colour fields show HA's colour picker while they're empty or hold one of these names. A custom CSS value keeps a text field, so it's never hidden behind the picker. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#168](https://github.com/tempus2016/tabdeck-card/issues/168))
+
   ```yaml
   type: custom:tabdeck-card
-  accent: light-blue
+  tab_defaults:
+    accent: light-blue         # every tab
   tabs:
     - name: Security
-      color: red
+      accent: deep-orange      # this tab only
+      badge: "{{ states('sensor.open_doors') }}"
       badge_color: amber
       card: { ... }
   ```
 
-- **Readable text on colours, and contrast warnings.** On a solid fill the text now switches to black or white, whichever has more contrast (WCAG). This covers `badge_color` badges, floating action tabs, and `pill` / `boxed` indicators made solid with `--tabdeck-indicator-color`. The `segmented` style keeps its accent-coloured text. Set `--tabdeck-selected-color` to choose the colour yourself. The editor also warns when a tab's `accent` or `color` has less than 3:1 contrast with the current theme's card background, so a pale yellow on a light theme is caught before it reaches the wall tablet. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), [#169](https://github.com/tempus2016/tabdeck-card/issues/169))
+- **Text on a solid colour stays readable.** A `badge_color` badge, a floating action tab, and a `pill` or `boxed` indicator filled in with `--tabdeck-indicator-color` used to keep white or accent-coloured text whatever the fill, so a yellow badge had white text on it. The text now turns black or white, whichever has more contrast with the fill. `segmented` keeps its accent-coloured text, because its indicator is card-coloured. Set `--tabdeck-selected-color` to pick the colour yourself. A tab's own `color` also still wins: under `preset: bubble`, a tab with `color: red` keeps red text on the accent bubble. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#169](https://github.com/tempus2016/tabdeck-card/issues/169))
+
   ```yaml
   styles:
-    --tabdeck-indicator-color: "#ffeb3b"   # text on it turns black automatically
+    --tabdeck-indicator-color: "#ffeb3b"   # the selected tab's text turns black
   ```
 
-- **Six new presets.** `neumorphic` (an inset track with a raised selected tab), `ha-tile` (boxed chips like HA's tile card), `mushroom` (Mushroom-style pills), `bubble` (a solid accent bubble with an inverted badge, like Bubble Card), `fluent` (a short rounded Windows-style underline) and `material-you` (a tonal pill in the theme's accent). That makes 12 presets in all. Explicit keys and `styles` still win over a preset. The presets are built on new variables you can use yourself: `--tabdeck-indicator-color`, `--tabdeck-indicator-shadow`, `--tabdeck-selected-color`, `--tabdeck-badge-background` / `-color`, `--tabdeck-selected-badge-background` / `-color`, and `--tabdeck-tab-padding` / `-radius` / `-font-weight` / `-font-family`. Pick one from the editor's **Preset** list. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), [#170](https://github.com/tempus2016/tabdeck-card/issues/170))
+- **The editor warns when a tab colour is hard to read.** If a tab's `accent` or `color` has less than 3:1 contrast with the current theme's card background, the tab's editor says so and gives the ratio, for example *Accent colour has low contrast with this theme's card background (1.6:1), so it may be hard to read.* It checks against the theme the editor is open in, so switch theme to check a dark one. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#169](https://github.com/tempus2016/tabdeck-card/issues/169))
+
+- **Six new presets.** `preset` now also takes:
+  - `neumorphic`: an inset track with a raised, card-coloured selected tab.
+  - `ha-tile`: boxed chips like HA's tile card, 52 px tall.
+  - `mushroom`: Mushroom-style pills, 40 px tall.
+  - `bubble`: a solid accent bubble on a soft track, like Bubble Card, with the badge inverted on the selected tab.
+  - `fluent`: a short rounded underline, as in Windows.
+  - `material-you`: a tonal pill in the theme's accent, tabs spread across the bar.
+
+  That makes twelve. Keys you set yourself, and `styles`, still win over a preset. Pick one from **Style preset** at the top of the editor. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#170](https://github.com/tempus2016/tabdeck-card/issues/170))
+
   ```yaml
   type: custom:tabdeck-card
   preset: bubble
   tabs: [ ... ]
   ```
 
-- **Icon animations.** `icon_animation` on a tab makes its icon `spin`, `pulse`, `bounce`, `shake` or `beat`. It can be a template, so the icon moves only while something is happening. Animations stop when the device asks for reduced motion. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), [#171](https://github.com/tempus2016/tabdeck-card/issues/171))
-  ```yaml
-  - name: Fan
-    icon: mdi:fan
-    icon_animation: "{{ 'spin' if is_state('fan.bedroom', 'on') else '' }}"
-  ```
+- **New styling variables.** The presets are built on variables you can set in `styles` too: `--tabdeck-indicator-color` and `--tabdeck-indicator-shadow` for the moving indicator, `--tabdeck-selected-color` for the selected tab's text and icon, `--tabdeck-badge-background` and `--tabdeck-badge-color` (and `--tabdeck-selected-badge-…` for the selected tab), and `--tabdeck-tab-padding`, `--tabdeck-tab-radius`, `--tabdeck-tab-font-weight` and `--tabdeck-tab-font-family` for each tab. The [Theming](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Theming) page lists them all with their defaults. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#170](https://github.com/tempus2016/tabdeck-card/issues/170))
 
-- **Picture tabs.** `picture` on a tab shows a round image where the icon would be. An entity id uses that entity's `entity_picture` (people, media players, some cameras). A path or URL is used as it is, and templates work too. If the entity has no picture, the tab's `icon` is shown instead. Pictures work with progress rings. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), [#172](https://github.com/tempus2016/tabdeck-card/issues/172))
+- **A tab can show a picture instead of its icon.** `picture` takes an entity, whose `entity_picture` is used (people, media players, some cameras), or an image path or URL. It may be a template. The picture is shown round where the icon would be, and works with a progress `ring`. If the entity has no picture, the tab shows its `icon` instead. In the editor it's **Picture instead of the icon** on each tab. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#172](https://github.com/tempus2016/tabdeck-card/issues/172))
+
   ```yaml
   tabs:
     - name: Alex
       picture: person.alex
-      icon: mdi:account        # shown if Alex has no photo
+      icon: mdi:account        # if Alex has no photo
       card: { ... }
     - name: Garden
       picture: /local/garden.jpg
       card: { ... }
   ```
 
-- **Haptic feedback.** `haptic` makes the Home Assistant companion app vibrate when the person switches tabs, by tap, swipe, arrow key or shortcut. Use `selection`, `light`, `medium`, `heavy`, `success`, `warning` or `failure` (`true` means `selection`). Automatic switches, such as rotation, idle return and remote control, don't vibrate. Nothing vibrates while you edit the dashboard, and browsers without the app ignore the option. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), [#173](https://github.com/tempus2016/tabdeck-card/issues/173))
+- **Tab icons can move.** `icon_animation` makes a tab's icon `spin`, `pulse`, `bounce`, `shake` or `beat`. Make it a template to animate only while something is happening. Animations stop when the device asks for reduced motion. In the editor it's **Icon animation** on each tab. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#171](https://github.com/tempus2016/tabdeck-card/issues/171))
+
+  ```yaml
+  - name: Fan
+    icon: mdi:fan
+    icon_animation: "{{ 'spin' if is_state('fan.bedroom', 'on') else '' }}"
+    card: { ... }
+  ```
+
+- **A tab can have its own font.** `font_size` (a plain number is px), `font_weight` and `font_family` set one tab's label. To change every tab, put them in `tab_defaults` or set `--tabdeck-tab-font-size`, `-font-weight` and `-font-family` in `styles`. In the editor they're the three **Label** fields on each tab. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#174](https://github.com/tempus2016/tabdeck-card/issues/174))
+
+  ```yaml
+  - name: Alarm
+    font_weight: 700
+    font_size: 16
+    font_family: "Georgia, serif"
+    card: { ... }
+  ```
+
+- **The tab bar can be compact or comfortable.** `density: compact` gives 36 px tabs, tighter padding and 13 px labels, for a phone or a busy bar. `density: comfortable` gives 56 px tabs and 15 px labels, for a wall tablet. A `--tabdeck-tab-height`, `--tabdeck-tab-padding` or `--tabdeck-tab-font-size` you set yourself still wins. In the editor it's **Tab bar density**. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#174](https://github.com/tempus2016/tabdeck-card/issues/174))
+
+  ```yaml
+  type: custom:tabdeck-card
+  density: compact
+  tabs: [ ... ]
+  ```
+
+- **The companion app can vibrate when you change tab.** `haptic` takes `selection`, `light`, `medium`, `heavy`, `success`, `warning` or `failure`, and `true` means `selection`. It fires when the person changes tab, by tap, swipe, arrow key or shortcut. Changes the card makes by itself, such as `auto_rotate`, `idle_return` and remote control, don't vibrate, and neither does anything while you're editing the dashboard. A browser without the companion app ignores it. In the editor it's **Vibrate on tab change**. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), for [#173](https://github.com/tempus2016/tabdeck-card/issues/173))
+
   ```yaml
   type: custom:tabdeck-card
   haptic: light
   ```
 
-- **Per-tab fonts and density.** `font_size` (a number means px), `font_weight` and `font_family` set one tab's label font. For every tab at once, use `--tabdeck-tab-font-*` in `styles` or put the keys in `tab_defaults`. The new top-level `density` resizes the whole bar. `compact` gives 36 px tabs with tighter padding and 13 px labels, and `comfortable` gives 56 px tabs and 15 px labels. Explicit `--tabdeck-tab-height`, `--tabdeck-tab-padding` and `--tabdeck-tab-font-size` still win. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199), [#174](https://github.com/tempus2016/tabdeck-card/issues/174))
-  ```yaml
-  type: custom:tabdeck-card
-  density: compact
-  tabs:
-    - name: Alarm
-      font_weight: 700
-      font_size: 16
-      font_family: "Georgia, serif"
-      card: { ... }
-  ```
-
 ## Changed
 
-- **Theme colour names follow your theme.** A colour that is also one of Home Assistant's theme colour names (`red`, `blue`, `orange`, `green`, …) now resolves to the theme's version, `var(--red-color)`, as it does in HA's own cards. With the default theme these are slightly different shades from the plain CSS colours, so a deck using `color: red` may look a little different. To keep the exact old colour, write it as a hex value, such as `#ff0000`. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199))
+- **Colour names that are also HA colour names follow your theme.** `red`, `pink`, `purple`, `indigo`, `blue`, `cyan`, `teal`, `green`, `lime`, `yellow`, `orange`, `brown`, `grey`, `black` and `white` used to be the plain CSS colours. They're now your theme's colour of that name, as in HA's own cards, so with the default theme `red` is `#f44336` instead of `#ff0000` and `blue` is `#2196f3` instead of `#0000ff`. ([#199](https://github.com/tempus2016/tabdeck-card/pull/199))
 
 ## Upgrading
 
-- **HACS:** update as usual and reload the browser.
-- **Manual install:** copy `tabdeck-card.js` **and** the new `tabdeck-card-editor-<hash>.js` from this release into `config/www/`, and delete the older `tabdeck-card-editor-….js`. See [Installation](https://github.com/tempus2016/tabdeck-card/wiki/Installation).
-- No configuration changes are needed. Check any deck that uses colour names such as `red` (see Changed). To try the new options: [Theming](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Theming), [Presets](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Presets) and [Tab look: pictures, icon animations, fonts, haptics](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Tab-Look).
+Through HACS, no action needed: update and reload the browser.
+
+If you install by hand, copy both `tabdeck-card.js` and `tabdeck-card-editor-Bk4KA5s7.js` from the release into `config/www/`, and delete the older `tabdeck-card-editor-….js` file there. Keep registering `/local/tabdeck-card.js` as before. The [Installation](https://github.com/tempus2016/tabdeck-card/wiki/Installation) page has the details.
+
+One change alters what an existing configuration looks like:
+
+- A deck that sets `accent`, `color`, `badge_color`, `ring_color` or `bar_background` to one of the names under Changed now gets the theme's shade of that colour. To keep the exact old colour, write it as a hex value: `color: "#ff0000"` instead of `color: red`.
+
+The new options are described on [Theming](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Theming), [Presets](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Presets) and [Tab look](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Tab-Look).
 
 **Full changelog:** https://github.com/tempus2016/tabdeck-card/compare/v1.4.0...v1.5.0
 
