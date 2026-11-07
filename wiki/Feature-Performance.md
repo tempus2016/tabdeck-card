@@ -43,7 +43,7 @@ tabs: [ ... ]
 
 The card ships as two files: **`tabdeck-card.js`**, the card itself (about 41 KB gzipped), and **`tabdeck-card-editor-<hash>.js`**, the visual editor with its helpers and translations (about 65 KB gzipped). Dashboards only download the editor when someone opens the card editor, so they load faster for everyone, on every device.
 
-- HACS installs both files. Only `tabdeck-card.js` is a dashboard resource; it loads the editor itself.
+- The Marketplace (and HACS) installs both files. Only `tabdeck-card.js` is a dashboard resource; it loads the editor itself.
 - The hash in the editor's name changes with every release, so a browser can't pair a cached old editor with a new card.
 - Without the editor file (an incomplete manual install), the card still works and Home Assistant offers its YAML editor.
 
