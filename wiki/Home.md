@@ -10,7 +10,7 @@
 
 ## Contents
 
-- **[Installation](Installation)** — HACS and manual install.
+- **[Installation](Installation)** — Marketplace (formerly HACS) and manual install.
 - **[Getting Started](Getting-Started)** — your first tabbed card in two minutes.
 - **[Configuration](Configuration)** — every option, with defaults and examples.
 - **[The Visual Editor](Editor)** — building decks without writing YAML.

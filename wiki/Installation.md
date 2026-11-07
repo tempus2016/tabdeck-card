@@ -1,16 +1,16 @@
 # Installation
 
-## HACS (recommended)
+## Marketplace (recommended)
 
-Tabdeck Card is in the **default HACS store** — no custom repository needed.
+Tabdeck Card is in the default **Marketplace** catalog (formerly HACS) — no custom repository needed.
 
-1. In Home Assistant, open **HACS** and search for **Tabdeck Card**.
+1. In Home Assistant, open **Settings → Marketplace** and search for **Tabdeck Card**. On Home Assistant before 2026.11, open **HACS** instead.
 2. Open it and click **Download**.
-3. HACS adds the resource automatically. If not, add it under **Settings → Dashboards → ⋮ → Resources**:
-   - URL: `/hacsfiles/tabdeck-card/tabdeck-card.js`
+3. The resource is added automatically. If not, add it under **Settings → Dashboards → ⋮ → Resources**:
+   - URL: `/local/community/tabdeck-card/tabdeck-card.js` (HACS installs use `/hacsfiles/tabdeck-card/tabdeck-card.js`, which keeps working)
    - Type: **JavaScript Module**
 
-[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=tempus2016&repository=tabdeck-card&category=plugin)
+[![Open in Marketplace](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=tempus2016&repository=tabdeck-card&category=plugin)
 
 ## Manual
 
