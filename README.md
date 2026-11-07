@@ -7,13 +7,13 @@
 <p align="center">
   <a href="https://github.com/tempus2016/tabdeck-card/releases"><img src="https://img.shields.io/github/v/release/tempus2016/tabdeck-card" alt="Latest Release"></a>
   <a href="https://github.com/tempus2016/tabdeck-card/releases"><img src="https://img.shields.io/github/downloads/tempus2016/tabdeck-card/total" alt="Downloads"></a>
-  <a href="https://github.com/hacs/default"><img src="https://img.shields.io/badge/HACS-Default-41BDF5.svg" alt="HACS Default"></a>
+  <a href="https://github.com/hacs/default"><img src="https://img.shields.io/badge/Marketplace-Default-41BDF5.svg" alt="Marketplace Default"></a>
   <a href="https://github.com/tempus2016/tabdeck-card/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tempus2016/tabdeck-card" alt="License"></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/tempus2016/tabdeck-card/actions/workflows/ci.yml"><img src="https://github.com/tempus2016/tabdeck-card/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/tempus2016/tabdeck-card/actions/workflows/validate.yml"><img src="https://github.com/tempus2016/tabdeck-card/actions/workflows/validate.yml/badge.svg" alt="HACS Validation"></a>
+  <a href="https://github.com/tempus2016/tabdeck-card/actions/workflows/validate.yml"><img src="https://github.com/tempus2016/tabdeck-card/actions/workflows/validate.yml/badge.svg" alt="Marketplace Validation"></a>
   <a href="https://github.com/tempus2016/tabdeck-card/actions/workflows/ha-compat.yml"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Ftempus2016%2Ftabdeck-card%2Fbadges%2Fha-compat.json" alt="Works with Home Assistant"></a>
   <a href="https://github.com/tempus2016/tabdeck-card/wiki"><img src="https://img.shields.io/badge/docs-wiki-blue" alt="Wiki"></a>
   <a href="https://community.home-assistant.io/t/tabdeck-card-a-modern-tabbed-card-with-a-visual-editor-alerts-dock-split-view-and-more/1030544"><img src="https://img.shields.io/badge/community-forum-41BDF5?logo=home-assistant&logoColor=white" alt="Community Forum"></a>
@@ -59,16 +59,17 @@ A nested map card rendering correctly the moment its tab is selected — no
 - **Accessible** — `tablist` semantics, full keyboard navigation (Arrows, Home/End, skips disabled).
 - **Translated** — editor and card text in English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português, following your HA language. [Help translate](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Languages).
 
-## Installation (HACS)
+## Installation (Marketplace)
 
-Tabdeck Card is in the **default HACS store** — no custom repository needed.
+Tabdeck Card is in the default **Marketplace** catalog (formerly HACS) — no custom repository needed.
 
-1. In HACS, search for **Tabdeck Card** and open it.
+1. Open **Settings → Marketplace** (on Home Assistant before 2026.11, open **HACS**), search for **Tabdeck Card** and open it.
 2. Click **Download**.
-3. HACS registers the resource automatically at
-   `/hacsfiles/tabdeck-card/tabdeck-card.js` (type: **JavaScript Module**).
+3. The resource is registered automatically at
+   `/local/community/tabdeck-card/tabdeck-card.js` (type: **JavaScript Module**).
+   Installs made with HACS use `/hacsfiles/tabdeck-card/tabdeck-card.js`, which keeps working.
 
-[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=tempus2016&repository=tabdeck-card&category=plugin)
+[![Open in Marketplace](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=tempus2016&repository=tabdeck-card&category=plugin)
 
 ### Manual installation
 
