@@ -103,7 +103,7 @@ jobs:
       # hacs.json, and HACS only counts downloads of an asset with that exact
       # name. HACS downloads every asset of a release, so the editor file
       # (tabdeck-card-editor-<hash>.js) lands next to it.
-      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+      - uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           files: |
             dist/*.js
