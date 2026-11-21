@@ -8,13 +8,19 @@ import { deviceId } from "./smart";
 
 export const COMPANION_KEY = "tabdeck-companion-id";
 
+// Strips a character from both ends without a regex (a /^x+|x+$/ pattern
+// backtracks badly on long runs of x).
+function trimChar(text: string, ch: string): string {
+  let a = 0;
+  let b = text.length;
+  while (a < b && text[a] === ch) a++;
+  while (b > a && text[b - 1] === ch) b--;
+  return text.slice(a, b);
+}
+
 // What the integration accepts as a browser / deck id.
 export function companionSafeId(value: unknown): string | undefined {
-  const text = String(value ?? "")
-    .trim()
-    .replace(/[^A-Za-z0-9_.-]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 64);
+  const text = trimChar(String(value ?? "").trim().replace(/[^A-Za-z0-9_.-]+/g, "_"), "_").slice(0, 64);
   return text || undefined;
 }
 

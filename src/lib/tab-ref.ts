@@ -21,11 +21,19 @@ export interface ResolvedRef {
 
 const MAX_DEPTH = 5;
 
+// Strips a character from both ends without a regex (a /^x+|x+$/ pattern
+// backtracks badly on long runs of x).
+function trimChar(text: string, ch: string): string {
+  let a = 0;
+  let b = text.length;
+  while (a < b && text[a] === ch) a++;
+  while (b > a && text[b - 1] === ch) b--;
+  return text.slice(a, b);
+}
+
 export function parseTabRef(raw: unknown): TabRef | undefined {
   if (typeof raw !== "string") return undefined;
-  const parts = raw
-    .trim()
-    .replace(/^\/+|\/+$/g, "")
+  const parts = trimChar(raw.trim(), "/")
     .split("/")
     .map((p) => p.trim());
   if (parts.length < 2 || parts.length > 3 || parts.some((p) => !p)) return undefined;

@@ -16,7 +16,7 @@ const minutes = (t: string) => {
 // `"22:00-07:00"`, `{ from, to }`, `{ entity }` or both.
 export function normalizeQuiet(raw: any): QuietHours | undefined {
   let from: unknown, to: unknown, entity: unknown;
-  if (typeof raw === "string") [from, to] = raw.split(/\s*[-–]\s*/);
+  if (typeof raw === "string") [from, to] = raw.split(/[-–]/).map((p) => p.trim());
   else if (raw && typeof raw === "object") ({ from, to, entity } = raw);
   const out: QuietHours = {};
   if (typeof from === "string" && typeof to === "string" && HHMM.test(from.trim()) && HHMM.test(to.trim())) {
