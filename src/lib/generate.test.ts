@@ -81,3 +81,12 @@ describe("expandGeneratedTabs", () => {
     expect(expandGeneratedTabs(["nope", { name: "B", card: {} }], a)).toEqual([{ name: "B", card: {} }]);
   });
 });
+
+describe("expandGeneratedTabs with a JSON string", () => {
+  it("reads the JSON HA returns as text (it has true / false in it)", () => {
+    const auto: any = { tab_template: { name: "{{ item.name }}", badge: "{{ item.count }}" } };
+    expect(expandGeneratedTabs('[{"name": "Offline", "count": "2", "critical": false}]', auto)).toEqual([{ name: "Offline", badge: "2" }]);
+    expect(expandGeneratedTabs("[not json", auto)).toEqual([]);
+    expect(expandGeneratedTabs("hello", auto)).toEqual([]);
+  });
+});

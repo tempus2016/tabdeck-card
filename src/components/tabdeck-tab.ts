@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { defineOnce } from "../lib/define";
 import { readableText } from "../lib/color";
+import { reducedMotion, reducedMotionCss } from "../lib/motion";
 import type { BadgeDisplay, TabDisplay } from "../lib/config";
 
 // A badge value counts as "active" (worth a dot) when it isn't an empty/zero/
@@ -15,6 +16,18 @@ export function isActiveBadge(value?: string): boolean {
   // Any numeric zero ("0.0", "-0") is inactive too, not just the literal "0".
   if (v !== "" && Number(v) === 0) return false;
   return !INACTIVE_BADGE.has(v);
+}
+
+export interface ExtraBadge {
+  text?: string;
+  icon?: string;
+  color?: string;
+  label?: string;
+}
+
+// Speed chip colour: under 100 ms fine, under 300 ms slow, else bad.
+export function speedLevel(ms: number): "ok" | "slow" | "bad" {
+  return ms < 100 ? "ok" : ms < 300 ? "slow" : "bad";
 }
 
 @defineOnce("tabdeck-tab")
@@ -47,11 +60,30 @@ export class TabdeckTab extends LitElement {
   @property() ghostLabel = "Hidden: its visibility conditions aren't met (shown while editing)";
   // Accessible label for the badge (localised by the bar).
   @property() badgeLabel?: string;
+  // changed_dot: something on this tab changed since it was last shown.
+  @property({ type: Boolean, reflect: true }) changed = false;
+  @property() changedLabel = "Changed since you last looked";
+  // health_dim: most of this tab's devices are unavailable.
+  @property({ type: Boolean, reflect: true }) unhealthy = false;
+  @property() unhealthyLabel = "Most of this tab's devices are unavailable";
+  // debug: speed: how long this tab's card took to draw (ms).
+  @property({ type: Number, reflect: true }) speed?: number;
   // Progress ring around the icon (0–100; undefined = none).
   @property({ type: Number }) ring?: number;
   @property() ringColor?: string;
+  // ring_style: "bar" draws the ring's value as a bar under the tab.
+  @property({ reflect: true, attribute: "ring-style" }) ringStyle?: "bar";
+  // Mini graph: SVG polyline points in a 44 × 12 box.
+  @property() graph?: string;
+  @property() graphColor?: string;
   // An icon shown as the badge.
   @property() badgeIcon?: string;
+  // More badges after the main one (badges: [...]): text or icon, own colour.
+  @property({ attribute: false }) extraBadges?: ExtraBadge[];
+  // badge_bounce: the badge jumps when its value changes.
+  @property({ type: Boolean }) bounce = false;
+  // Values arriving just after the tab appears don't bounce.
+  _bounceFrom = 0;
   // A picture (URL) shown round instead of the icon.
   @property() picture?: string;
   // spin | pulse | bounce | shake | beat (reflected for the CSS).
@@ -61,6 +93,7 @@ export class TabdeckTab extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
+    this._bounceFrom = Date.now() + 1500;
     this.setAttribute("role", "tab");
     this.addEventListener("keydown", this._onKeydown);
   }
@@ -79,6 +112,7 @@ export class TabdeckTab extends LitElement {
 
   updated(changed: Map<string, unknown>): void {
     this._applyFont(changed);
+    if (this.bounce && changed.has("badge") && !changed.has("bounce") && Date.now() >= this._bounceFrom) this._bounceBadge();
     this.setAttribute("aria-selected", this.selected ? "true" : "false");
     this.tabIndex = this.selected || this.action ? 0 : -1;
     if (this.accent) this.style.setProperty("--tabdeck-accent", this.accent);
@@ -117,12 +151,27 @@ export class TabdeckTab extends LitElement {
                 : nothing}
             </span>`
           : nothing}
-        ${this._renderBadge()}
+        ${this.graph
+          ? html`<svg class="graph" part="graph" viewBox="0 0 44 12" aria-hidden="true"
+              ><polyline points=${this.graph} style=${this.graphColor ? `stroke:${this.graphColor}` : ""}></polyline
+            ></svg>`
+          : nothing}
+        ${this.extraBadges?.length
+          ? html`<span class="badges">${this._renderBadge()}${this.extraBadges.map((b) => this._renderExtra(b))}</span>`
+          : this._renderBadge()}
+        ${this.changed && !this.selected
+          ? html`<span class="changed-dot" part="changed-dot" role="img" aria-label=${this.changedLabel} title=${this.changedLabel}></span>`
+          : nothing}
+        ${this.unhealthy
+          ? html`<ha-icon class="health-mark" icon="mdi:alert-circle-outline" role="img" aria-label=${this.unhealthyLabel} title=${this.unhealthyLabel}></ha-icon>`
+          : nothing}
         ${this.hasMenu ? html`<span class="caret" aria-hidden="true">▾</span>` : nothing}
         ${this.ghost
           ? html`<ha-icon class="ghost-mark" icon="mdi:eye-off-outline" aria-hidden="true"></ha-icon>`
           : nothing}
       </div>
+      ${this._renderProgress()}
+      ${this.speed !== undefined ? html`<span class="speed ${speedLevel(this.speed)}" part="speed">${Math.round(this.speed)} ms</span>` : nothing}
     `;
   }
 
@@ -130,7 +179,7 @@ export class TabdeckTab extends LitElement {
     const glyph = this.picture
       ? html`<img class="picture icon" src=${this.picture} alt="" loading="lazy" />`
       : html`<ha-icon class="icon" icon=${this.icon}></ha-icon>`;
-    if (this.ring === undefined || this.ring === null || !Number.isFinite(this.ring)) {
+    if (this.ringStyle === "bar" || !this._hasRing()) {
       return glyph;
     }
     // pathLength=100 lets the dash array be the percentage directly.
@@ -143,12 +192,34 @@ export class TabdeckTab extends LitElement {
           cy="18"
           r="16"
           pathLength="100"
-          stroke-dasharray="${Math.round(this.ring)} 100"
+          stroke-dasharray="${Math.round(this.ring!)} 100"
           style=${this.ringColor ? `stroke:${this.ringColor}` : ""}
         ></circle>
       </svg>
       ${glyph}
     </span>`;
+  }
+
+  private _bounceBadge(): void {
+    const el = this.renderRoot.querySelector(".badges, .badge, .badge-dot") as HTMLElement | null;
+    if (!el || typeof el.animate !== "function") return;
+    if (reducedMotion()) return;
+    el.animate([{ transform: "scale(1)" }, { transform: "scale(1.4)" }, { transform: "scale(0.9)" }, { transform: "scale(1)" }], {
+      duration: 450,
+      easing: "ease-out",
+    });
+  }
+
+  private _hasRing(): boolean {
+    return this.ring !== undefined && this.ring !== null && Number.isFinite(this.ring);
+  }
+
+  private _renderProgress() {
+    if (this.ringStyle !== "bar" || !this._hasRing()) return nothing;
+    const pct = Math.round(this.ring!);
+    return html`<span class="progress" part="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow=${pct}
+      ><span class="progress-value" style="width:${pct}%${this.ringColor ? `;background:${this.ringColor}` : ""}"></span
+    ></span>`;
   }
 
   private _applyFont(changed: Map<string, unknown>): void {
@@ -164,14 +235,23 @@ export class TabdeckTab extends LitElement {
   // Black or white text on solid fills (a coloured badge, a FAB), whichever
   // reads better, unless a colour is set explicitly.
   private _applyReadableText(): void {
-    const badge = this.renderRoot.querySelector(".badge:not(.icon-badge)") as HTMLElement | null;
-    if (badge) {
-      const text = this.badgeColor ? readableText(getComputedStyle(badge).backgroundColor) : undefined;
+    for (const badge of this.renderRoot.querySelectorAll<HTMLElement>(".badge:not(.icon-badge)")) {
+      const text = badge.style.background ? readableText(getComputedStyle(badge).backgroundColor) : undefined;
       badge.style.color = text ?? "";
     }
     if (this.fab && !this.color) {
       this.style.color = readableText(getComputedStyle(this).backgroundColor) ?? "";
     }
+  }
+
+  private _renderExtra(b: ExtraBadge) {
+    const bg = b.color ? `background:${b.color}` : "";
+    if (this.badgeDisplay === "dot") {
+      return b.icon || isActiveBadge(b.text) ? html`<span class="badge-dot" part="badge-dot" style=${bg}></span>` : nothing;
+    }
+    return html`<span class="badge${b.icon ? " icon-badge" : ""}" part="badge" style=${bg} aria-label=${b.label ?? ""}
+      >${b.icon ? html`<ha-icon icon=${b.icon}></ha-icon>` : b.text}</span
+    >`;
   }
 
   private _onBadgeClick(e: Event): void {
@@ -211,6 +291,7 @@ export class TabdeckTab extends LitElement {
   }
 
   static styles = css`
+    ${reducedMotionCss}
     :host {
       display: inline-flex;
       align-items: center;
@@ -218,7 +299,7 @@ export class TabdeckTab extends LitElement {
       padding: var(--tabdeck-tab-padding, var(--tabdeck-density-padding, 0 16px));
       height: var(--tabdeck-tab-height, var(--tabdeck-density-height, 48px));
       cursor: pointer;
-      color: var(--secondary-text-color);
+      color: var(--tabdeck-tab-color, var(--secondary-text-color));
       font-size: var(--tabdeck-tab-font-size, var(--tabdeck-density-font-size, 14px));
       font-weight: var(--tabdeck-tab-font-weight, normal);
       font-family: var(--tabdeck-tab-font-family, var(--paper-font-body1_-_font-family, inherit));
@@ -302,7 +383,8 @@ export class TabdeckTab extends LitElement {
     :host([alert]) {
       color: var(--tabdeck-alert-color, var(--error-color, #db4437));
       border-radius: var(--tabdeck-alert-radius, 8px);
-      animation: tabdeck-alert-pulse 1.6s ease-in-out infinite;
+      /* quiet_hours sets none: the label stays red, without the pulse. */
+      animation: var(--tabdeck-alert-animation, tabdeck-alert-pulse 1.6s ease-in-out infinite);
     }
     @keyframes tabdeck-alert-pulse {
       0%,
@@ -369,10 +451,19 @@ export class TabdeckTab extends LitElement {
       display: none;
     }
     :host([stacked]) .badge,
-    :host([stacked]) .badge-dot {
+    :host([stacked]) .badge-dot,
+    :host([stacked]) .badges {
       position: absolute;
       top: -4px;
-      left: calc(50% + 6px);
+      inset-inline-start: calc(50% + 6px);
+    }
+    .badges {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    :host([stacked]) .badges > * {
+      position: static;
     }
     :host([fab]) {
       color: var(--text-primary-color, #fff);
@@ -408,7 +499,7 @@ export class TabdeckTab extends LitElement {
     .caret {
       font-size: 11px;
       opacity: 0.7;
-      margin-left: -2px;
+      margin-inline-start: -2px;
     }
     .ghost-mark {
       --mdc-icon-size: 14px;
@@ -418,7 +509,7 @@ export class TabdeckTab extends LitElement {
       pointer-events: none;
     }
     :host(:focus-visible) {
-      box-shadow: inset 0 0 0 2px var(--tabdeck-accent, var(--primary-color));
+      box-shadow: inset 0 0 0 var(--tabdeck-focus-width, 2px) var(--tabdeck-focus-color, var(--tabdeck-accent, var(--primary-color)));
       border-radius: 6px;
     }
     .inner {
@@ -435,11 +526,11 @@ export class TabdeckTab extends LitElement {
     .subtitle {
       font-size: 11px;
       font-weight: 400;
-      color: var(--secondary-text-color);
+      color: var(--tabdeck-tab-color, var(--secondary-text-color));
       opacity: 0.9;
     }
     ha-icon {
-      --mdc-icon-size: 22px;
+      --mdc-icon-size: var(--tabdeck-icon-size, 22px);
     }
     .icon-wrap {
       position: relative;
@@ -469,6 +560,38 @@ export class TabdeckTab extends LitElement {
     .ring-value {
       stroke: var(--tabdeck-ring-color, var(--tabdeck-accent, var(--primary-color)));
       stroke-linecap: round;
+    }
+    .graph {
+      width: var(--tabdeck-graph-width, 44px);
+      height: var(--tabdeck-graph-height, 12px);
+      flex-shrink: 0;
+      overflow: visible;
+    }
+    .graph polyline {
+      fill: none;
+      stroke: var(--tabdeck-graph-color, currentColor);
+      stroke-width: 1.5;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+    /* ring_style: bar */
+    :host([ring-style="bar"]) {
+      position: relative;
+    }
+    .progress {
+      position: absolute;
+      inset-inline: 12%;
+      bottom: var(--tabdeck-progress-offset, 5px);
+      height: var(--tabdeck-progress-height, 3px);
+      border-radius: 3px;
+      overflow: hidden;
+      background: var(--tabdeck-ring-track, rgba(127, 127, 127, 0.25));
+    }
+    .progress-value {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--tabdeck-ring-color, var(--tabdeck-accent, var(--primary-color)));
     }
     .icon-badge {
       padding: 0 3px;
@@ -500,6 +623,55 @@ export class TabdeckTab extends LitElement {
       border-radius: 50%;
       background: var(--tabdeck-accent, var(--primary-color));
       flex-shrink: 0;
+    }
+    :host([unhealthy]) .icon,
+    :host([unhealthy]) .icon-wrap,
+    :host([unhealthy]) .text {
+      opacity: var(--tabdeck-unhealthy-opacity, 0.45);
+    }
+    .health-mark {
+      --mdc-icon-size: 16px;
+      color: var(--tabdeck-unhealthy-color, var(--warning-color, #ff9800));
+      flex-shrink: 0;
+    }
+    :host([stacked]) .health-mark {
+      position: absolute;
+      top: 0;
+      inset-inline-start: calc(50% + 6px);
+    }
+    :host([speed]) {
+      position: relative;
+    }
+    .speed {
+      position: absolute;
+      top: 1px;
+      inset-inline-end: 2px;
+      padding: 0 4px;
+      border-radius: 6px;
+      font: 600 9px/14px ui-monospace, monospace;
+      color: #fff;
+      background: var(--success-color, #43a047);
+      pointer-events: none;
+    }
+    .speed.slow {
+      background: var(--warning-color, #ff9800);
+    }
+    .speed.bad {
+      background: var(--error-color, #db4437);
+    }
+    .changed-dot {
+      width: var(--tabdeck-changed-size, 7px);
+      height: var(--tabdeck-changed-size, 7px);
+      border-radius: 50%;
+      background: var(--tabdeck-changed-color, var(--accent-color, #ff9800));
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+    :host([stacked]) .changed-dot {
+      position: absolute;
+      top: 2px;
+      inset-inline-end: calc(50% - 18px);
     }
     .badge.clickable,
     .badge-dot.clickable {

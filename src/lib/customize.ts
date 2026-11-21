@@ -54,3 +54,30 @@ export function hideTabs<T extends { name?: string }>(tabs: T[], layout: UserLay
   const kept = tabs.filter((t) => t.name === undefined || !layout.hidden.includes(t.name));
   return kept.length ? kept : tabs;
 }
+
+// drag_reorder: move `name` to just before (or after) `target`. Unknown
+// names leave the list as it is.
+export function moveName(names: string[], name: string, target: string, after: boolean): string[] {
+  if (name === target || !names.includes(name) || !names.includes(target)) return names;
+  const rest = names.filter((n) => n !== name);
+  const at = rest.indexOf(target) + (after ? 1 : 0);
+  return [...rest.slice(0, at), name, ...rest.slice(at)];
+}
+
+// Which tab the pointer is over along the bar (start/end: each tab's left
+// and right, or top and bottom for a side bar), and on which half of it.
+export function dropIndex(
+  rects: { start: number; end: number }[],
+  pos: number,
+): { index: number; after: boolean } | undefined {
+  if (!rects.length) return undefined;
+  if (pos < rects[0].start) return { index: 0, after: false };
+  for (let i = 0; i < rects.length; i++) {
+    const r = rects[i];
+    if (pos >= r.start && pos < r.end) return { index: i, after: pos >= (r.start + r.end) / 2 };
+  }
+  // Past the end, or in a gap between tabs: the nearest tab before it.
+  let i = rects.length - 1;
+  while (i > 0 && rects[i].start > pos) i--;
+  return { index: i, after: true };
+}

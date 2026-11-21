@@ -1,5 +1,6 @@
 // Built-in auto_tabs sources: one tab per Home Assistant area, floor, label,
-// domain, device, to-do list, calendar, camera or zone, without writing Jinja.
+// domain, device, to-do list, calendar, camera or zone, without writing Jinja;
+// also TaskMate children and Z2M Device Tracker issues.
 // Membership comes from HA's own template functions (so device-inherited
 // areas work exactly as in HA); area and floor icons are filled in
 // client-side from hass.areas / hass.floors, since Jinja has no area_icon().
@@ -13,7 +14,12 @@ export type AutoTabsSource =
   | "todo"
   | "calendars"
   | "cameras"
-  | "zones";
+  | "zones"
+  | "updates"
+  | "repairs"
+  | "notifications"
+  | "taskmate"
+  | "z2m_tracker";
 export const SOURCES: AutoTabsSource[] = [
   "areas",
   "labels",
@@ -24,7 +30,15 @@ export const SOURCES: AutoTabsSource[] = [
   "calendars",
   "cameras",
   "zones",
+  "updates",
+  "repairs",
+  "notifications",
+  "taskmate",
+  "z2m_tracker",
 ];
+
+// Sources the card fetches itself over the websocket (Jinja can't see them).
+export const CLIENT_SOURCES: AutoTabsSource[] = ["repairs", "notifications"];
 
 // Sources whose tabs can hold auto-generated tiles (content: tiles).
 const TILE_KEYS: Partial<Record<AutoTabsSource, "area" | "floor" | "label">> = {
@@ -75,6 +89,77 @@ const PER_SOURCE: Partial<Record<AutoTabsSource, Record<string, any>>> = {
     icon: "mdi:cctv",
     card: { type: "picture-entity", entity: "{{ item.id }}", camera_view: "auto", show_state: false },
   }),
+  updates: mark({
+    name: "{{ item.name }}",
+    icon: "{{ item.icon }}",
+    badge: "{{ item.version }}",
+    card: { type: "entities", entities: ["{{ item.id }}"] },
+  }),
+  repairs: mark({
+    name: "{{ item.name }}",
+    icon: "{{ item.icon }}",
+    card: {
+      type: "vertical-stack",
+      cards: [
+        { type: "markdown", content: "{{ item.description }}" },
+        {
+          type: "entities",
+          entities: [
+            {
+              type: "button",
+              icon: "mdi:tools",
+              name: "{{ item.open }}",
+              action_name: "{{ item.open }}",
+              tap_action: { action: "navigate", navigation_path: "/config/repairs" },
+            },
+          ],
+        },
+      ],
+    },
+  }),
+  notifications: mark({
+    name: "{{ item.name }}",
+    icon: "mdi:bell-outline",
+    card: {
+      type: "vertical-stack",
+      cards: [
+        { type: "markdown", content: "{{ item.message }}" },
+        {
+          type: "entities",
+          entities: [
+            {
+              type: "button",
+              icon: "mdi:bell-check-outline",
+              name: "{{ item.dismiss }}",
+              action_name: "{{ item.dismiss }}",
+              tap_action: {
+                action: "perform-action",
+                perform_action: "persistent_notification.dismiss",
+                data: { notification_id: "{{ item.id }}" },
+              },
+            },
+          ],
+        },
+      ],
+    },
+  }),
+  // TaskMate: a tab per child; the badge counts today's chores left. The
+  // card is built in the template (TaskMate's child card, or the child's
+  // sensors when there's no overview sensor).
+  taskmate: mark({
+    name: "{{ item.name }}",
+    icon: "{{ item.icon }}",
+    badge: "{{ item.left }}",
+    card: "{{ item.card }}",
+  }),
+  // Z2M Device Tracker: a tab per kind of issue (offline, low battery…)
+  // listing the devices.
+  z2m_tracker: mark({
+    name: "{{ item.name }}",
+    icon: "{{ item.icon }}",
+    badge: "{{ item.count }}",
+    card: { type: "markdown", content: "{{ item.text }}" },
+  }),
   zones: mark({
     name: "{{ item.name }}",
     icon: "{{ item.icon }}",
@@ -120,6 +205,16 @@ const DOMAIN_ICONS: Record<string, string> = {
   scene: "mdi:palette",
   script: "mdi:script-text",
   automation: "mdi:robot",
+};
+// Z2M Device Tracker issue kinds (English names) and their icons.
+const Z2M_ICONS: Record<string, string> = {
+  offline: "mdi:lan-disconnect",
+  "low battery": "mdi:battery-alert-variant-outline",
+  "weak signal": "mdi:signal-cellular-1",
+  "chatty device": "mdi:message-flash-outline",
+  "frozen reading": "mdi:snowflake-alert",
+  unidentified: "mdi:help-circle-outline",
+  "coordinator backup": "mdi:content-save-alert-outline",
 };
 const COMMON_DOMAINS = ["light", "switch", "climate", "cover", "fan", "media_player", "lock", "camera", "vacuum"];
 
@@ -204,6 +299,62 @@ export function buildSourceTemplate(opts: SourceOptions): string {
         ...END,
       ].join("\n");
     }
+    case "updates":
+      return [
+        ...OUT,
+        `{%- for s in states.update | selectattr('state', 'eq', 'on') if s.entity_id not in ${exclude} -%}`,
+        add(
+          "'id': s.entity_id, 'name': s.attributes.title or s.name, 'icon': s.attributes.icon or 'mdi:package-up', 'version': s.attributes.latest_version or ''",
+        ),
+        "{%- endfor -%}",
+        ...END,
+      ].join("\n");
+    case "repairs":
+    case "notifications":
+      // Fetched by the card (CLIENT_SOURCES); no template.
+      return "";
+    case "taskmate":
+      // Child sensors carry child_id / child_name / total_points_earned; the
+      // watch sensor has today's `left`; the overview sensor has `children`.
+      return [
+        "{%- set ns = namespace(out=[], seen=[]) -%}",
+        "{%- set ents = expand(integration_entities('taskmate') | select('match', '^sensor\\.') | list) -%}",
+        "{%- set overview = ents | selectattr('attributes.children', 'defined') | map(attribute='entity_id') | first | default('') -%}",
+        "{%- set watches = ents | selectattr('attributes.left', 'defined') | selectattr('attributes.child_id', 'defined') | list -%}",
+        "{%- for s in ents | selectattr('attributes.child_name', 'defined') | selectattr('attributes.total_points_earned', 'defined') -%}",
+        "{%- set id = s.attributes.child_id | default('') -%}",
+        `{%- if id and id not in ns.seen and id not in ${exclude} -%}`,
+        "{%- set ns.seen = ns.seen + [id] -%}",
+        "{%- set w = watches | selectattr('attributes.child_id', 'eq', id) | first | default(none) -%}",
+        "{%- set avatar = s.attributes.avatar | default('') | string -%}",
+        "{%- set card = {'type': 'custom:taskmate-child-card', 'entity': overview, 'child_id': id} if overview else {'type': 'entities', 'entities': [s.entity_id] + ([w.entity_id] if w else [])} -%}",
+        add(
+          "'id': id, 'name': s.attributes.child_name, 'icon': avatar if avatar.startswith('mdi:') else 'mdi:account', 'left': (w.attributes.left | string) if w and w.attributes.left else '', 'points': s.state, 'entity': overview, 'card': card",
+        ),
+        "{%- endif -%}",
+        "{%- endfor -%}",
+        "{{ ns.out | sort(attribute='name') | tojson }}",
+      ].join("\n");
+    case "z2m_tracker":
+      // The tracker's issues sensor lists { device, issue, detail, critical }.
+      return [
+        "{%- set ns = namespace(out=[], kinds=[]) -%}",
+        `{%- set icons = ${jinjaDict(Z2M_ICONS)} -%}`,
+        "{%- set src = expand(integration_entities('z2m_tracker') | select('match', '^sensor\\.') | list) | selectattr('attributes.warnings', 'defined') | first | default(none) -%}",
+        "{%- set warnings = src.attributes.warnings | list if src else [] -%}",
+        "{%- for w in warnings if w.issue is defined -%}",
+        "{%- if w.issue not in ns.kinds and (w.issue | lower | replace(' ', '_')) not in " + exclude + " -%}{%- set ns.kinds = ns.kinds + [w.issue] -%}{%- endif -%}",
+        "{%- endfor -%}",
+        "{%- for kind in ns.kinds -%}",
+        "{%- set rows = warnings | selectattr('issue', 'eq', kind) | list -%}",
+        "{%- set t = namespace(text='') -%}",
+        "{%- for w in rows -%}{%- set t.text = t.text ~ '- **' ~ w.device ~ '**' ~ ((' · ' ~ w.detail) if w.detail else '') ~ '\\n' -%}{%- endfor -%}",
+        add(
+          "'id': kind | lower | replace(' ', '_'), 'name': kind, 'icon': icons.get(kind | lower, 'mdi:alert-circle-outline'), 'count': rows | count | string, 'critical': rows | selectattr('critical') | list | count > 0, 'devices': rows | map(attribute='device') | list, 'text': t.text",
+        ),
+        "{%- endfor -%}",
+        ...END,
+      ].join("\n");
     case "zones":
       return [
         ...OUT,

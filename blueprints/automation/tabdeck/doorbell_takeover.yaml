@@ -1,0 +1,96 @@
+blueprint:
+  name: Tabdeck — take over the deck when the doorbell rings
+  description: >-
+    When an entity changes (a doorbell button, an event entity, a motion
+    sensor), the deck shows a tab with a banner and a countdown, then goes
+    back to the tab that was open. The person can close the banner to go
+    back at once, or open another tab to stay there. A tab with a PIN isn't
+    taken over unless its code was entered recently, so pick one without.
+
+
+    The deck needs `remote_event: true`. Events can only be heard by decks
+    open as an admin user (a Home Assistant rule). For other users, use the
+    deck's own `takeover` option instead.
+
+
+    Docs: https://github.com/tempus2016/tabdeck-card/wiki/Feature-Remote-Control
+  domain: automation
+  source_url: https://github.com/tempus2016/tabdeck-card/blob/main/blueprints/automation/tabdeck/doorbell_takeover.yaml
+  input:
+    trigger_entity:
+      name: When this entity…
+      selector:
+        entity: {}
+    to_state:
+      name: …changes to this state
+      description: Leave empty for any change of state (event and button entities change on every press).
+      default: ""
+      selector:
+        text: {}
+    tab:
+      name: Show this tab
+      description: The tab's name, its slug (front-door) or its position (0 is the first).
+      selector:
+        text: {}
+    seconds:
+      name: For this many seconds
+      default: 30
+      selector:
+        number:
+          min: 5
+          max: 3600
+          unit_of_measurement: s
+          mode: box
+    message:
+      name: Banner text
+      description: Leave empty to show the tab's name.
+      default: ""
+      selector:
+        text: {}
+    deck:
+      name: Only this deck
+      description: >-
+        The deck's `event_id` (or `storage_key`). Leave empty for every deck
+        that has the tab.
+      default: ""
+      selector:
+        text: {}
+    device:
+      name: Only this device
+      description: >-
+        A browser named with `?tabdeck_device=<name>` (see default_by_device).
+        Leave empty for every device.
+      default: ""
+      selector:
+        text: {}
+
+mode: restart
+
+variables:
+  to_state: !input to_state
+  tab: !input tab
+  seconds: !input seconds
+  message: !input message
+  deck: !input deck
+  device: !input device
+
+triggers:
+  - trigger: state
+    entity_id: !input trigger_entity
+
+conditions:
+  - condition: template
+    value_template: "{{ to_state == '' or trigger.to_state.state == to_state }}"
+  - condition: template
+    value_template: >-
+      {{ trigger.from_state is not none and trigger.from_state.state != trigger.to_state.state
+         and trigger.to_state.state not in ['unavailable', 'unknown'] }}
+
+actions:
+  - event: tabdeck_select
+    event_data:
+      tab: "{{ tab }}"
+      takeover: "{{ seconds | int(30) }}"
+      message: "{{ message }}"
+      deck: "{{ deck }}"
+      device: "{{ device }}"

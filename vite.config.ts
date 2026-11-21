@@ -23,7 +23,14 @@ export default defineConfig(() => ({
       formats: ["es"],
       fileName: () => "tabdeck-card.js",
     },
-    rollupOptions: { output: { codeSplitting: false } },
+    rollupOptions: {
+      output: {
+        // Each non-English language is a chunk of its own, fetched only when
+        // the page asks for it: dist/tabdeck-card.<lang>-<hash>.js. They import
+        // nothing, so a chunk never loads the card a second time.
+        chunkFileNames: "tabdeck-card.[name]-[hash].js",
+      },
+    },
     minify: "terser",
     sourcemap: false,
   },

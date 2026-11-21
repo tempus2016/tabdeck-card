@@ -165,3 +165,57 @@ describe("helpers", () => {
     expect(rep.auto_tabs).toBeUndefined();
   });
 });
+
+describe("more imports (idea 127)", () => {
+  const load = async (name: string) => (await import("yaml")).parse((await import(`./fixtures/${name}?raw`)).default);
+
+  it("Bubble Card 3 stand-alone pop-ups in a sections view, named by the buttons stack", async () => {
+    const r = convertConfig(await load("bubble-v3-sections.yaml"));
+    expect(r.source).toBe("bubble-popups");
+    expect(r.tabs.map((t) => [t.name, t.icon])).toEqual([
+      ["Living room", "mdi:sofa"],
+      ["Cuisine", "mdi:fridge"],
+    ]);
+    expect(r.tabs[0].cards.map((c: any) => c.entity)).toEqual(["light.living_room", "media_player.tv"]);
+    expect(r.tabs[1].card).toEqual({ type: "tile", entity: "light.kitchen" });
+    expect(r.notes).toEqual(["convert.note.bubble", "convert.note.bubble_nav", "convert.note.bubble_outside"]);
+  });
+
+  it("stand-alone pop-ups in a plain list take the cards after them; chips name them", () => {
+    const r = convertConfig([
+      { type: "custom:mushroom-chips-card", chips: [{ type: "action", icon: "mdi:garage", tap_action: { action: "navigate", navigation_path: "#garage" } }] },
+      { type: "custom:bubble-card", card_type: "pop-up", hash: "#garage" },
+      { type: "tile", entity: "cover.garage" },
+      { type: "custom:bubble-card", card_type: "pop-up", hash: "#office", name: "Office", icon: "mdi:desk" },
+    ]);
+    expect(r.tabs).toEqual([
+      { name: "Garage", icon: "mdi:garage", card: { type: "tile", entity: "cover.garage" } },
+      { name: "Office", icon: "mdi:desk", card: { type: "markdown", content: " " } },
+    ]);
+    expect(r.notes).not.toContain("convert.note.bubble_outside");
+  });
+
+  it("Mushroom chips: navigating chips become view tabs, URL chips action tabs", async () => {
+    const r = convertConfig(await load("mushroom-chips.yaml"), hass);
+    expect(r.source).toBe("mushroom-chips");
+    expect(r.tabs).toEqual([
+      { name: "Home", icon: "mdi:home", view: "/lovelace/home" },
+      { name: "Lights", icon: "mdi:lightbulb", view: "/dashboard-rooms/lights" },
+      { name: "Climate", view: "/lovelace/climate" },
+      {
+        name: "Guests",
+        icon: "mdi:account-multiple",
+        view: "/lovelace/guests",
+        visibility: [{ condition: "state", entity: "input_boolean.guest_mode", state: "on" }],
+      },
+      { name: "Example.com", icon: "mdi:web", tap_action: { action: "url", url_path: "https://example.com/status" } },
+    ]);
+    expect(r.notes).toEqual(["convert.note.chips"]);
+    valid(r);
+  });
+
+  it("a chips card that doesn't navigate stays an ordinary card tab", () => {
+    const r = convertConfig({ type: "custom:mushroom-chips-card", chips: [{ type: "entity", entity: "light.kitchen" }] });
+    expect(r.source).toBe("cards");
+  });
+});

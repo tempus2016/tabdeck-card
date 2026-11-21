@@ -1,0 +1,121 @@
+blueprint:
+  name: Tabdeck — step through tabs with a knob or remote
+  description: >-
+    Turn a rotary knob or press a remote's buttons to step a Tabdeck deck to
+    the next or previous tab, go back to the last tab, or return to its
+    default tab. Tabs with a PIN are stepped past unless their code was
+    entered recently.
+
+
+    Pick the device's action entity: an `event` entity (Zigbee2MQTT 2.x, ZHA,
+    Matter) or an action `sensor` (older Zigbee2MQTT). Then list which action
+    values mean next, previous, back and default. The defaults cover common
+    Zigbee knobs (Tuya, Aqara, IKEA Symfonisk) and the IKEA five-button remote.
+
+
+    The deck needs `remote_event: true`. Events can only be heard by decks
+    open as an admin user (a Home Assistant rule).
+
+
+    Docs: https://github.com/tempus2016/tabdeck-card/wiki/Feature-Remote-Control
+  domain: automation
+  source_url: https://github.com/tempus2016/tabdeck-card/blob/main/blueprints/automation/tabdeck/knob_step_tabs.yaml
+  input:
+    remote:
+      name: Knob or remote
+      description: Its action entity (event.*_action or sensor.*_action).
+      selector:
+        entity:
+          filter:
+            - domain: [event, sensor, input_text, input_select, select]
+    next_actions:
+      name: Next tab
+      description: Action values that step to the next tab.
+      default:
+        - rotate_right
+        - brightness_step_up
+        - arrow_right_click
+        - rotate_cw
+        - right
+      selector:
+        text:
+          multiple: true
+    previous_actions:
+      name: Previous tab
+      description: Action values that step to the previous tab.
+      default:
+        - rotate_left
+        - brightness_step_down
+        - arrow_left_click
+        - rotate_ccw
+        - left
+      selector:
+        text:
+          multiple: true
+    back_actions:
+      name: Back to the last tab
+      description: Action values that return to the tab open before.
+      default:
+        - double
+      selector:
+        text:
+          multiple: true
+    default_actions:
+      name: Default tab
+      description: Action values that go to the deck's default tab.
+      default:
+        - single
+        - toggle
+      selector:
+        text:
+          multiple: true
+    deck:
+      name: Only this deck
+      description: The deck's `event_id` (or `storage_key`). Leave empty for every deck.
+      default: ""
+      selector:
+        text: {}
+    device:
+      name: Only this device
+      description: A browser named with `?tabdeck_device=<name>`. Leave empty for every device.
+      default: ""
+      selector:
+        text: {}
+
+# A fast spin sends many actions; keep them in order.
+mode: queued
+max: 20
+max_exceeded: silent
+
+variables:
+  deck: !input deck
+  device: !input device
+  next_actions: !input next_actions
+  previous_actions: !input previous_actions
+  back_actions: !input back_actions
+  default_actions: !input default_actions
+  # Event entities carry the action in event_type; sensors in their state.
+  # A sensor's attribute-only change isn't a new press.
+  pressed: >-
+    {% set to = trigger.to_state %}{% set fr = trigger.from_state %}
+    {% if to is none %}{% elif to.domain == 'event' %}{{ to.attributes.event_type | default('', true) }}
+    {% elif fr is none or fr.state != to.state %}{{ to.state }}{% endif %}
+  step: >-
+    {% set pressed = pressed | string | trim %}
+    {{ 'next' if pressed in next_actions else 'previous' if pressed in previous_actions
+       else 'back' if pressed in back_actions else 'default' if pressed in default_actions else '' }}
+
+triggers:
+  - trigger: state
+    entity_id: !input remote
+
+conditions:
+  - condition: template
+    value_template: "{{ step != '' }}"
+
+actions:
+  - event: tabdeck_select
+    event_data:
+      tab: "{{ step }}"
+      deck: "{{ deck }}"
+      device: "{{ device }}"

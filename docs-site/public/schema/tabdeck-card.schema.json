@@ -1,0 +1,1707 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tempus2016.github.io/tabdeck-card/schema/tabdeck-card.schema.json",
+  "title": "Tabdeck card",
+  "description": "Configuration of custom:tabdeck-card (https://github.com/tempus2016/tabdeck-card)",
+  "type": "object",
+  "properties": {
+    "type": {
+      "const": "custom:tabdeck-card"
+    },
+    "tabs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/tab"
+      },
+      "description": "The tabs"
+    },
+    "default_tab": {
+      "type": [
+        "number",
+        "string"
+      ],
+      "description": "Index or name of the starting tab"
+    },
+    "position": {
+      "enum": [
+        "top",
+        "bottom",
+        "left",
+        "right"
+      ],
+      "description": "Where the tab bar sits"
+    },
+    "orientation_layout": {
+      "description": "The bar follows the screen orientation: true is the bottom when upright and the left when sideways, or give each side. Overrides position",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "portrait": {
+              "enum": [
+                "top",
+                "bottom",
+                "left",
+                "right"
+              ]
+            },
+            "landscape": {
+              "enum": [
+                "top",
+                "bottom",
+                "left",
+                "right"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "style": {
+      "enum": [
+        "underline",
+        "pill",
+        "segmented",
+        "boxed",
+        "text",
+        "rail"
+      ],
+      "description": "Tab bar style"
+    },
+    "tab_display": {
+      "enum": [
+        "both",
+        "icon",
+        "label",
+        "active",
+        "dots"
+      ],
+      "description": "What each tab shows"
+    },
+    "tab_display_narrow": {
+      "enum": [
+        "both",
+        "icon",
+        "label",
+        "active",
+        "dots"
+      ],
+      "description": "tab_display on narrow cards"
+    },
+    "narrow_width": {
+      "type": "number",
+      "description": "Below this card width (px), the *_narrow options apply",
+      "minimum": 100
+    },
+    "align": {
+      "enum": [
+        "start",
+        "center",
+        "end",
+        "justify"
+      ],
+      "description": "Tab alignment"
+    },
+    "badge_display": {
+      "enum": [
+        "text",
+        "dot"
+      ],
+      "description": "Badges as text or a dot"
+    },
+    "hide_inactive_badge": {
+      "type": "boolean",
+      "description": "Hide 0 / off badges"
+    },
+    "badge_bounce": {
+      "type": "boolean",
+      "default": false,
+      "description": "A tab badge jumps briefly when its value changes (not under reduced motion)"
+    },
+    "badge_format": {
+      "type": "object",
+      "properties": {
+        "precision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        },
+        "unit": {
+          "type": "string"
+        },
+        "max": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Numeric badge formatting"
+    },
+    "transition": {
+      "enum": [
+        "none",
+        "fade",
+        "slide",
+        "scale",
+        "flip",
+        "rise"
+      ],
+      "description": "Panel transition"
+    },
+    "transition_narrow": {
+      "enum": [
+        "none",
+        "fade",
+        "slide",
+        "scale",
+        "flip",
+        "rise"
+      ],
+      "description": "Transition on narrow cards"
+    },
+    "transition_duration": {
+      "type": "number",
+      "description": "Transition length (ms)",
+      "minimum": 0,
+      "maximum": 2000
+    },
+    "transition_easing": {
+      "type": "string",
+      "description": "Transition easing (CSS)"
+    },
+    "indicator_size": {
+      "type": "number",
+      "description": "Underline thickness (px)",
+      "minimum": 1,
+      "maximum": 16
+    },
+    "indicator_radius": {
+      "type": "number",
+      "description": "Indicator corner radius (px)",
+      "minimum": 0
+    },
+    "scrollable": {
+      "enum": [
+        "auto",
+        true,
+        false
+      ],
+      "description": "Let the bar scroll when tabs don't fit"
+    },
+    "remember": {
+      "enum": [
+        "none",
+        "browser",
+        "url",
+        "entity"
+      ],
+      "description": "Remember the open tab"
+    },
+    "remember_entity": {
+      "type": "string",
+      "description": "remember: entity — the input_number / input_text"
+    },
+    "storage_key": {
+      "type": "string",
+      "description": "Keeps two identical decks apart in browser storage"
+    },
+    "lazy": {
+      "type": "boolean",
+      "description": "Build each tab's card the first time it opens"
+    },
+    "preload": {
+      "enum": [
+        "idle",
+        "all",
+        true
+      ],
+      "description": "With lazy: build the neighbouring tabs (idle) or every tab (all) while the browser is idle"
+    },
+    "unmount_hidden": {
+      "type": "boolean",
+      "description": "Only the open tab's card is in the page"
+    },
+    "loading_placeholder": {
+      "type": "boolean",
+      "description": "Grey boxes in a tab until its card has rendered"
+    },
+    "friendly_errors": {
+      "type": "boolean",
+      "description": "A broken card shows a plain-words message instead of Home Assistant's error card, and its tab gets a warning badge"
+    },
+    "unload_after": {
+      "type": "number",
+      "description": "Free a tab's card after this many minutes off screen",
+      "minimum": 0
+    },
+    "swipe": {
+      "type": "boolean",
+      "description": "Swipe the content to change tab"
+    },
+    "swipe_wrap": {
+      "type": "boolean",
+      "description": "Swiping past the last tab wraps"
+    },
+    "swipe_mouse": {
+      "type": "boolean",
+      "description": "Mouse drag swipes too"
+    },
+    "wheel_switch": {
+      "type": "boolean",
+      "description": "Scroll the mouse wheel (or a trackpad) over the tab bar to change tab, one tab per scroll"
+    },
+    "swipe_edge": {
+      "description": "Swipes only count when they start this close to the left or right edge of the content (true = 40 px), so sliders and maps in the middle keep working",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number",
+          "minimum": 8,
+          "maximum": 400
+        }
+      ]
+    },
+    "swipe_lock": {
+      "type": "boolean",
+      "description": "A swipe or mouse drag that starts on a slider or a map moves that control and never changes tab"
+    },
+    "swipe_peek": {
+      "type": "boolean",
+      "description": "The content follows the finger while swiping"
+    },
+    "hold_peek": {
+      "type": "boolean",
+      "description": "Hold a tab to preview it"
+    },
+    "compare": {
+      "type": "boolean",
+      "description": "Long-press a tab to show it side by side with the open one (stacked on narrow screens); its x button or Esc closes it"
+    },
+    "animated": {
+      "type": "boolean",
+      "description": "Animate the indicator"
+    },
+    "liquid_indicator": {
+      "type": "boolean",
+      "description": "The moving indicator stretches to the new tab like a drop, then settles"
+    },
+    "accent_indicator": {
+      "type": "boolean",
+      "description": "Indicator takes the tab's accent"
+    },
+    "picture_accent": {
+      "type": "boolean",
+      "description": "A tab with a picture takes its accent colour from the picture"
+    },
+    "header": {
+      "type": "boolean",
+      "description": "The open tab's name and subtitle above the content"
+    },
+    "aria_label": {
+      "type": "string",
+      "description": "Accessible name of the tab bar"
+    },
+    "sticky": {
+      "type": "boolean",
+      "description": "Pin the bar while the page scrolls"
+    },
+    "bar_autohide": {
+      "type": "boolean",
+      "description": "A pinned bar hides while scrolling down"
+    },
+    "elevation": {
+      "type": "boolean",
+      "description": "A shadow under the bar"
+    },
+    "scroll_buttons": {
+      "type": "boolean",
+      "description": "‹ › buttons on an overflowing bar"
+    },
+    "bar_fade": {
+      "type": "boolean",
+      "default": true,
+      "description": "Fade the edge(s) of an overflowing bar that have more tabs; false turns it off"
+    },
+    "overflow_menu": {
+      "type": "boolean",
+      "description": "A ⋯ menu of every tab on an overflowing bar"
+    },
+    "hidden_alerts": {
+      "type": "boolean",
+      "default": false,
+      "description": "The ⋯ menu button counts alerting tabs and active badges that are off the bar, and the list shows each tab badge. Turns the ⋯ menu on."
+    },
+    "summary_chip": {
+      "description": "A chip at the end of the bar. true: the number of alerting tabs (\"3 alerts\"); a string or { text, icon, color }: your own text (template allowed, {n} = the alert count). Clicking it opens the next alerting tab.",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "icon": {
+              "type": "string"
+            },
+            "color": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "bar_limit": {
+      "type": "integer",
+      "minimum": 3,
+      "description": "Big decks: draw at most this many tabs in the bar (a page around the open tab); the ⋯ menu lists them all"
+    },
+    "bar_background": {
+      "type": "string",
+      "description": "Bar background colour"
+    },
+    "bar_text": {
+      "oneOf": [
+        {
+          "enum": [
+            "auto",
+            "light",
+            "dark"
+          ]
+        },
+        {
+          "const": true
+        }
+      ],
+      "description": "Tab text colour over the bar background: auto (worked out, also from a picture), light or dark text"
+    },
+    "glass": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 60
+        }
+      ],
+      "description": "Frosted-glass bar and menus: true, or the blur in px (default 14)"
+    },
+    "styles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number"
+        ]
+      },
+      "description": "CSS properties, e.g. --tabdeck-accent: teal"
+    },
+    "seasons": {
+      "type": "array",
+      "description": "Date ranges that change the look: built-in winter / autumn, or { from, to, accent, bar_background, bar_text, styles }",
+      "items": {
+        "oneOf": [
+          {
+            "enum": [
+              "winter",
+              "autumn"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "theme": {
+                "enum": [
+                  "winter",
+                  "autumn"
+                ],
+                "description": "Start from a built-in season"
+              },
+              "name": {
+                "type": "string"
+              },
+              "from": {
+                "type": "string",
+                "pattern": "^\\d{1,2}-\\d{1,2}$",
+                "description": "First day, MM-DD"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^\\d{1,2}-\\d{1,2}$",
+                "description": "Last day, MM-DD (may be before from: wraps over New Year)"
+              },
+              "accent": {
+                "type": "string"
+              },
+              "bar_background": {
+                "type": "string"
+              },
+              "bar_text": {
+                "enum": [
+                  "auto",
+                  "light",
+                  "dark"
+                ]
+              },
+              "styles": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "direction": {
+      "enum": [
+        "ltr",
+        "rtl"
+      ],
+      "description": "Force left-to-right or right-to-left (default: Home Assistant's language)"
+    },
+    "auto_tabs": {
+      "type": "object",
+      "description": "Generated tabs",
+      "properties": {
+        "source": {
+          "enum": [
+            "areas",
+            "labels",
+            "floors",
+            "domains",
+            "devices",
+            "todo",
+            "calendars",
+            "cameras",
+            "zones",
+            "updates",
+            "repairs",
+            "notifications",
+            "taskmate",
+            "z2m_tracker"
+          ],
+          "description": "Built-in source"
+        },
+        "template": {
+          "type": "string",
+          "description": "A Jinja template that yields a list"
+        },
+        "tab_template": {
+          "type": "object",
+          "description": "Blueprint per item ({{ item }}, {{ item.prop }}, {{ index }})"
+        },
+        "domains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "content": {
+          "enum": [
+            "entities",
+            "tiles"
+          ],
+          "description": "areas / floors / labels: tiles instead of a list"
+        }
+      },
+      "additionalProperties": false
+    },
+    "auto_rotate": {
+      "description": "Seconds between tabs, or { interval, resume_after }",
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "number"
+            },
+            "resume_after": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "interval"
+          ]
+        }
+      ]
+    },
+    "idle_return": {
+      "type": "number",
+      "description": "Seconds idle before returning to the default tab",
+      "minimum": 0
+    },
+    "idle_dim": {
+      "description": "Minutes idle before the screensaver, or { after, mode, opacity }",
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "after": {
+              "type": "number"
+            },
+            "mode": {
+              "enum": [
+                "dim",
+                "black",
+                "clock"
+              ]
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "after"
+          ]
+        }
+      ]
+    },
+    "quiet_hours": {
+      "description": "No automatic tab switching (auto_rotate, idle_return, remote, follow_room, takeover, auto_select), alert pulses, badge bounces or click sounds during this window (from inclusive, to exclusive, may wrap midnight) or while the entity is on. Taps still work.",
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^\\s*([01]?\\d|2[0-3]):[0-5]\\d\\s*[-–]\\s*([01]?\\d|2[0-3]):[0-5]\\d\\s*$",
+          "examples": [
+            "22:00-07:00"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "from": {
+              "type": "string",
+              "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$"
+            },
+            "to": {
+              "type": "string",
+              "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$"
+            },
+            "entity": {
+              "type": "string",
+              "description": "Quiet while this entity is on."
+            }
+          }
+        }
+      ]
+    },
+    "scroll_spy": {
+      "type": "boolean",
+      "description": "Every tab stacked on the page; the bar follows the scroll"
+    },
+    "split": {
+      "description": "Card width (px) from which tabs sit side by side, or { min_width, columns }",
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "min_width": {
+              "type": "number"
+            },
+            "columns": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 4
+            }
+          },
+          "required": [
+            "min_width"
+          ]
+        }
+      ]
+    },
+    "preset": {
+      "enum": [
+        "default",
+        "ios",
+        "material",
+        "glass",
+        "minimal",
+        "rail",
+        "neumorphic",
+        "ha-tile",
+        "mushroom",
+        "bubble",
+        "fluent",
+        "material-you",
+        "material-expressive",
+        "liquid-glass",
+        "accessible"
+      ],
+      "description": "A named style bundle"
+    },
+    "collapsible": {
+      "type": "boolean",
+      "description": "Tapping the open tab folds the content"
+    },
+    "start_collapsed": {
+      "type": "boolean",
+      "description": "Start folded (with collapsible)"
+    },
+    "dock": {
+      "type": "boolean",
+      "description": "Phone-style bar pinned to the bottom of the screen"
+    },
+    "content_arrows": {
+      "type": "boolean",
+      "description": "‹ › buttons over the content"
+    },
+    "hide_bar": {
+      "type": "boolean",
+      "description": "Content only, no bar"
+    },
+    "search": {
+      "type": "boolean",
+      "description": "A quick-switch search"
+    },
+    "hotkeys": {
+      "type": "boolean",
+      "description": "1–9, [ ] and / keyboard shortcuts"
+    },
+    "history": {
+      "type": "boolean",
+      "description": "Back button returns to the previous tab"
+    },
+    "scroll_memory": {
+      "type": "boolean",
+      "description": "Each tab remembers how far down the page it was scrolled and returns there when opened again"
+    },
+    "customize": {
+      "type": "boolean",
+      "description": "Each person can reorder / hide tabs (per browser)"
+    },
+    "drag_reorder": {
+      "type": "boolean",
+      "description": "Drag tabs along the live bar to reorder them (hold first on touch). The order is saved in this browser and shared with customize"
+    },
+    "sort_by_usage": {
+      "type": "boolean",
+      "description": "Most-opened tabs first (per browser)"
+    },
+    "rail_expand": {
+      "type": "boolean",
+      "description": "Side bar shows icons until hovered"
+    },
+    "edit_mode_reveal": {
+      "type": "boolean",
+      "description": "Show hidden tabs while editing the dashboard"
+    },
+    "content_height": {
+      "type": "string",
+      "description": "auto, tallest or a CSS length"
+    },
+    "content_max_height": {
+      "type": [
+        "string",
+        "number"
+      ],
+      "description": "Content taller than this scrolls"
+    },
+    "header_cards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/card"
+      }
+    },
+    "footer_cards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/card"
+      }
+    },
+    "fullscreen": {
+      "type": "boolean",
+      "description": "A full-screen button"
+    },
+    "overview": {
+      "type": "boolean",
+      "description": "A grid button (and a pinch-in, and the o hotkey) that shows every tab as a live thumbnail"
+    },
+    "last_tab_button": {
+      "type": "boolean",
+      "description": "A swap button at the end of the bar that flips back to the tab you had open before (and the l hotkey, with hotkeys)"
+    },
+    "entity_search": {
+      "type": "boolean",
+      "description": "Ctrl+K (or ⌘K) and a bar button open a search that finds the tab showing an entity, across every deck on the page that has it on"
+    },
+    "changed_dot": {
+      "type": "boolean",
+      "description": "A dot on tabs that changed since you last looked"
+    },
+    "health_dim": {
+      "description": "Fade tabs with half (or this share) of their entities unavailable",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        }
+      ]
+    },
+    "alert_first": {
+      "type": "boolean",
+      "description": "Alerting tabs move to the front"
+    },
+    "alert_snooze": {
+      "type": "number",
+      "description": "Minutes a long-press silences an alert",
+      "minimum": 0
+    },
+    "default_by_time": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number"
+        ]
+      },
+      "description": "{ \"06:00\": Morning, \"18:00\": Evening }"
+    },
+    "default_by_device": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number"
+        ]
+      },
+      "description": "{ kitchen-panel: Cameras }"
+    },
+    "learned_default": {
+      "description": "On load, open the tab this browser picks most around this hour of the day, when nothing remembered, linked or configured (default_if, default_by_device, default_by_time) decides the tab.",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "min_uses": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 3,
+              "description": "Picks around this hour before a tab is learned."
+            },
+            "notice": {
+              "type": "boolean",
+              "default": true,
+              "description": "Show a dismissible note saying why the tab opened."
+            }
+          }
+        }
+      ]
+    },
+    "fire_event": {
+      "type": "boolean",
+      "description": "Fire tabdeck_tab_changed on every tab change"
+    },
+    "event_id": {
+      "type": "string",
+      "description": "This deck's name in events"
+    },
+    "companion": {
+      "type": "boolean",
+      "default": false,
+      "description": "Register this deck with the Tabdeck Companion integration: a select entity per browser + deck shows the open tab, and selecting an option switches it. Silently off when the integration isn't installed."
+    },
+    "companion_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]{1,64}$",
+      "description": "This browser's id for the companion entity (default: the Tabdeck device name, browser_mod's id, or a random id stored in this browser). Only set it on a dashboard that a single device shows."
+    },
+    "usage_stats": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 60
+        }
+      ],
+      "description": "Report the minutes spent on each tab every 10 minutes (true) or every N minutes: to the Tabdeck Companion integration (a usage sensor per deck) when companion is on, else as a tabdeck_usage event (admin users)."
+    },
+    "offline_banner": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show a warning over the content while the connection to Home Assistant is lost (after 2 seconds), until it reconnects."
+    },
+    "sync_group": {
+      "type": "string",
+      "description": "Decks on the same page with the same sync_group switch tabs together, matched by tab name"
+    },
+    "popup": {
+      "description": "Open one tab in a dialog from a button on another card: tap_action { action: fire-dom-event, tabdeck_popup: <tab> } or { tab, deck }. hidden shows only the popups, not the deck",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "enum": [
+            "hidden"
+          ]
+        }
+      ]
+    },
+    "share_button": {
+      "description": "A bar button that copies a direct #tab= link to the open tab; qr also shows the link as a QR code (made in the browser, no online service)",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "enum": [
+            "qr"
+          ]
+        }
+      ]
+    },
+    "wizard": {
+      "description": "A step-by-step guide: no tab bar, a step counter and progress bar, and Back / Next (Finish on the last step) buttons. finish_action runs on Finish",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "finish_action": {
+              "$ref": "#/definitions/action"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "remote_entity": {
+      "type": "string",
+      "description": "Follow this entity's state (a tab name, slug or index)"
+    },
+    "remote_event": {
+      "type": "boolean",
+      "description": "Switch on tabdeck_select events"
+    },
+    "follow_room": {
+      "description": "Show the tab for the room a presence entity reports. Its state is matched against map, then a tab area (id or name), then a tab name or slug. Only on changes; never into a PIN-locked tab.",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Entity id."
+        },
+        {
+          "type": "object",
+          "required": [
+            "entity"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "entity": {
+              "type": "string"
+            },
+            "map": {
+              "type": "object",
+              "description": "Entity state -> tab name, slug or index.",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "integer"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "takeover": {
+      "description": "Jump to a tab for a while when an entity fires (a doorbell), with a banner and countdown, then go back to the tab that was open. One trigger or a list.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "entity",
+            "tab"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "entity": {
+              "type": "string",
+              "description": "The entity that starts it."
+            },
+            "state": {
+              "type": "string",
+              "description": "Start when it enters this state. Default: on, or any press for event / button entities."
+            },
+            "tab": {
+              "type": [
+                "string",
+                "integer"
+              ],
+              "description": "Tab name, slug or index to show."
+            },
+            "duration": {
+              "type": "number",
+              "minimum": 5,
+              "maximum": 3600,
+              "default": 30,
+              "description": "Seconds before it goes back."
+            },
+            "message": {
+              "type": "string",
+              "description": "Banner text (default: the tab name)."
+            },
+            "icon": {
+              "type": "string",
+              "description": "Banner icon (default mdi:bell-ring)."
+            }
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "entity",
+              "tab"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "entity": {
+                "type": "string",
+                "description": "The entity that starts it."
+              },
+              "state": {
+                "type": "string",
+                "description": "Start when it enters this state. Default: on, or any press for event / button entities."
+              },
+              "tab": {
+                "type": [
+                  "string",
+                  "integer"
+                ],
+                "description": "Tab name, slug or index to show."
+              },
+              "duration": {
+                "type": "number",
+                "minimum": 5,
+                "maximum": 3600,
+                "default": 30,
+                "description": "Seconds before it goes back."
+              },
+              "message": {
+                "type": "string",
+                "description": "Banner text (default: the tab name)."
+              },
+              "icon": {
+                "type": "string",
+                "description": "Banner icon (default mdi:bell-ring)."
+              }
+            }
+          }
+        }
+      ]
+    },
+    "tab_defaults": {
+      "type": "object",
+      "description": "Keys applied to every tab"
+    },
+    "tab_templates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
+      },
+      "description": "Named tab blueprints for use: + vars:"
+    },
+    "debug": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "enum": [
+            "speed"
+          ]
+        }
+      ],
+      "description": "A debug panel under the card (conditions, templates, timings); \"speed\" also shows each tab's draw time on the bar"
+    },
+    "haptic": {
+      "enum": [
+        "selection",
+        "light",
+        "medium",
+        "heavy",
+        "success",
+        "warning",
+        "failure",
+        true
+      ],
+      "description": "Companion-app vibration on tab change"
+    },
+    "click_sound": {
+      "description": "A soft synthesised tick when the person switches tabs (not automatic switches, not in quiet_hours): true (volume 0.3) or a volume from 0 to 1.",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      ]
+    },
+    "breadcrumbs": {
+      "description": "A trail of the open tab at every level of grouped tabs",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "root": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "density": {
+      "enum": [
+        "compact",
+        "default",
+        "comfortable"
+      ],
+      "description": "Tab bar size"
+    },
+    "options": {
+      "type": "object",
+      "description": "Legacy tabbed-card options",
+      "properties": {
+        "defaultTabIndex": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "type"
+  ],
+  "anyOf": [
+    {
+      "required": [
+        "tabs"
+      ]
+    },
+    {
+      "required": [
+        "auto_tabs"
+      ]
+    }
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "tab": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Tab label; also the id used by default_tab and #tab= (may be a template)"
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Second line under the label (may be a template)"
+        },
+        "tooltip": {
+          "type": "string",
+          "description": "A short summary shown when the mouse rests on the tab (or keyboard focus lands on it). May be a template."
+        },
+        "icon": {
+          "type": "string",
+          "description": "An mdi: icon (may be a template)"
+        },
+        "accent": {
+          "type": "string",
+          "description": "Selected-state colour: an HA colour name or any CSS colour (may be a template)"
+        },
+        "color": {
+          "type": "string",
+          "description": "Label/icon colour (may be a template)"
+        },
+        "badge": {
+          "description": "An entity id, a Jinja template, plain text, or a count: { count: light.*, state: on, area: kitchen }",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "area": {
+                  "type": "string"
+                },
+                "floor": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "domain": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "count"
+              ]
+            }
+          ]
+        },
+        "badge_color": {
+          "type": "string",
+          "description": "Badge colour"
+        },
+        "badge_icon": {
+          "type": "string",
+          "description": "An icon shown as the badge"
+        },
+        "countdown": {
+          "type": "string",
+          "description": "Countdown badge: a timer entity (or an entity whose state is a timestamp). While it runs, the badge shows the time left (12:34) instead of badge."
+        },
+        "badges": {
+          "type": "array",
+          "description": "More badges after the main one: each an entity, template or count (badge), an icon and/or a colour",
+          "items": {
+            "type": "object",
+            "properties": {
+              "badge": {
+                "description": "Entity id, template, text or { count, state, area }",
+                "type": [
+                  "string",
+                  "number",
+                  "object"
+                ]
+              },
+              "icon": {
+                "type": "string",
+                "description": "Shown while the value is active (always without a badge)"
+              },
+              "color": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "badge_format": {
+          "type": "object",
+          "properties": {
+            "precision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "unit": {
+              "type": "string"
+            },
+            "max": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Numeric badge formatting"
+        },
+        "badge_action": {
+          "$ref": "#/definitions/action"
+        },
+        "ring": {
+          "description": "Progress ring around the icon: an entity, template or number",
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "ring_max": {
+          "type": "number",
+          "description": "The ring's full value (default 100)",
+          "exclusiveMinimum": 0
+        },
+        "ring_color": {
+          "type": "string",
+          "description": "Ring colour"
+        },
+        "ring_style": {
+          "type": "string",
+          "enum": [
+            "ring",
+            "bar"
+          ],
+          "description": "\"bar\" draws the ring value as a progress bar under the tab (works without an icon). Default ring."
+        },
+        "graph": {
+          "description": "A tiny history line of one entity on the tab: an entity id or { entity, hours, color }",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "entity": {
+                  "type": "string"
+                },
+                "hours": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "description": "How far back (default 24)"
+                },
+                "color": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "entity"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "pin": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "A code asked for before the tab opens (a convenience lock, not security)"
+        },
+        "pin_timeout": {
+          "type": "number",
+          "description": "Minutes an unlock lasts",
+          "minimum": 0
+        },
+        "area": {
+          "type": "string",
+          "description": "Auto content: tiles of this area's entities (no card needed)"
+        },
+        "floor": {
+          "type": "string",
+          "description": "Auto content: tiles of this floor's entities"
+        },
+        "label": {
+          "type": "string",
+          "description": "Auto content: tiles of entities with this label"
+        },
+        "domains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Only these domains in auto content"
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Greyed out and can't be opened"
+        },
+        "fab": {
+          "type": "boolean",
+          "description": "A raised round action button"
+        },
+        "pip": {
+          "type": "boolean",
+          "description": "After switching away, keep the card in a floating window"
+        },
+        "keep_awake": {
+          "type": "boolean",
+          "default": false,
+          "description": "Keep the screen on while this tab is open (Screen Wake Lock; needs https or localhost, otherwise does nothing)."
+        },
+        "view": {
+          "description": "Show another dashboard view's cards: \"/dashboard/view\" (a view path, index or title; leave the view out for the first) or { dashboard, view }",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "dashboard": {
+                  "type": "string"
+                },
+                "view": {
+                  "type": [
+                    "string",
+                    "integer"
+                  ]
+                }
+              },
+              "required": [
+                "dashboard"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "url": {
+          "type": "string",
+          "description": "Show a web page in the tab (Home Assistant's iframe card)"
+        },
+        "aspect_ratio": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "The url tab's aspect ratio, as the iframe card's (e.g. 75%, 16:9)"
+        },
+        "markdown": {
+          "type": "string",
+          "description": "Show Markdown text in the tab (Home Assistant's markdown card; templates work)"
+        },
+        "empty_message": {
+          "description": "Shown when every card in the tab is hidden: true, a line of text under the default title, or { title, text, icon }",
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "icon": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "auto_refresh": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Minutes: rebuild the tab's card this often (cameras and web pages that go stale; at least 0.1)"
+        },
+        "zoom": {
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 3,
+          "description": "Zoom the tab's content (0.8 fits more on a crowded tablet)"
+        },
+        "padding": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "Padding around the tab's content (CSS length; numbers are px)"
+        },
+        "spacing": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "Gap between the tab's cards (CSS length; numbers are px)"
+        },
+        "separator": {
+          "enum": [
+            "line",
+            "space"
+          ],
+          "description": "Drawn in the bar before this tab"
+        },
+        "tab_ref": {
+          "type": "string",
+          "pattern": "^/?[^/]+/[^/]+(/[^/]+)?/?$",
+          "description": "Reuse a tab from another dashboard's Tabdeck card: dashboard/tab or dashboard/view/tab (by name or slug). Keys next to it override the shared tab's."
+        },
+        "watch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Entities changed_dot and health_dim watch (default: those in the card)"
+        },
+        "card_size": {
+          "type": "number",
+          "description": "getCardSize() hint",
+          "minimum": 1
+        },
+        "tap_action": {
+          "$ref": "#/definitions/action"
+        },
+        "hold_action": {
+          "$ref": "#/definitions/action"
+        },
+        "double_tap_action": {
+          "$ref": "#/definitions/action"
+        },
+        "enter_action": {
+          "$ref": "#/definitions/action"
+        },
+        "leave_action": {
+          "$ref": "#/definitions/action"
+        },
+        "auto_select": {
+          "description": "Switch to this tab when the entity turns on (or enters state)",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "entity": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "entity"
+              ]
+            }
+          ]
+        },
+        "default_if": {
+          "$ref": "#/definitions/conditions"
+        },
+        "visibility": {
+          "$ref": "#/definitions/conditions"
+        },
+        "alert": {
+          "$ref": "#/definitions/conditions"
+        },
+        "background": {
+          "type": "string",
+          "description": "Content background while open: colour, gradient, var() or image URL (may be a template)"
+        },
+        "page_background": {
+          "type": "string",
+          "description": "The whole dashboard view's background while this tab is open: colour, gradient, var() or an image path / URL (may be a template)"
+        },
+        "layout": {
+          "enum": [
+            "masonry",
+            "sections"
+          ],
+          "description": "Lay the tab's cards out like HA's masonry or sections view"
+        },
+        "columns": {
+          "type": "number",
+          "description": "cards: grid columns, or masonry columns",
+          "minimum": 1
+        },
+        "min_column_width": {
+          "type": "number",
+          "description": "masonry: column width (px) to fit",
+          "exclusiveMinimum": 0
+        },
+        "max_columns": {
+          "type": "number",
+          "description": "sections: most section columns",
+          "minimum": 1
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "layout: sections — HA sections (title, cards, column_span)"
+        },
+        "styles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "description": "CSS properties, e.g. --tabdeck-accent: teal"
+        },
+        "icon_animation": {
+          "description": "spin, pulse, bounce, shake or beat (may be a template)",
+          "type": "string"
+        },
+        "picture": {
+          "type": "string",
+          "description": "A picture instead of the icon: an image URL or an entity (its entity_picture)"
+        },
+        "font_size": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "Label font size (a number is px)"
+        },
+        "font_weight": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "Label font weight"
+        },
+        "font_family": {
+          "type": "string",
+          "description": "Label font family"
+        },
+        "use": {
+          "type": "string",
+          "description": "Fill this tab_templates blueprint"
+        },
+        "vars": {
+          "type": "object",
+          "description": "Values for the blueprint's {{ item.<var> }} tokens"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/tab"
+          },
+          "description": "Grouped tab: sub-tabs"
+        },
+        "children_display": {
+          "enum": [
+            "row",
+            "menu"
+          ],
+          "description": "Sub-tabs as a second row, or a ▾ menu"
+        },
+        "children_options": {
+          "type": "object",
+          "description": "Tabdeck options for the inner deck"
+        },
+        "card": {
+          "$ref": "#/definitions/card"
+        },
+        "cards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/card"
+          }
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Legacy tabbed-card label / icon",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "icon": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "card": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "A Lovelace card type"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "action": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "enum": [
+            "none",
+            "more-info",
+            "toggle",
+            "navigate",
+            "url",
+            "perform-action",
+            "call-service",
+            "assist",
+            "fire-dom-event"
+          ]
+        }
+      },
+      "required": [
+        "action"
+      ]
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "condition": {
+            "enum": [
+              "state",
+              "numeric_state",
+              "screen",
+              "time",
+              "user",
+              "template",
+              "and",
+              "or",
+              "not"
+            ]
+          }
+        }
+      },
+      "description": "HA visibility-style conditions"
+    }
+  }
+}

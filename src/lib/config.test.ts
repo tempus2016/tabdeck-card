@@ -354,3 +354,64 @@ describe("grouped tabs (children)", () => {
     expect(normalizeConfig({ hide_bar: true, tabs: [{ card: {} }] }).hide_bar).toBe(true);
   });
 });
+
+describe("separator", () => {
+  it("keeps line / space and drops anything else", () => {
+    const cfg = normalizeConfig({
+      tabs: [
+        { name: "A", separator: "line", card: {} },
+        { name: "B", separator: "space", card: {} },
+        { name: "C", separator: "wall", card: {} },
+      ],
+    });
+    expect(cfg.tabs.map((t) => t.separator)).toEqual(["line", "space", undefined]);
+  });
+});
+
+describe("swipe_edge", () => {
+  it("is off by default; true is 40 px, a number is clamped", () => {
+    const tabs = [{ name: "A", card: { type: "markdown" } }];
+    expect(normalizeConfig({ tabs }).swipe_edge).toBeUndefined();
+    expect(normalizeConfig({ tabs, swipe_edge: true }).swipe_edge).toBe(40);
+    expect(normalizeConfig({ tabs, swipe_edge: 64 }).swipe_edge).toBe(64);
+    expect(normalizeConfig({ tabs, swipe_edge: 2 }).swipe_edge).toBe(8);
+    expect(normalizeConfig({ tabs, swipe_edge: false }).swipe_edge).toBeUndefined();
+  });
+});
+
+describe("learned_default", () => {
+  const tabs = [{ name: "A", card: {} }];
+  it("is off unless set, true gives the defaults, options are clamped", () => {
+    expect(normalizeConfig({ tabs }).learned_default).toBeUndefined();
+    expect(normalizeConfig({ tabs, learned_default: true }).learned_default).toEqual({ min_uses: 3, notice: true });
+    expect(normalizeConfig({ tabs, learned_default: { min_uses: 0.2, notice: false } }).learned_default).toEqual({ min_uses: 3, notice: false });
+    expect(normalizeConfig({ tabs, learned_default: { min_uses: 500 } }).learned_default!.min_uses).toBe(100);
+  });
+});
+
+describe("follow_room", () => {
+  const tabs = [{ name: "A", card: {} }];
+  it("takes an entity id or { entity, map }", () => {
+    expect(normalizeConfig({ tabs }).follow_room).toBeUndefined();
+    expect(normalizeConfig({ tabs, follow_room: " sensor.room " }).follow_room).toEqual({ entity: "sensor.room" });
+    expect(normalizeConfig({ tabs, follow_room: { entity: "sensor.room", map: { hall: "A" } } }).follow_room).toEqual({ entity: "sensor.room", map: { hall: "A" } });
+    expect(normalizeConfig({ tabs, follow_room: { map: { hall: "A" } } }).follow_room).toBeUndefined();
+  });
+});
+
+describe("quiet_hours", () => {
+  it("normalises to a YAML-safe window / entity", () => {
+    const tabs = [{ name: "A", card: {} }];
+    expect(normalizeConfig({ tabs }).quiet_hours).toBeUndefined();
+    expect(normalizeConfig({ tabs, quiet_hours: "22:00-07:00" }).quiet_hours).toEqual({ from: "22:00", to: "07:00" });
+  });
+});
+
+describe("click_sound", () => {
+  it("true is volume 0.3, a number is the volume", () => {
+    const tabs = [{ name: "A", card: {} }];
+    expect(normalizeConfig({ tabs }).click_sound).toBeUndefined();
+    expect(normalizeConfig({ tabs, click_sound: true }).click_sound).toBe(0.3);
+    expect(normalizeConfig({ tabs, click_sound: 0.8 }).click_sound).toBe(0.8);
+  });
+});

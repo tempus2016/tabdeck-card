@@ -19,7 +19,6 @@
       icon: mdi:lightbulb-group
       accent: "#3b82e8"
       badge: "{{ states.light | selectattr('state','eq','on') | list | count }}"
-      badge_display: dot
       cards:
         - type: entities
           entities: [light.kitchen, light.hall]

@@ -7,6 +7,7 @@ export type ConvertSource =
   | "swipe-card"
   | "state-switch"
   | "bubble-popups"
+  | "mushroom-chips"
   | "dashboard"
   | "view"
   | "sections"
@@ -244,26 +245,148 @@ function fromStateSwitch(cfg: any, hass: any): ConvertResult {
   return { source: "state-switch", tabs, options, notes };
 }
 
-// Bubble Card pop-ups: a stack whose first card is a pop-up becomes a tab.
-function bubbleTab(stack: any, hass: any, index: number): any | undefined {
-  const cards: any[] = Array.isArray(stack?.cards) ? stack.cards : [];
-  const pop = cards[0];
-  if (!isBubblePopup(pop)) return undefined;
-  const rest = cards.slice(1);
-  const name = pop.name ?? (typeof pop.hash === "string" ? prettify(pop.hash.replace(/^#/, "")) : undefined);
-  return tabFromGroup(rest, hass, index, name, pop.icon) ?? { name, icon: pop.icon, card: { type: "markdown", content: " " } };
+// --- navigation helpers: Bubble Card button stacks and Mushroom chips -------
+// Names and icons for pop-up hashes (#kitchen) from a Bubble Card
+// horizontal-buttons-stack (1_link / 1_name / 1_icon …) or Mushroom chips
+// that navigate to them, anywhere in what was pasted.
+interface NavLabel {
+  name?: string;
+  icon?: string;
 }
+
+const plain = (v: any): string | undefined => (typeof v === "string" && v.trim() && !v.includes("{{") && !v.includes("[[[") ? v : undefined);
+
+function walkCards(node: any, visit: (c: any) => void): void {
+  if (Array.isArray(node)) node.forEach((n) => walkCards(n, visit));
+  else if (isObj(node)) {
+    if (node.type) visit(node);
+    for (const k of ["cards", "card", "sections", "views", "chips", "chip"]) if (node[k]) walkCards(node[k], visit);
+  }
+}
+
+const isChips = (c: any) => typeOf(c) === "mushroom-chips-card";
+const isButtonsStack = (c: any) => typeOf(c) === "bubble-card" && c.card_type === "horizontal-buttons-stack";
+
+// The chip under a Mushroom conditional chip, with its conditions.
+function unwrapChip(chip: any): { chip: any; conditions?: any[] } {
+  if (chip?.type === "conditional" && isObj(chip.chip)) return { chip: chip.chip, conditions: chip.conditions };
+  return { chip };
+}
+
+const chipNav = (chip: any): string | undefined => {
+  const a = chip?.tap_action;
+  return a?.action === "navigate" && typeof a.navigation_path === "string" ? a.navigation_path : undefined;
+};
+
+function chipLabel(chip: any, hass: any): NavLabel {
+  const ent = typeof chip?.entity === "string" ? chip.entity : undefined;
+  return {
+    name:
+      plain(chip?.name) ??
+      plain(chip?.content) ??
+      (ent ? plain(hass?.states?.[ent]?.attributes?.friendly_name) : undefined),
+    icon: plain(chip?.icon) ?? (ent ? DOMAIN_ICONS[ent.split(".")[0]] : undefined),
+  };
+}
+
+function navLabels(input: any, hass: any): Map<string, NavLabel> {
+  const out = new Map<string, NavLabel>();
+  const add = (link: any, label: NavLabel) => {
+    if (typeof link !== "string" || !link.startsWith("#")) return;
+    const prev = out.get(link) ?? {};
+    out.set(link, { name: prev.name ?? label.name, icon: prev.icon ?? label.icon });
+  };
+  walkCards(input, (c) => {
+    if (isButtonsStack(c)) {
+      for (let i = 1; i <= 50 && (c[`${i}_link`] || c[`${i}_name`]); i++) {
+        add(c[`${i}_link`], { name: plain(c[`${i}_name`]), icon: plain(c[`${i}_icon`]) });
+      }
+    }
+    if (isChips(c)) {
+      for (const raw of Array.isArray(c.chips) ? c.chips : []) {
+        const { chip } = unwrapChip(raw);
+        add(chipNav(chip), chipLabel(chip, hass));
+      }
+    }
+  });
+  return out;
+}
+
+// Mushroom chips → tabs: a chip that navigates to a view becomes a view: tab
+// (shows that view's cards), a chip that opens a URL an action tab. A
+// conditional chip's conditions become the tab's visibility.
+function fromChips(card: any, hass: any): ConvertResult {
+  const tabs: any[] = [];
+  for (const raw of Array.isArray(card.chips) ? card.chips : []) {
+    const { chip, conditions } = unwrapChip(raw);
+    const label = chipLabel(chip, hass);
+    const path = chipNav(chip);
+    const a = chip?.tap_action;
+    let tab: any;
+    if (path && !path.startsWith("#")) {
+      const last = path.replace(/[?#].*$/, "").split("/").filter(Boolean).pop() ?? path;
+      tab = { name: label.name ?? prettify(decodeURIComponent(last)), view: path };
+    } else if (a?.action === "url" && typeof a.url_path === "string") {
+      tab = { name: label.name ?? prettify(a.url_path.replace(/^https?:\/\//, "").split(/[/?#]/)[0]), tap_action: a };
+    } else continue;
+    if (label.icon) tab.icon = label.icon;
+    const visibility = toVisibility(conditions);
+    if (visibility) tab.visibility = visibility;
+    tabs.push(tab);
+  }
+  return { source: "mushroom-chips", tabs, options: {}, notes: ["convert.note.chips"] };
+}
+
+// Bubble Card pop-ups. Older setups: a vertical stack whose first card is the
+// pop-up. Since Bubble Card 3 a pop-up can stand on its own; the cards after
+// it (up to the next pop-up) are its content.
+function popupTab(pop: any, content: any[], hass: any, index: number, labels: Map<string, NavLabel>): any {
+  const label = typeof pop.hash === "string" ? labels.get(pop.hash) : undefined;
+  const name =
+    plain(pop.name) ?? label?.name ?? (typeof pop.hash === "string" ? prettify(pop.hash.replace(/^#/, "")) : undefined);
+  const icon = plain(pop.icon) ?? label?.icon;
+  const tab = tabFromGroup(content, hass, index, name, icon) ?? { name, card: { type: "markdown", content: " " } };
+  if (icon) tab.icon = icon;
+  return tab;
+}
+
+const isPopupStack = (c: any) => Array.isArray(c?.cards) && isBubblePopup(c.cards[0]);
 
 function hasBubblePopups(cards: any[]): boolean {
-  return cards.some((c) => Array.isArray(c?.cards) && isBubblePopup(c.cards[0]));
+  return cards.some((c) => isPopupStack(c) || isBubblePopup(c));
 }
 
-function fromCardList(cards: any[], hass: any, source: ConvertSource): ConvertResult {
+function bubbleTabs(cards: any[], hass: any, labels: Map<string, NavLabel>): { tabs: any[]; leftOut: boolean } {
+  const tabs: any[] = [];
+  let leftOut = false;
+  let pop: any;
+  let run: any[] = [];
+  const flush = () => {
+    if (pop) tabs.push(popupTab(pop, run, hass, tabs.length, labels));
+    else if (run.some((c) => !isChips(c) && !isButtonsStack(c))) leftOut = true;
+    pop = undefined;
+    run = [];
+  };
+  for (const c of cards) {
+    if (isPopupStack(c)) {
+      flush();
+      tabs.push(popupTab(c.cards[0], c.cards.slice(1), hass, tabs.length, labels));
+    } else if (isBubblePopup(c)) {
+      flush();
+      pop = c;
+    } else if (pop) run.push(c);
+    else if (!isChips(c) && !isButtonsStack(c)) leftOut = true;
+  }
+  flush();
+  return { tabs, leftOut };
+}
+
+function fromCardList(cards: any[], hass: any, source: ConvertSource, labels = navLabels(cards, hass)): ConvertResult {
   if (hasBubblePopups(cards)) {
+    const { tabs, leftOut } = bubbleTabs(cards, hass, labels);
     const notes = ["convert.note.bubble"];
-    const tabs = cards
-      .map((c, i) => bubbleTab(c, hass, i))
-      .filter((t): t is any => !!t);
+    if (labels.size) notes.push("convert.note.bubble_nav");
+    if (leftOut) notes.push("convert.note.bubble_outside");
     return { source: "bubble-popups", tabs, options: {}, notes };
   }
   return { source, tabs: tabsFromCards(cards, hass), options: {}, notes: [] };
@@ -290,6 +413,9 @@ export function convertConfig(input: any, hass?: any): ConvertResult {
     return { source: "dashboard", tabs, options: {}, notes: ["convert.note.dashboard"] };
   }
   if (Array.isArray(input.sections)) {
+    // Bubble Card 3 in a sections view: pop-ups and their cards in sections.
+    const all = input.sections.flatMap((s: any) => (Array.isArray(s?.cards) ? s.cards : []));
+    if (all.some(isBubblePopup)) return fromCardList(all, hass, "sections", navLabels(input, hass));
     const tabs = input.sections
       .map((s: any, i: number) => tabFromSection(s, hass, i))
       .filter((t: any) => !!t);
@@ -303,8 +429,13 @@ export function convertConfig(input: any, hass?: any): ConvertResult {
   if (type === "tabbed-card") return fromTabbedCard(input, hass);
   if (type === "swipe-card") return fromSwipeCard(input, hass);
   if (type === "state-switch") return fromStateSwitch(input, hass);
+  if (type === "mushroom-chips-card") {
+    const r = fromChips(input, hass);
+    if (r.tabs.length) return r;
+  }
   if (!input.type && Array.isArray(input.cards)) {
-    return { ...fromCardList(input.cards, hass, "view"), notes: [] };
+    const r = fromCardList(input.cards, hass, "view");
+    return r.source === "bubble-popups" ? r : { ...r, notes: [] };
   }
   if (Array.isArray(input.cards)) {
     // vertical-stack / horizontal-stack / grid / any card with child cards.

@@ -33,3 +33,25 @@ export function detectSwipe(
   if (Math.abs(dx) < Math.abs(dy) * ratio) return null;
   return dx < 0 ? "next" : "prev";
 }
+
+// swipe_edge: a swipe only counts when it starts within `edge` px of the
+// content's left or right side, so the middle (sliders, maps) is left alone.
+export function startsAtEdge(x: number, rect: { left: number; right: number }, edge: number): boolean {
+  return x - rect.left <= edge || rect.right - x <= edge;
+}
+
+// swipe_lock: a swipe that starts on a slider or a map belongs to that
+// control. `path` is the event's composedPath() (it crosses shadow roots,
+// so sliders inside other cards are found).
+export function startsOnControl(path: EventTarget[]): boolean {
+  for (const node of path) {
+    const el = node as Element;
+    if (!el || typeof el.getAttribute !== "function") continue;
+    const tag = el.tagName.toLowerCase();
+    if (tag.includes("slider") || tag === "ha-map") return true;
+    if (el.getAttribute("role") === "slider") return true;
+    if (tag === "input" && (el.getAttribute("type") ?? "").toLowerCase() === "range") return true;
+    if (el.classList?.contains("leaflet-container")) return true;
+  }
+  return false;
+}

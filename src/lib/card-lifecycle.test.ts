@@ -18,6 +18,20 @@ describe("CardManager", () => {
     expect(m.get(0).getAttribute("data-type")).toBe("a");
   });
 
+  it("refresh swaps in a fresh card from the same config, with hass", async () => {
+    const m = new CardManager(fakeCreate());
+    await m.build([{ type: "a" }, null]);
+    const hass = { states: {} } as any;
+    m.setHass(hass);
+    const first = m.get(0);
+    m.refresh(0);
+    expect(m.get(0)).not.toBe(first);
+    expect(m.get(0)._config).toEqual({ type: "a" });
+    expect(m.get(0).hass).toBe(hass);
+    m.refresh(1);
+    expect(m.get(1)).toBeUndefined();
+  });
+
   it("unload frees a card and ensure rebuilds it with the current hass", async () => {
     const m = new CardManager(fakeCreate());
     await m.build([{ type: "a" }, null]);

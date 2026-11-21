@@ -34,7 +34,7 @@ A nested map card rendering correctly the moment its tab is selected — no
 
 ![Keep-alive map rendering](images/map-keepalive.png)
 
-> 🎮 **[Try the live demo](https://tempus2016.github.io/tabdeck-card/demo/)**: edit a config and flip pretend devices in your browser, no Home Assistant needed.
+> 🎮 **[Try the live demo](https://tempus2016.github.io/tabdeck-card/demo/)**: edit a config and flip pretend devices in your browser, no Home Assistant needed, and share what you made as a link. The **[theme builder](https://tempus2016.github.io/tabdeck-card/demo/theme.html)** styles a deck live and gives you the YAML.
 >
 > 📖 **Full documentation, every option, and screenshots are on the [Wiki](https://github.com/tempus2016/tabdeck-card/wiki).** This README is a quick overview.
 
@@ -44,20 +44,20 @@ A nested map card rendering correctly the moment its tab is selected — no
 - **Visual GUI editor** — add, remove, **drag-to-reorder**, duplicate, **copy & import** tabs without YAML; a live **"why is this tab hidden?"** check of every condition; collapsible tab blocks, native HA card editor, HA's native **condition builder** for visibility/alert/default, style **presets**, duplicate-name warnings.
 - **Keep-alive content** (or opt-in `unmount_hidden`) — maps/cameras/graphs render correctly without navigating away.
 - **Tab bar styling** — `top`/`bottom`/`left`/`right` positions; `underline`/`pill`/`segmented`/`boxed`/`text` styles; `tab_display` (icon/label/both/active/dots); `align`; `indicator_size`; `sticky`; `elevation`; `bar_background`; per-tab `accent`/`color`.
-- **Per-tab** — `subtitle`, `badge` (text or `dot`, `badge_color`, `badge_format`, hide-inactive), `disabled`, multiple `cards`/`columns`, per-tab `styles`; `icon`/`name`/`color` can be **live templates**; pulsing `alert` conditions.
+- **Per-tab** — `subtitle`, `badge` (text or `dot`, `badge_color`, `badge_format`, hide-inactive), `disabled`, multiple `cards`/`columns`, per-tab `styles`; `icon`/`name`/`color` can be **live templates**; pulsing `alert` conditions; one-line content: `view` (another dashboard view), `url` (a web page), `markdown` (text).
 - **Actions** — `tap_action` turns a tab into a **navigation link/button**; `hold_action`, `badge_action`, and `enter_action`/`leave_action` when a tab opens or closes (incl. `perform-action`).
 - **Edit-mode helpers** — hidden tabs appear faded while you edit the dashboard; rotation pauses.
-- **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`, generated tabs via `auto_tabs` (Jinja, or **one tab per area/label**).
+- **Dynamic** — conditional `visibility` (`state`/`numeric_state`/`screen`/`time`/`user`/`template` + `and`/`or`/`not`), `auto_select` on entity state, conditional `default_if`, generated tabs via `auto_tabs` (Jinja, or a built-in source: **one tab per area, floor, label, camera, update, repair or notification** and more).
 - **Layouts** — `scroll_spy` anchor mode, `collapsible` deck, responsive `split` view (side by side on wide cards) and `tab_display_narrow`.
 - **Content** — `layout: masonry` or `layout: sections` (like HA's sections view) inside a tab, `header_cards` / `footer_cards` on every tab, per-tab `background` (colour, gradient or image, may be a template), `content_height: tallest` so the page doesn't jump, a `fullscreen` button, and `swipe_peek` carousel swiping.
-- **Wall panels** — `auto_rotate` through tabs, `idle_return` to the default tab, automations switch tabs (`remote_entity`, `remote_event`) and hear tab changes (`fire_event`), starting tab by time of day or device, PIN-locked tabs.
+- **Wall panels** — `auto_rotate` through tabs, `idle_return` to the default tab, `idle_dim` screensaver (dim, black or a clock), automations and Assist voice commands switch tabs (`remote_entity`, `remote_event`, including next / previous / back) and hear tab changes (`fire_event`), starting tab by time of day or device, PIN-locked tabs.
 - **Smart tabs** — a tab per floor, domain, device, to-do list, calendar, camera or zone; area tabs that fill themselves with tiles; count badges without Jinja, badge icons and progress rings; alerting tabs first, with long-press snooze.
 - **Persistence** — remember the active tab per `browser`, `url` (`#tab=name`, slug or index), or across devices via an `entity` with **live two-way sync**.
 - **Transitions** — optional `fade`/`slide`/`scale`/`flip`/`rise` panel animations with your own duration and easing (respects reduced-motion).
-- **Theming** — CSS variables via `styles`, no card-mod needed; HA theme colour names and HA's colour picker; 11 presets (incl. `bubble`, `mushroom`, `material-you`); readable text on solid fills and contrast warnings; `density`; per-tab pictures, icon animations and fonts; haptics.
-- **Power users** — `tab_defaults` for every tab, reusable `tab_templates` (`use` + `vars`), a `debug` panel, and a public API (`selectTab()`, `tabdeck-tab-changed`).
+- **Theming** — CSS variables via `styles`, no card-mod needed; HA theme colour names and HA's colour picker; 14 presets (incl. `bubble`, `mushroom`, `material-expressive`, `liquid-glass`, high-contrast `accessible`); readable text on solid fills and contrast warnings; `density`; per-tab pictures, icon animations and fonts; haptics.
+- **Power users** — `tab_defaults` for every tab, reusable `tab_templates` (`use` + `vars`), a `debug` panel with draw times per tab, and a public API (`selectTab()`, `tabdeck-tab-changed`, `window.tabdeck`).
 - **Accessible** — `tablist` semantics, full keyboard navigation (Arrows, Home/End, skips disabled).
-- **Translated** — editor and card text in English, Deutsch, Español, Français, Italiano, Nederlands, Polski and Português, following your HA language. [Help translate](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Languages).
+- **Translated** — editor and card text in 20 languages, following your HA language: English, العربية, বাংলা, Deutsch, Español, Français, हिन्दी, Bahasa Indonesia, Italiano, 日本語, 한국어, Nederlands, Polski, Português, Русский, Türkçe, Українська, Tiếng Việt, 简体中文 and 繁體中文. [Help translate](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Languages).
 
 ## Installation (Marketplace)
 
@@ -73,11 +73,13 @@ Tabdeck Card is in the default **Marketplace** catalog (formerly HACS) — no cu
 
 ### Manual installation
 
-1. Download `tabdeck-card.js` **and** `tabdeck-card-editor-….js` from the latest release.
-2. Copy both to `config/www/` (side by side; remove an older `tabdeck-card-editor-….js`).
+1. Download every `.js` file from the latest release: `tabdeck-card.js`, `tabdeck-card-editor-….js`
+   and the language files (`tabdeck-card.<lang>-….js`, `tabdeck-card-editor.<lang>-….js`).
+2. Copy them all to `config/www/` side by side, replacing the `tabdeck-card*.js` files from an older release.
 3. Add a dashboard resource: **Settings → Dashboards → ⋮ → Resources → Add**,
    URL `/local/tabdeck-card.js`, type **JavaScript Module**. (Only the card is a resource;
-   it loads the editor file itself when you open the visual editor.)
+   it loads the editor file itself when you open the visual editor, and only the language file
+   your HA language needs.)
 
 ## Example
 
@@ -133,6 +135,7 @@ A ready-to-paste dashboard showcasing many features lives in
 | `tabs`        | list              | —            | One or more tab objects (required). |
 | `default_tab` | number \| string  | `0`          | Index or tab `name` shown first. Overridden by persistence. |
 | `position`    | string            | `top`        | `top` \| `bottom` \| `left` \| `right`. |
+| `orientation_layout` | boolean \| object | — | Bar at the bottom upright and on the left sideways (or `{ portrait, landscape }`); overrides `position`. |
 | `style`       | string            | `underline`  | `underline` \| `pill` \| `segmented` \| `boxed` \| `text`. |
 | `tab_display` | string            | `both`       | `both` \| `icon` \| `label` \| `active` (icons, plus name + subtitle on the selected tab). |
 | `align`       | string            | `start`      | `start` \| `center` \| `end` \| `justify`. |
@@ -140,8 +143,11 @@ A ready-to-paste dashboard showcasing many features lives in
 | `accent_indicator` | boolean      | `true`       | Colour the indicator by the selected tab's accent. |
 | `badge_display` | string          | `text`       | `text` \| `dot`. |
 | `hide_inactive_badge` | boolean   | `false`      | Hide 0/off badges. |
+| `health_dim`        | boolean \| number | `false` | Tabs with half (or this share) of their entities unavailable fade and show a ⚠. |
+| `changed_dot`       | boolean   | `false`      | A dot on tabs whose entities changed since this browser last showed them (per-tab `watch` picks the entities). |
 | `transition`  | string            | `none`       | Panel switch animation: `none` \| `fade` \| `slide` \| `scale` \| `flip` \| `rise` (+ `transition_duration`, `transition_easing`, `transition_narrow` for phones). |
 | `sticky` / `elevation` | boolean  | `false`      | Pin the bar / raise it with a shadow. |
+| `bar_autohide`      | boolean  | `false`      | A pinned bar (`sticky`, `dock`, `scroll_spy`) hides while you scroll down and returns when you scroll up. |
 | `bar_background` | string         | —            | Custom tab-bar background colour. |
 | `header`      | boolean           | `false`      | Show the active tab's title above the content. |
 | `unmount_hidden` | boolean        | `false`      | Keep only the active tab's card in the DOM. |
@@ -149,24 +155,48 @@ A ready-to-paste dashboard showcasing many features lives in
 | `header_cards` / `footer_cards` | list | —     | Cards above the bar / below the content on every tab. |
 | `content_height` | string \| number | `auto`    | `auto` \| `tallest` (no page jump) \| a fixed height; `content_max_height` scrolls inside. |
 | `fullscreen`  | boolean           | `false`      | Full-screen button: open the active tab over the whole window. |
+| `overview`    | boolean           | `false`      | Grid button (and pinch-in) showing every tab as a live thumbnail; tap one to open it. |
+| `last_tab_button` | boolean       | `false`      | Swap button in the bar that flips back to the tab open before. |
+| `sync_group`  | string            | —            | Decks on the page with the same group switch tabs together, matched by tab name. |
+| `popup`       | boolean \| `hidden` | —          | A `fire-dom-event` button (`tabdeck_popup: <tab>`) on another card opens one tab in a dialog. |
+| `share_button` | boolean \| `qr` | —            | Bar button that copies a `#tab=` link to the open tab; `qr` also shows it as a QR code. |
+| `wizard`      | boolean \| object | —            | Step-by-step guide: step counter, progress bar and Back / Next (Finish runs `finish_action`). |
 | `swipe_peek`  | boolean           | `false`      | Content follows the finger while swiping; the next tab slides in. |
+| `hold_peek`   | boolean           | `false`      | Hold a tab to preview its content over the open tab; let go to close it. |
+| `compare`     | boolean           | `false`      | Long-press a tab to show it side by side with the open one (× or Esc closes). |
 | `alert_first` / `alert_snooze` | boolean / number | `false` / — | Alerting tabs first; long-press snoozes an alert for N minutes. |
 | `remote_entity` | string        | —            | Switch to the tab named by this entity's state (automations, wall panels). |
 | `remote_event` / `fire_event` | boolean | `false` | Switch on `tabdeck_select` events / fire `tabdeck_tab_changed` (admin users). |
+| `companion` | boolean | `false` | A select entity per browser + deck through the separate Tabdeck Companion integration (`companion_id` names the browser). |
+| `usage_stats` | boolean \| number | — | Minutes per tab, reported every 10 (or N) minutes to a companion sensor, else a `tabdeck_usage` event. |
+| `follow_room` | string \| object | — | Show the tab for the room a presence entity reports (by `map`, tab `area` or name). |
+| `takeover` | object \| list | — | Jump to a tab when an entity fires (a doorbell), with a banner and countdown, then go back. |
 | `default_by_time` / `default_by_device` | object | — | Starting tab by time of day / by browser (`?tabdeck_device=`). |
+| `learned_default` | boolean \| object | — | On load, open the tab this browser picks most around this hour (when nothing else decides it). |
 | `scrollable`  | `auto` \| boolean | `auto`       | Scroll the tab bar when tabs overflow. |
 | `remember`    | string            | `none`       | `none` \| `browser` \| `url` \| `entity` (+ `remember_entity`, `storage_key`). |
+| `breadcrumbs` | boolean \| object | `false`     | A trail of the open tab at every level of grouped tabs (`{ root: Home }` adds a first crumb). |
+| `sort_by_usage` | boolean         | `false`      | Each browser puts the tabs it opens most first (the order is set when the page loads). |
+| `drag_reorder` | boolean          | `false`      | Drag tabs along the bar to reorder them, saved per browser (hold first on touch). |
 | `swipe_wrap`  | boolean           | `false`      | Swipe wraps around the ends. |
+| `wheel_switch` | boolean         | `false`      | Scroll the mouse wheel over the tab bar to change tab (desktop). |
+| `swipe_edge`  | boolean \| number | —           | Swipes only count when they start near the left/right edge (`true` = 40 px, or a width). |
+| `swipe_lock`  | boolean           | `false`      | A swipe that starts on a slider or a map moves that control, never the tab. |
 | `lazy`        | boolean           | `false`      | Create inactive tab cards on first visit instead of up front. |
+| `preload`     | string            | —            | With `lazy`: `idle` builds the tabs next to the open one while the browser is idle, `all` builds every tab one at a time. |
 | `animated`    | boolean           | `true`       | Slide the active-tab indicator between tabs. Snaps instantly when `false` or under reduced-motion. |
 | `swipe`       | boolean           | `false`      | Change tabs by swiping left/right on the card body (touch devices). Off by default so it never hijacks gestures of interactive cards (maps, sliders). |
 | `styles`      | object            | `{}`         | CSS-variable overrides (see Theming). |
 | `tab_defaults` / `tab_templates` | object | — | Keys for every tab / named tab blueprints (`use` + `vars` on a tab). |
-| `debug`       | boolean           | `false`      | Panel with conditions, templates, start reason and timings. |
-| `preset`      | string            | —            | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` \| `neumorphic` \| `ha-tile` \| `mushroom` \| `bubble` \| `fluent` \| `material-you` style bundle; explicit keys win. |
+| `debug`       | boolean \| `speed` | `false`      | Panel with conditions, templates, start reason and timings; `speed` adds draw times on the tabs. |
+| `preset`      | string            | —            | `default` \| `ios` \| `material` \| `glass` \| `minimal` \| `rail` \| `neumorphic` \| `ha-tile` \| `mushroom` \| `bubble` \| `fluent` \| `material-you` \| `material-expressive` \| `liquid-glass` \| `accessible` style bundle; explicit keys win. |
 | `density` / `haptic` | string    | `default` / — | `compact` \| `comfortable` tab bar; companion-app vibration on tab switches. |
+| `click_sound` | boolean \| number | — | A soft tick on tab switches the person makes (`true` = volume 0.3, or 0–1); silent in `quiet_hours`. |
+| `offline_banner` | boolean | `false` | A "Connection lost · reconnecting…" bar over the content while the connection to HA is down. |
 | `badge_format` | object           | —            | Default numeric badge format `{precision, unit, max}`. |
 | `auto_rotate` / `idle_return` | number | —      | Cycle tabs every N s / return to the default tab after N s idle. |
+| `quiet_hours` | string \| object | — | `"22:00-07:00"` or `{from, to, entity}`: no automatic switching, alert pulses, badge bounces or click sounds. |
+| `idle_dim`    | number \| object  | —            | After N minutes without a touch, dim the screen, turn it black or show a clock (`{after, mode: dim\|black\|clock, opacity}`); a touch wakes it. |
 | `scroll_spy`  | boolean           | `false`      | Stack all tabs as sections; the bar scrolls to and tracks them. |
 | `collapsible` / `start_collapsed` | boolean | `false` | Tap the active tab to fold the content away. |
 | `split`       | number \| object  | —            | Side-by-side columns at/above this card width (`{min_width, columns}`). |
@@ -183,7 +213,12 @@ A ready-to-paste dashboard showcasing many features lives in
 | `color`      | string | —       | Fixed label/icon colour for the tab. |
 | `badge` / `badge_color` | string | — | Entity id or Jinja template; optional badge colour. |
 | `disabled`   | boolean | `false` | Show greyed-out and non-selectable. |
+| `pip`        | boolean | `false` | After you switch away, the tab's card stays in a small floating window (tap it to go back, × to close). |
+| `keep_awake` | boolean | `false` | Keep the screen on while this tab is open (Screen Wake Lock; https only). |
+| `separator`  | string | —       | `line` draws a divider before the tab; `space` pushes the tab and the ones after it to the far end of the bar. |
+| `tab_ref`    | string | —       | Reuse a tab from another dashboard's Tabdeck card: `dashboard/tab` or `dashboard/view/tab`. |
 | `hold_action` | action | —      | HA action fired on long-press (tap still selects). |
+| `double_tap_action` | action | — | HA action fired on a double tap (a single tap still selects). |
 | `tap_action` | action | —       | Tap runs this action instead of opening the tab (navigation tabs; no card needed). |
 | `enter_action` / `leave_action` | action | — | HA action when the tab becomes / stops being active. |
 | `badge_format` | object | —     | `{precision, unit, max}` numeric badge formatting. |
@@ -245,12 +280,37 @@ icon, accent, colour, badge and long-press action; global controls cover every
 top-level option. It warns about footguns like duplicate tab names. See the
 [Editor](https://github.com/tempus2016/tabdeck-card/wiki/Editor) wiki page.
 
+## Automation blueprints
+
+Blueprints switch tabs from automations without writing one by hand: **show a
+tab when something happens** (the doorbell rings → Cameras, then back to Home),
+**take over the deck when the doorbell rings** (a banner with a countdown, then
+back to the tab that was open), **"show <tab>" with Assist**, and more. They use
+`remote_event: true` on the deck. See
+[Remote control & events](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Remote-Control#blueprints)
+for the import buttons.
+
+## Writing YAML by hand
+
+A JSON schema gives option suggestions, descriptions and typo checks in VS Code
+and the Studio Code Server add-on. Put this line at the top of a file that holds
+one deck:
+
+```yaml
+# yaml-language-server: $schema=https://tempus2016.github.io/tabdeck-card/schema/tabdeck-card.schema.json
+```
+
+See [YAML autocomplete](https://github.com/tempus2016/tabdeck-card/wiki/Feature-YAML-Schema).
+
 ## Migrating from other cards
 
 The editor's **Convert from another card** button turns a pasted `tabbed-card`,
 `swipe-card`, `state-switch`, Bubble Card pop-ups, a stack, a sections view or a
 whole dashboard into Tabdeck tabs. See
 [Convert from another card](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Convert).
+
+Going the other way, **Export as a dashboard view** turns the deck into a Home
+Assistant sections view, one section per tab, ready to paste into a dashboard.
 
 Tabdeck also reads several of the original `kinghat/tabbed-card` keys so existing
 configs keep working:

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabdeck Card — theme builder</title>
+    <meta name="description" content="Style a Tabdeck card live and copy the YAML." />
+    <link rel="icon" href="icon.png" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header>
+      <img src="icon.png" alt="" />
+      <div>
+        <h1>Tabdeck theme builder</h1>
+        <p>Pick a look, watch the card change, then copy the YAML into your own card.</p>
+      </div>
+      <nav>
+        <a href="./">Live demo</a>
+        <a href="./presets.html">Preset gallery</a>
+        <a href="https://github.com/tempus2016/tabdeck-card">GitHub</a>
+        <a href="https://tempus2016.github.io/tabdeck-card/Feature-Theming">Theming docs</a>
+      </nav>
+    </header>
+    <main>
+      <section class="panel">
+        <h2>Look</h2>
+        <form class="form" id="form">
+          <label>Preset
+            <select name="preset">
+              <option value="">None</option>
+              <option>default</option>
+              <option>ios</option>
+              <option>material</option>
+              <option>glass</option>
+              <option>minimal</option>
+              <option>rail</option>
+              <option>neumorphic</option>
+              <option>ha-tile</option>
+              <option>mushroom</option>
+              <option>bubble</option>
+              <option>fluent</option>
+              <option>material-you</option>
+              <option>material-expressive</option>
+              <option>liquid-glass</option>
+              <option>accessible</option>
+            </select>
+          </label>
+          <label>Style
+            <select name="style">
+              <option value="">Preset's / underline</option>
+              <option>underline</option>
+              <option>pill</option>
+              <option>segmented</option>
+              <option>boxed</option>
+              <option>text</option>
+              <option>rail</option>
+            </select>
+          </label>
+          <label>Position
+            <select name="position">
+              <option>top</option>
+              <option>bottom</option>
+              <option>left</option>
+              <option>right</option>
+            </select>
+          </label>
+          <label>Tabs show
+            <select name="tab_display">
+              <option value="both">Icon and name</option>
+              <option value="icon">Icon</option>
+              <option value="label">Name</option>
+              <option value="active">Icon, name when open</option>
+              <option value="dots">Dots</option>
+            </select>
+          </label>
+          <label>Alignment
+            <select name="align">
+              <option>start</option>
+              <option>center</option>
+              <option>end</option>
+              <option>justify</option>
+            </select>
+          </label>
+          <label>Density
+            <select name="density">
+              <option>default</option>
+              <option>compact</option>
+              <option>comfortable</option>
+            </select>
+          </label>
+          <label>Accent
+            <span class="color"><input type="color" data-for="accent" value="#03a9f4" /><input type="text" name="accent" placeholder="theme's" /></span>
+          </label>
+          <label>Bar background
+            <span class="color"><input type="color" data-for="bar_background" value="#1c1c1c" /><input type="text" name="bar_background" placeholder="none" /></span>
+          </label>
+          <label>Indicator colour
+            <span class="color"><input type="color" data-for="indicator_color" value="#03a9f4" /><input type="text" name="indicator_color" placeholder="accent" /></span>
+          </label>
+          <label>Badge colour
+            <span class="color"><input type="color" data-for="badge_color" value="#ff9800" /><input type="text" name="badge_color" placeholder="accent" /></span>
+          </label>
+          <label>Indicator thickness <span id="size-out"></span>
+            <input type="range" name="indicator_size" min="1" max="16" value="3" />
+          </label>
+          <label>Indicator corners <span id="radius-out"></span>
+            <input type="range" name="indicator_radius" min="-1" max="30" value="-1" />
+          </label>
+          <label>Font
+            <select name="font_family">
+              <option value="">Theme's</option>
+              <option value="system-ui, sans-serif">System</option>
+              <option value="Georgia, serif">Serif</option>
+              <option value="ui-monospace, monospace">Monospace</option>
+              <option value="'Trebuchet MS', sans-serif">Rounded</option>
+            </select>
+          </label>
+          <label class="check"><input type="checkbox" name="elevation" /> Shadow under the bar</label>
+        </form>
+        <h2>YAML to add to your card</h2>
+        <textarea id="theme-yaml" readonly spellcheck="false" aria-label="Theme YAML"></textarea>
+        <div class="actions">
+          <button class="primary" id="copy" type="button">Copy YAML</button>
+          <button id="reset" type="button">Reset</button>
+          <span id="copied" role="status" class="note" style="margin: 6px 0 0"></span>
+        </div>
+      </section>
+      <section class="panel stage-wrap">
+        <h2>Preview</h2>
+        <div class="chips">
+          <button data-width="100%" class="active">Desktop</button>
+          <button data-width="390px">Phone</button>
+        </div>
+        <div id="stage"></div>
+        <div class="controls">
+          <label><input type="checkbox" id="dark" checked /> Dark theme</label>
+        </div>
+        <p class="note">
+          Paste the YAML into your Tabdeck card next to <code>tabs:</code>, or into the card's YAML in the editor.
+          Colours go in as <code>styles</code> variables, so they also work with your own tabs' accents.
+        </p>
+      </section>
+    </main>
+    <script type="module" src="./theme.ts"></script>
+  </body>
+</html>

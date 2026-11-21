@@ -161,6 +161,60 @@ describe("events", () => {
     expect(el.selectedTab).toBe("Cameras");
   });
 
+  it("remote_event steps with next / previous / back / default", async () => {
+    let cb: any;
+    const el = await mount(
+      {
+        remote_event: true,
+        default_tab: "B",
+        tabs: [
+          { name: "A", card: { type: "a" } },
+          { name: "B", card: { type: "b" } },
+          { name: "Off", disabled: true, card: { type: "x" } },
+          { name: "C", card: { type: "c" } },
+        ],
+      },
+      { states: {}, connection: { subscribeEvents: (f: any) => ((cb = f), Promise.resolve(() => {})) } },
+    );
+    const send = async (tab: string) => {
+      cb({ data: { tab } });
+      await settle(el);
+      return el.selectedTab;
+    };
+    expect(el.selectedTab).toBe("B");
+    expect(await send("next")).toBe("C");
+    // Wraps, and skips the disabled tab going back.
+    expect(await send("next")).toBe("A");
+    expect(await send("previous")).toBe("C");
+    expect(await send("prev")).toBe("B");
+    expect(await send("back")).toBe("C");
+    expect(await send("back")).toBe("B");
+    expect(await send("next")).toBe("C");
+    expect(await send("default")).toBe("B");
+  });
+
+  it("a tab named like a step word still wins", async () => {
+    let cb: any;
+    const el = await mount(
+      { remote_event: true, tabs: [{ name: "A", card: { type: "a" } }, { name: "B", card: { type: "b" } }, { name: "Next", card: { type: "n" } }] },
+      { states: {}, connection: { subscribeEvents: (f: any) => ((cb = f), Promise.resolve(() => {})) } },
+    );
+    cb({ data: { tab: "next" } });
+    await settle(el);
+    expect(el.selectedTab).toBe("Next");
+  });
+
+  it("an empty deck or device (as blueprints send) means any", async () => {
+    let cb: any;
+    const el = await mount(
+      { remote_event: true, event_id: "hall", tabs: [{ name: "A", card: { type: "a" } }, { name: "Cameras", card: { type: "b" } }] },
+      { states: {}, connection: { subscribeEvents: (f: any) => ((cb = f), Promise.resolve(() => {})) } },
+    );
+    cb({ data: { tab: "Cameras", deck: "", device: "" } });
+    await settle(el);
+    expect(el.selectedTab).toBe("Cameras");
+  });
+
   it("remote_entity follows changes of the entity (not its first value)", async () => {
     const tabs = [{ name: "A", card: { type: "a" } }, { name: "Cameras", card: { type: "b" } }];
     const el = await mount({ remote_entity: "input_text.panel", tabs }, { states: { "input_text.panel": st("Cameras") } });
@@ -275,5 +329,100 @@ describe("debug panel", () => {
     const rows = [...el.shadowRoot.querySelectorAll(".debug tr.tab-row")].map((r) => r.textContent!.replace(/\s+/g, " "));
     expect(rows[1]).toContain("state light.x = on ✗");
     expect(rows[2]).toContain("numeric sensor.a, sensor.b > 5 ✗");
+  });
+});
+
+describe("automatic switches wait while the card is in use", () => {
+  const tabs = [{ name: "A", card: { type: "a" } }, { name: "Cameras", card: { type: "b" } }];
+
+  it("a remote switch waits while a field on the card is being typed in", async () => {
+    const el = await mount({ remote_entity: "input_text.panel", tabs }, { states: { "input_text.panel": st("A") } });
+    const input = document.createElement("input");
+    el._manager.get(0).appendChild(input);
+    input.focus();
+    expect(el._isBusy()).toBe(true);
+    el.hass = { states: { "input_text.panel": st("Cameras") } };
+    await settle(el);
+    expect(el.selectedTab).toBe("A");
+    input.blur();
+    el._flushPending();
+    await settle(el);
+    expect(el.selectedTab).toBe("Cameras");
+  });
+
+  it("a held pointer holds it too, until it's released", async () => {
+    const el = await mount({ remote_entity: "input_text.panel", tabs }, { states: { "input_text.panel": st("A") } });
+    el.dispatchEvent(new Event("pointerdown"));
+    el.hass = { states: { "input_text.panel": st("Cameras") } };
+    await settle(el);
+    expect(el.selectedTab).toBe("A");
+    vi.useFakeTimers();
+    window.dispatchEvent(new Event("pointerup"));
+    vi.advanceTimersByTime(500);
+    vi.useRealTimers();
+    await settle(el);
+    expect(el.selectedTab).toBe("Cameras");
+  });
+
+  it("checkboxes and fields outside the card don't count", async () => {
+    const el = await mount({ remote_entity: "input_text.panel", tabs }, { states: { "input_text.panel": st("A") } });
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    el._manager.get(0).appendChild(box);
+    box.focus();
+    expect(el._isBusy()).toBe(false);
+    const outside = document.createElement("input");
+    document.body.appendChild(outside);
+    outside.focus();
+    expect(el._isBusy()).toBe(false);
+    outside.remove();
+  });
+});
+
+describe("remote_event after a config change", () => {
+  it("re-subscribes without waiting for the next hass update", async () => {
+    let handler: ((ev: any) => void) | undefined;
+    let subs = 0;
+    const hass: any = {
+      states: {},
+      user: { is_admin: true },
+      connection: {
+        subscribeEvents: (cb: any) => {
+          subs++;
+          handler = cb;
+          return Promise.resolve(() => {});
+        },
+      },
+    };
+    const config = { remote_event: true, tabs: [{ name: "A", card: { type: "a" } }, { name: "Cameras", card: { type: "b" } }] };
+    const el = await mount(config, hass);
+    expect(subs).toBe(1);
+    // Home Assistant sets the config again (layout change, reconnect).
+    el.setConfig(config);
+    await settle(el);
+    expect(subs).toBe(2);
+    handler!({ data: { tab: "Cameras" } });
+    await settle(el);
+    expect(el.selectedTab).toBe("Cameras");
+  });
+});
+
+describe("remote_event when hass arrives before the card is attached", () => {
+  it("subscribes once the card is on the page", async () => {
+    await import("./tabdeck-card");
+    let subs = 0;
+    const hass: any = { states: {}, connection: { subscribeEvents: () => (subs++, Promise.resolve(() => {})) } };
+    const el = document.createElement("tabdeck-card") as any;
+    el.setConfig({ remote_event: true, tabs: [{ name: "A", card: { type: "a" } }] });
+    el.hass = hass;
+    expect(subs).toBe(0);
+    document.body.appendChild(el);
+    await settle(el);
+    expect(subs).toBe(1);
+    // Moved in the page: unsubscribed on removal, subscribed again on return.
+    el.remove();
+    document.body.appendChild(el);
+    await settle(el);
+    expect(subs).toBe(2);
   });
 });

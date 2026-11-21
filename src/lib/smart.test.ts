@@ -13,6 +13,7 @@ import {
   snooze,
   clearSnooze,
   pinUnlocked,
+  pinExpiresAt,
   rememberPin,
 } from "./smart";
 
@@ -154,6 +155,13 @@ describe("pin unlock memory", () => {
     expect(pinUnlocked("deck", "Sec", 5000, undefined)).toBe(true);
     expect(pinUnlocked("deck", "Sec", 1000 + 4 * 60_000, 5)).toBe(true);
     expect(pinUnlocked("deck", "Sec", 1000 + 6 * 60_000, 5)).toBe(false);
+  });
+
+  it("says when a timed unlock runs out", () => {
+    expect(pinExpiresAt("deck", "Sec", 5)).toBeUndefined();
+    rememberPin("deck", "Sec", 1000);
+    expect(pinExpiresAt("deck", "Sec", 5)).toBe(1000 + 5 * 60_000);
+    expect(pinExpiresAt("deck", "Sec", undefined)).toBeUndefined();
   });
 });
 

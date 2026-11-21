@@ -18,6 +18,28 @@ tabs:
 - The picture is shown round, where the icon would be, and works with a [progress ring](Badges#progress-ring-ring).
 - If the entity has no picture, the tab's `icon` is shown instead.
 
+## Accent from the picture (`picture_accent`)
+
+With **`picture_accent: true`** (top level), each tab with a `picture` takes its accent colour from it: a garden photo gives a green tab, a sunset an orange one. The accent colours the open tab's label and the indicator, as a tab's own `accent` does.
+
+```yaml
+type: custom:tabdeck-card
+picture_accent: true
+tabs:
+  - name: Garden
+    picture: /local/garden.jpg
+    card: { ... }
+  - name: Alex
+    picture: person.alex
+    card: { ... }
+```
+
+- The colour is the picture's main colourful hue (greys, black and white are skipped), not a muddy average. Each picture is read once, small, in the background, and remembered while the page is open; until then the tab uses the theme accent.
+- A tab's own `accent` wins.
+- Pictures from another site can only be read if that site allows it (CORS). If not, the tab keeps the theme accent. Pictures served by Home Assistant (`/local/…`, people's photos) always work.
+- A very pale or very dark picture can give an accent that's hard to read on your theme. Set that tab's `accent` yourself.
+- In the visual editor: **Accent colour from each tab's picture**.
+
 ## Icon animations (`icon_animation`)
 
 `spin`, `pulse`, `bounce`, `shake` or `beat`. Make it a template to animate only sometimes. A fan that spins while it's on:

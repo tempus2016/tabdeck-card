@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildSourceTemplate, defaultTabTemplate, isDefaultTabTemplate, SOURCE_TAB_TEMPLATE } from "./sources";
+import { CLIENT_SOURCES, buildSourceTemplate, defaultTabTemplate, isDefaultTabTemplate, SOURCE_TAB_TEMPLATE } from "./sources";
 import { normalizeConfig } from "./config";
 
 describe("buildSourceTemplate", () => {
@@ -127,5 +127,50 @@ describe("more sources", () => {
     const t = normalizeConfig({ auto_tabs: { source: "floors", content: "tiles" } });
     expect(t.auto_tabs!.content).toBe("tiles");
     expect(t.auto_tabs!.tab_template!.floor).toBe("{{ item.id }}");
+  });
+});
+
+describe("updates / repairs / notifications sources", () => {
+  it("updates lists the update entities that are on", () => {
+    const t = buildSourceTemplate({ source: "updates", exclude: ["update.skip_me"] });
+    expect(t).toContain("states.update | selectattr('state', 'eq', 'on')");
+    expect(t).toContain("['update.skip_me']");
+    expect(t).toContain("latest_version");
+    expect(defaultTabTemplate({ source: "updates" }).card).toEqual({ type: "entities", entities: ["{{ item.id }}"] });
+  });
+
+  it("repairs and notifications have no template (the card fetches them)", () => {
+    expect(buildSourceTemplate({ source: "repairs" })).toBe("");
+    expect(buildSourceTemplate({ source: "notifications" })).toBe("");
+    expect(CLIENT_SOURCES).toEqual(["repairs", "notifications"]);
+    const n = defaultTabTemplate({ source: "notifications" });
+    expect(n.card.cards[1].entities[0].tap_action.data).toEqual({ notification_id: "{{ item.id }}" });
+    expect(isDefaultTabTemplate(n)).toBe(true);
+  });
+});
+
+describe("taskmate / z2m_tracker sources", () => {
+  it("taskmate makes a tab per child from TaskMate's sensors", () => {
+    const t = buildSourceTemplate({ source: "taskmate", exclude: ["abc123", "bad id!"] });
+    expect(t).toContain("integration_entities('taskmate')");
+    expect(t).toContain("attributes.total_points_earned");
+    expect(t).toContain("attributes.left");
+    expect(t).toContain("['abc123']");
+    expect(t).toContain("custom:taskmate-child-card");
+    expect(t).toContain("sort(attribute='name')");
+    const tpl = defaultTabTemplate({ source: "taskmate" });
+    expect(tpl).toEqual({ name: "{{ item.name }}", icon: "{{ item.icon }}", badge: "{{ item.left }}", card: "{{ item.card }}" });
+    expect(isDefaultTabTemplate(tpl)).toBe(true);
+  });
+
+  it("z2m_tracker makes a tab per kind of issue from the tracker's issues sensor", () => {
+    const t = buildSourceTemplate({ source: "z2m_tracker", exclude: ["chatty_device"] });
+    expect(t).toContain("integration_entities('z2m_tracker')");
+    expect(t).toContain("attributes.warnings");
+    expect(t).toContain("'low battery': 'mdi:battery-alert-variant-outline'");
+    expect(t).toContain("['chatty_device']");
+    expect(defaultTabTemplate({ source: "z2m_tracker" }).card).toEqual({ type: "markdown", content: "{{ item.text }}" });
+    const c = normalizeConfig({ auto_tabs: { source: "z2m_tracker" } });
+    expect(c.auto_tabs!.template).toContain("warnings");
   });
 });

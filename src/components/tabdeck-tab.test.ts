@@ -28,6 +28,96 @@ describe("tabdeck-tab", () => {
     expect(ring.getAttribute("aria-hidden")).toBe("true");
   });
 
+  it("ring_style bar draws a progress bar under the tab instead of the ring", async () => {
+    const el = await mount({ label: "Washer", ring: 65, ringStyle: "bar", ringColor: "green" });
+    expect(el.shadowRoot.querySelector(".ring")).toBeNull();
+    const bar = el.shadowRoot.querySelector(".progress") as HTMLElement;
+    expect(bar.getAttribute("role")).toBe("progressbar");
+    expect(bar.getAttribute("aria-valuenow")).toBe("65");
+    const fill = bar.querySelector(".progress-value") as HTMLElement;
+    expect(fill.style.width).toBe("65%");
+    expect(fill.style.background).toBe("green");
+    expect(el.getAttribute("ring-style")).toBe("bar");
+    const none = await mount({ label: "Washer", ringStyle: "bar" });
+    expect(none.shadowRoot.querySelector(".progress")).toBeNull();
+  });
+
+  it("draws a mini graph line when given points", async () => {
+    const el = await mount({ label: "Temp", graph: "0,6 44,2", graphColor: "orange" });
+    const line = el.shadowRoot.querySelector("svg.graph polyline");
+    expect(line.getAttribute("points")).toBe("0,6 44,2");
+    expect(line.style.stroke).toBe("orange");
+    expect(el.shadowRoot.querySelector("svg.graph").getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("shows extra badges after the main one", async () => {
+    const el = await mount({
+      label: "Security",
+      badge: "3",
+      extraBadges: [
+        { text: "!", color: "orange", label: "badge: !" },
+        { icon: "mdi:lock", label: "badge: mdi:lock" },
+      ],
+    });
+    const badges = [...el.shadowRoot.querySelectorAll(".badges > *")] as HTMLElement[];
+    expect(badges.map((b) => b.textContent!.trim())).toEqual(["3", "!", ""]);
+    expect(badges[1].style.background).toBe("orange");
+    expect(badges[2].querySelector("ha-icon")!.getAttribute("icon")).toBe("mdi:lock");
+    expect(badges[1].getAttribute("aria-label")).toBe("badge: !");
+    const dots = await mount({ label: "S", badgeDisplay: "dot", extraBadges: [{ text: "on" }, { icon: "mdi:lock" }] });
+    expect(dots.shadowRoot.querySelectorAll(".badges .badge-dot")).toHaveLength(2);
+    const plain = await mount({ label: "S", badge: "3" });
+    expect(plain.shadowRoot.querySelector(".badges")).toBeNull();
+  });
+
+  it("bounce animates the badge when its value changes, not on first show", async () => {
+    const calls: any[] = [];
+    const proto = HTMLElement.prototype as any;
+    const real = proto.animate;
+    proto.animate = function (this: HTMLElement) {
+      calls.push(this.className);
+      return { cancel() {} };
+    };
+    try {
+      const el = await mount({ label: "Post", badge: "1", bounce: true });
+      expect(calls).toHaveLength(0);
+      el._bounceFrom = 0;
+      el.badge = "2";
+      await el.updateComplete;
+      expect(calls).toEqual(["badge"]);
+      el.badge = "2";
+      el.label = "Mail";
+      await el.updateComplete;
+      expect(calls).toHaveLength(1);
+      const off = await mount({ label: "Post", badge: "1" });
+      off._bounceFrom = 0;
+      off.badge = "5";
+      await off.updateComplete;
+      expect(calls).toHaveLength(1);
+    } finally {
+      proto.animate = real;
+    }
+  });
+
+  it("bounce stays still under prefers-reduced-motion", async () => {
+    const proto = HTMLElement.prototype as any;
+    const real = proto.animate;
+    const realMM = window.matchMedia;
+    let n = 0;
+    proto.animate = () => (n++, { cancel() {} });
+    (window as any).matchMedia = (q: string) => ({ matches: q.includes("reduce"), addEventListener() {}, removeEventListener() {} });
+    try {
+      const el = await mount({ label: "Post", badge: "1", bounce: true });
+      el._bounceFrom = 0;
+      el.badge = "2";
+      await el.updateComplete;
+      expect(n).toBe(0);
+    } finally {
+      proto.animate = real;
+      (window as any).matchMedia = realMM;
+    }
+  });
+
   it("no ring without a value", async () => {
     const el = await mount({ label: "A", icon: "mdi:a" });
     expect(el.shadowRoot.querySelector(".ring")).toBeNull();
@@ -227,5 +317,20 @@ describe("tabdeck-tab dots", () => {
     expect(el.shadowRoot.querySelector("ha-icon")).toBeNull();
     expect(el.shadowRoot.querySelector(".label")).toBeNull();
     expect(el.getAttribute("aria-label")).toBe("Kitchen");
+  });
+});
+
+describe("changed dot", () => {
+  it("shows on an unselected changed tab, not on the selected one", async () => {
+    const el = document.createElement("tabdeck-tab") as any;
+    el.label = "A";
+    el.changed = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".changed-dot")).toBeTruthy();
+    el.selected = true;
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector(".changed-dot")).toBeNull();
+    el.remove();
   });
 });

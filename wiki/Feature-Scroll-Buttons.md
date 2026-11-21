@@ -35,3 +35,19 @@ tabs: [ ...many... ]
 ![Overflow menu](images/feature-overflow-menu.png)
 
 You can enable `scroll_buttons` and `overflow_menu` together or independently.
+
+## Alerts on tabs that don't fit (`hidden_alerts`)
+
+With **`hidden_alerts: true`**, the **⋯** button shows a red count of the tabs you can't see on the bar that need attention: tabs whose `alert` is on, or that show an active badge (not `0`/`off`/…). Inside the menu, each tab shows its badge, or a red **!** when it is alerting.
+
+```yaml
+type: custom:tabdeck-card
+hidden_alerts: true          # turns the ⋯ menu on too
+tabs: [ ...many... ]
+```
+
+- "Can't see" means scrolled out of an overflowing bar, or outside the page of tabs drawn with `bar_limit`. Scrolling the bar updates the count.
+- With `hide_inactive_badge`, only the badges the bar would show count.
+- The count is read out with the button's name for screen readers.
+
+When the tabs don't fit, the bar also fades the edge that has more tabs beyond it. See [Bar fade](Feature-Bar-Fade).

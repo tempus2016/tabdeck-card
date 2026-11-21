@@ -58,6 +58,12 @@ export function loadInitialIndex(opts: {
     const store = opts.storage ?? globalThis.localStorage;
     const raw = store?.getItem(storageKey(cardKey));
     if (raw !== null && raw !== undefined) {
+      // "name:<tab>" follows the tab when the order changes (customize,
+      // sort_by_usage, alert_first); a bare number is an older saved index.
+      if (raw.startsWith("name:")) {
+        const i = (opts.tabNames ?? []).indexOf(raw.slice(5));
+        return i >= 0 ? i : clamp(defaultIndex, tabCount, 0);
+      }
       return clamp(Number(raw), tabCount, defaultIndex);
     }
   }
@@ -73,7 +79,7 @@ export function persistIndex(opts: {
 }): { hash?: string } {
   if (opts.mode === "browser") {
     const store = opts.storage ?? globalThis.localStorage;
-    store?.setItem(storageKey(opts.cardKey), String(opts.index));
+    store?.setItem(storageKey(opts.cardKey), opts.tabName ? `name:${opts.tabName}` : String(opts.index));
     return {};
   }
   if (opts.mode === "url") {
@@ -81,4 +87,38 @@ export function persistIndex(opts: {
     return { hash: "#tab=" + value };
   }
   return {};
+}
+
+// The tab `remember` would restore, or null when there's nothing remembered
+// (a fresh browser, no #tab= link, an empty helper). learned_default only
+// steps in then.
+export function rememberedIndex(opts: {
+  mode: RememberMode;
+  cardKey: string;
+  tabCount: number;
+  hash?: string;
+  tabNames?: string[];
+  storage?: Storage;
+  entityValue?: string;
+}): number | null {
+  const ok = (i: number) => (Number.isInteger(i) && i >= 0 && i < opts.tabCount ? i : null);
+  if (opts.mode === "entity") {
+    const n = Number(opts.entityValue);
+    return opts.entityValue !== undefined && opts.entityValue !== "" && Number.isFinite(n) ? ok(Math.trunc(n)) : null;
+  }
+  if (opts.mode === "url") {
+    const idx = parseHashIndex(opts.hash ?? "", opts.tabNames ?? []);
+    return idx === null ? null : ok(idx);
+  }
+  if (opts.mode === "browser") {
+    try {
+      const raw = (opts.storage ?? globalThis.localStorage)?.getItem(storageKey(opts.cardKey));
+      if (raw === null || raw === undefined) return null;
+      if (raw.startsWith("name:")) return ok((opts.tabNames ?? []).indexOf(raw.slice(5)));
+      return ok(Number(raw));
+    } catch {
+      return null;
+    }
+  }
+  return null;
 }

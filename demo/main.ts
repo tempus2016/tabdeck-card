@@ -3,6 +3,7 @@ import "../src/tabdeck-card";
 import { parse } from "yaml";
 import { MockHass } from "./mock-hass";
 import { EXAMPLES } from "./examples";
+import { decodeShare, encodeShare } from "../src/lib/share-code";
 
 const hass = new MockHass();
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T;
@@ -81,10 +82,42 @@ for (const b of document.querySelectorAll<HTMLButtonElement>("[data-width]")) {
   });
 }
 
-// Example links (#groups) and Back/Forward switch examples too.
-window.addEventListener("hashchange", () => {
-  const id = location.hash.slice(1);
-  if (EXAMPLES.some((x) => x.id === id)) load(id);
+// Shared links (#code=…): the YAML lives in the hash, never sent to a server.
+async function loadShared(hash: string): Promise<boolean> {
+  const text = await decodeShare(hash);
+  if (text === undefined) return false;
+  yamlBox.value = text;
+  for (const b of picker.querySelectorAll("button")) b.classList.remove("active");
+  apply(text);
+  return true;
+}
+
+const shareStatus = $("#share-status");
+const shareLink = $<HTMLInputElement>("#share-link");
+$("#share").addEventListener("click", async () => {
+  const hash = await encodeShare(yamlBox.value);
+  history.replaceState(null, "", `#${hash}`);
+  const url = location.href;
+  shareLink.value = url;
+  shareLink.hidden = false;
+  try {
+    await navigator.clipboard.writeText(url);
+    shareStatus.textContent = "Link copied.";
+  } catch {
+    shareLink.select();
+    shareStatus.textContent = "Copy the link below.";
+  }
+});
+yamlBox.addEventListener("input", () => {
+  shareStatus.textContent = "";
+  shareLink.hidden = true;
 });
 
-load(location.hash.slice(1));
+// Example links (#groups) and Back/Forward switch examples too.
+window.addEventListener("hashchange", async () => {
+  const id = location.hash.slice(1);
+  if (EXAMPLES.some((x) => x.id === id)) load(id);
+  else await loadShared(location.hash);
+});
+
+if (!(await loadShared(location.hash))) load(location.hash.slice(1));

@@ -1,0 +1,38 @@
+# Tabdeck voice commands as Assist intents (an alternative to the blueprints).
+# Copy this file to <config>/custom_sentences/en/tabdeck.yaml and add the
+# intent_script from voice/intent_script.yaml to configuration.yaml, then
+# restart Home Assistant. Decks need `remote_event: true`.
+#
+#   "show cameras", "open the heating tab"      -> TabdeckShowTab (tab: cameras)
+#   "next tab", "previous tab", "go back"       -> TabdeckStep (step: next / previous / back)
+#   "home tab", "first tab"                     -> TabdeckStep (step: default)
+#
+# The tab is free text: the deck matches it by name, slug or position.
+language: "en"
+intents:
+  TabdeckShowTab:
+    data:
+      - sentences:
+          - "(show|open|switch to) [the] {tabdeck_tab} tab"
+          - "(show|open) {tabdeck_tab} on the (panel|dashboard)"
+  TabdeckStep:
+    data:
+      - sentences:
+          - "[show] [the] {tabdeck_step} tab"
+      - sentences:
+          - "go back [to the last tab]"
+        slots:
+          tabdeck_step: back
+lists:
+  tabdeck_tab:
+    wildcard: true
+  tabdeck_step:
+    values:
+      - in: "next"
+        out: "next"
+      - in: "(previous|prior)"
+        out: "previous"
+      - in: "last"
+        out: "back"
+      - in: "(home|first|default|start)"
+        out: "default"

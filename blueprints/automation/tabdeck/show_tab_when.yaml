@@ -1,0 +1,96 @@
+blueprint:
+  name: Tabdeck — show a tab when something happens
+  description: >-
+    Switch a Tabdeck deck to a tab when an entity changes, for example the
+    Cameras tab when the doorbell rings, and optionally go back to another tab
+    after a while. A tab with a PIN isn't opened unless its code was entered
+    in that browser recently.
+
+
+    The deck needs `remote_event: true`. Events can only be heard by decks
+    open as an admin user (a Home Assistant rule).
+
+
+    Docs: https://github.com/tempus2016/tabdeck-card/wiki/Feature-Remote-Control
+  domain: automation
+  source_url: https://github.com/tempus2016/tabdeck-card/blob/main/blueprints/automation/tabdeck/show_tab_when.yaml
+  input:
+    trigger_entity:
+      name: When this entity…
+      selector:
+        entity: {}
+    to_state:
+      name: …changes to this state
+      description: Leave empty for any change of state.
+      default: ""
+      selector:
+        text: {}
+    tab:
+      name: Show this tab
+      description: The tab's name, its slug (living-room) or its position (0 is the first).
+      selector:
+        text: {}
+    deck:
+      name: Only this deck
+      description: >-
+        The deck's `event_id` (or `storage_key`). Leave empty to switch every
+        deck that has the tab.
+      default: ""
+      selector:
+        text: {}
+    device:
+      name: Only this device
+      description: >-
+        A browser named with `?tabdeck_device=<name>` (see default_by_device).
+        Leave empty for every device.
+      default: ""
+      selector:
+        text: {}
+    return_tab:
+      name: Then go back to this tab
+      description: Leave empty to stay on the tab.
+      default: ""
+      selector:
+        text: {}
+    return_after:
+      name: Go back after
+      default:
+        minutes: 2
+      selector:
+        duration: {}
+
+mode: restart
+
+variables:
+  to_state: !input to_state
+  tab: !input tab
+  deck: !input deck
+  device: !input device
+  return_tab: !input return_tab
+
+triggers:
+  - trigger: state
+    entity_id: !input trigger_entity
+
+conditions:
+  - condition: template
+    value_template: "{{ to_state == '' or trigger.to_state.state == to_state }}"
+  - condition: template
+    value_template: "{{ trigger.from_state is not none and trigger.from_state.state != trigger.to_state.state }}"
+
+actions:
+  - event: tabdeck_select
+    event_data:
+      tab: "{{ tab }}"
+      deck: "{{ deck }}"
+      device: "{{ device }}"
+  - if:
+      - condition: template
+        value_template: "{{ return_tab != '' }}"
+    then:
+      - delay: !input return_after
+      - event: tabdeck_select
+        event_data:
+          tab: "{{ return_tab }}"
+          deck: "{{ deck }}"
+          device: "{{ device }}"

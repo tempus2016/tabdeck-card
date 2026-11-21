@@ -15,7 +15,11 @@
     "docs:build": "vitepress build docs-site",
     "build:site": "npm run docs:build && npm run build:demo",
     "test:visual": "node scripts/visual/visual.mjs",
-    "test:ha": "node scripts/compat/ha-compat.mjs"
+    "test:ha": "node scripts/compat/ha-compat.mjs",
+    "size": "node --experimental-strip-types --no-warnings scripts/size-budget.mjs",
+    "i18n:export": "node --experimental-strip-types --no-warnings scripts/i18n-json.mjs export",
+    "i18n:import": "node --experimental-strip-types --no-warnings scripts/i18n-json.mjs import",
+    "i18n:check": "node --experimental-strip-types --no-warnings scripts/i18n-json.mjs check"
   },
   "dependencies": {
     "custom-card-helpers": "^2.0.0",

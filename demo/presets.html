@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabdeck Card — preset gallery</title>
+    <meta name="description" content="Ready-made Tabdeck looks to import into your card." />
+    <link rel="icon" href="icon.png" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header>
+      <img src="icon.png" alt="" />
+      <div>
+        <h1>Tabdeck preset gallery</h1>
+        <p>Looks other people made. Copy one and paste it into <b>Import a style</b> in the card editor.</p>
+      </div>
+      <nav>
+        <a href="./">Live demo</a>
+        <a href="./theme.html">Theme builder</a>
+        <a href="https://github.com/tempus2016/tabdeck-card/tree/main/presets">Add yours</a>
+      </nav>
+    </header>
+    <main class="gallery-main">
+      <div class="gallery-bar">
+        <label><input type="checkbox" id="dark" checked /> Dark theme</label>
+      </div>
+      <div id="gallery" class="gallery"></div>
+      <p class="note">
+        A preset only holds look options (colours, bar style, shape). Importing one never changes your tabs or
+        how the card behaves. The cards inside the tabs are simplified stand-ins for Home Assistant's own cards.
+      </p>
+    </main>
+    <script type="module" src="./presets.ts"></script>
+  </body>
+</html>

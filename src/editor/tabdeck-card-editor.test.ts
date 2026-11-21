@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeAll } from "vitest";
 import "./tabdeck-card-editor";
 import { pickCardEditorTag } from "./tabdeck-card-editor";
+import { ensureLanguage } from "../lib/i18n";
 
 // In this file the native HA editor element IS available, so the editor should
 // prefer hui-card-element-editor for nested card editing.
@@ -148,8 +149,9 @@ describe("tabdeck-card-editor", () => {
     expect(el.shadowRoot.querySelector(".tab-header").getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("shows the tab's card type in the collapsed header summary", async () => {
+  it("shows the tab's card type once its row is expanded", async () => {
     const el = await mount({ tabs: [{ name: "Weather", card: { type: "weather-forecast" } }] });
+    await expand(el, 0);
     expect(el.shadowRoot.querySelector(".tab-type").textContent).toContain("weather-forecast");
     expect(el.shadowRoot.querySelector(".tab-title").textContent).toContain("Weather");
   });
@@ -240,6 +242,7 @@ describe("tabdeck-card-editor", () => {
     const el = await mount({ tabs: [{ name: "A", card: {} }, { name: "B", card: {} }] });
     const handler = vi.fn();
     el.addEventListener("config-changed", handler);
+    await expand(el, 0);
     el.shadowRoot.querySelectorAll(".move-down")[0].click();
     expect(handler.mock.calls[0][0].detail.config.tabs[0].name).toBe("B");
   });
@@ -301,11 +304,133 @@ describe("tabdeck-card-editor", () => {
     const handler = vi.fn();
     el.addEventListener("config-changed", handler);
     await expand(el, 0);
-    formChange(el.shadowRoot.querySelector(".tab-form"), { name: "A", pin: 4321, ring: "sensor.battery", ring_max: 100, area: "kitchen" });
+    formChange(el.shadowRoot.querySelector(".tab-form"), { name: "A", pin: 4321, ring: "sensor.battery", ring_max: 100, ring_style: true, area: "kitchen" });
     const tab = handler.mock.calls.at(-1)![0].detail.config.tabs[0];
     expect(tab.pin).toBe("4321");
     expect(tab.ring).toBe("sensor.battery");
+    expect(tab.ring_style).toBe("bar");
     expect(tab.area).toBe("kitchen");
+  });
+
+  it("keeps a tab's YAML badges list when other fields are edited", async () => {
+    const badges = [{ badge: "sensor.x", icon: "mdi:lock", color: "green" }];
+    const el = await mount({ tabs: [{ name: "A", badges, card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    await expand(el, 0);
+    formChange(el.shadowRoot.querySelector(".tab-form"), { name: "B" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].badges).toEqual(badges);
+  });
+
+  it("learned_default switch keeps YAML options", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }], learned_default: { min_uses: 5 } });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    formChange(el.shadowRoot.querySelector(".globals-form"), { ...globalsData(), learned_default: true });
+    expect(handler.mock.calls.at(-1)![0].detail.config.learned_default).toEqual({ min_uses: 5, notice: true });
+    formChange(el.shadowRoot.querySelector(".globals-form"), { ...globalsData(), learned_default: false });
+    expect(handler.mock.calls.at(-1)![0].detail.config.learned_default).toBeUndefined();
+  });
+
+  it("follow_room entity keeps a YAML map", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }], follow_room: { entity: "sensor.a", map: { hall: "A" } } });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    formChange(el.shadowRoot.querySelector(".globals-form"), { ...globalsData(), follow_room: "sensor.b" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.follow_room).toEqual({ entity: "sensor.b", map: { hall: "A" } });
+  });
+
+  it("keep_awake tab switch", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    await expand(el, 0);
+    formChange(el.shadowRoot.querySelector(".tab-form"), { name: "A", keep_awake: true });
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].keep_awake).toBe(true);
+  });
+
+  it("click_sound volume slider (0 = off)", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    formChange(el.shadowRoot.querySelector(".globals-form"), { ...globalsData(), click_sound: 0.4 });
+    expect(handler.mock.calls.at(-1)![0].detail.config.click_sound).toBe(0.4);
+    formChange(el.shadowRoot.querySelector(".globals-form"), { ...globalsData(), click_sound: 0 });
+    expect(handler.mock.calls.at(-1)![0].detail.config.click_sound).toBeUndefined();
+  });
+
+  it("picture_accent switch", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    formChange(el.shadowRoot.querySelector(".globals-form"), { ...globalsData(), picture_accent: true });
+    expect(handler.mock.calls.at(-1)![0].detail.config.picture_accent).toBe(true);
+  });
+
+  it("liquid_indicator switch", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    formChange(el.shadowRoot.querySelector(".globals-form"), { ...globalsData(), liquid_indicator: true });
+    expect(handler.mock.calls.at(-1)![0].detail.config.liquid_indicator).toBe(true);
+  });
+
+  it("edits bar_text", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    const form = el.shadowRoot.querySelector(".globals-form");
+    formChange(form, { ...globalsData(), bar_text: "auto" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.bar_text).toBe("auto");
+    formChange(form, { ...globalsData(), bar_text: "" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.bar_text).toBeUndefined();
+  });
+
+  it("glass switch keeps a blur strength from YAML", async () => {
+    const el = await mount({ glass: 22, tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    const form = el.shadowRoot.querySelector(".globals-form");
+    formChange(form, { ...globalsData(), glass: true });
+    expect(handler.mock.calls.at(-1)![0].detail.config.glass).toBe(22);
+    formChange(form, { ...globalsData(), glass: false });
+    expect(handler.mock.calls.at(-1)![0].detail.config.glass).toBeUndefined();
+  });
+
+  it("summary_chip switch keeps custom chip settings", async () => {
+    const el = await mount({ summary_chip: { text: "{n} to check" }, tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    const form = el.shadowRoot.querySelector(".globals-form");
+    formChange(form, { ...globalsData(), summary_chip: true });
+    expect(handler.mock.calls.at(-1)![0].detail.config.summary_chip).toEqual({ text: "{n} to check" });
+    formChange(form, { ...globalsData(), summary_chip: false });
+    expect(handler.mock.calls.at(-1)![0].detail.config.summary_chip).toBeUndefined();
+  });
+
+  it("edits a tab's countdown entity and tooltip", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    await expand(el, 0);
+    formChange(el.shadowRoot.querySelector(".tab-form"), { name: "A", countdown: "timer.pasta", tooltip: "Hi" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].countdown).toBe("timer.pasta");
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].tooltip).toBe("Hi");
+    formChange(el.shadowRoot.querySelector(".tab-form"), { name: "A", countdown: "" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].countdown).toBeUndefined();
+  });
+
+  it("edits a tab's mini graph entity and keeps its YAML extras", async () => {
+    const el = await mount({ tabs: [{ name: "A", graph: { entity: "sensor.t", hours: 3 }, card: {} }] });
+    const handler = vi.fn();
+    el.addEventListener("config-changed", handler);
+    await expand(el, 0);
+    const form = el.shadowRoot.querySelector(".tab-form");
+    expect(form.data.graph).toBe("sensor.t");
+    formChange(form, { name: "A", graph: "sensor.t" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].graph).toEqual({ entity: "sensor.t", hours: 3 });
+    formChange(form, { name: "A", graph: "sensor.power" });
+    expect(handler.mock.calls.at(-1)![0].detail.config.tabs[0].graph).toBe("sensor.power");
   });
 
   it("shows an 'Edit card' button per tab and no raw JSON textarea in list view", async () => {
@@ -528,6 +653,7 @@ describe("tabdeck-card-editor", () => {
       configurable: true,
     });
     const el = await mount({ tabs: [{ name: "Lights", icon: "mdi:lightbulb", card: { type: "light", entity: "light.a" } }] });
+    await expand(el, 0);
     el.shadowRoot.querySelector(".copy-tab").click();
     await new Promise((r) => setTimeout(r, 0));
     await el.updateComplete;
@@ -692,6 +818,9 @@ describe("localisation", () => {
     const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
     el.hass = { states: {}, locale: { language: "de" } };
     await el.updateComplete;
+    // German is its own chunk: the editor redraws once it has arrived.
+    await ensureLanguage("de");
+    await el.updateComplete;
     expect(el.shadowRoot.querySelector(".add-tab").textContent).toContain("Tab hinzufügen");
     el.hass = { states: {}, locale: { language: "xx" } };
     await el.updateComplete;
@@ -713,5 +842,73 @@ describe("grouped tabs round-trip", () => {
     expect(out.children_display).toBe("menu");
     expect(out.card).toBeUndefined();
     expect(out.group).toBeUndefined();
+  });
+});
+
+describe("shortcut tabs round-trip", () => {
+  it("writes view: back without the card it expands to, unless the card was changed", async () => {
+    const el = await mount({ tabs: [{ name: "Energy", view: "/energy/use" }, { name: "B", view: "/x/y", card: { type: "markdown" } }] });
+    const fired: any[] = [];
+    el.addEventListener("config-changed", (e: any) => fired.push(e.detail.config));
+    el._patchTab(0, { subtitle: "x" });
+    const [a, b] = fired.at(-1)!.tabs;
+    expect(a.view).toBe("/energy/use");
+    expect(a.card).toBeUndefined();
+    expect(b.card).toEqual({ type: "markdown" });
+  });
+
+  it("typing a view in the tab form makes it the content; clearing it empties the card", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    const fired: any[] = [];
+    el.addEventListener("config-changed", (e: any) => fired.push(e.detail.config));
+    el._patchTab(0, el._shortcutFields(0, { view: "/energy/use" }));
+    expect(fired.at(-1)!.tabs[0]).toMatchObject({ view: "/energy/use" });
+    expect(fired.at(-1)!.tabs[0].card).toBeUndefined();
+    el._patchTab(0, el._shortcutFields(0, { view: "" }));
+    expect(fired.at(-1)!.tabs[0].view).toBeUndefined();
+    expect(fired.at(-1)!.tabs[0].card).toEqual({});
+  });
+
+  it("a url with an aspect ratio becomes an iframe tab, written back as url: only", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "markdown" } }] });
+    const fired: any[] = [];
+    el.addEventListener("config-changed", (e: any) => fired.push(e.detail.config));
+    el._patchTab(0, el._shortcutFields(0, { url: "http://x", aspect_ratio: "75%" }));
+    expect(fired.at(-1)!.tabs[0]).toMatchObject({ url: "http://x", aspect_ratio: "75%" });
+    expect(fired.at(-1)!.tabs[0].card).toBeUndefined();
+    expect(el._config.tabs[0].card).toEqual({ type: "iframe", url: "http://x", aspect_ratio: "75%" });
+    el._patchTab(0, el._shortcutFields(0, { url: "http://x", aspect_ratio: "" }));
+    expect(el._config.tabs[0].card).toEqual({ type: "iframe", url: "http://x" });
+  });
+
+  it("markdown text becomes a markdown tab and keeps its spacing", async () => {
+    const el = await mount({ tabs: [{ name: "A", card: { type: "tile" } }] });
+    el._patchTab(0, el._shortcutFields(0, { markdown: "# Notes\n- Bins " }));
+    expect(el._config.tabs[0].card).toEqual({ type: "markdown", content: "# Notes\n- Bins " });
+    expect(el._config.tabs[0].markdown).toBe("# Notes\n- Bins ");
+  });
+});
+
+describe("export as a dashboard view", () => {
+  it("shows the deck as sections-view YAML and copies it", async () => {
+    const el = await mount({
+      type: "custom:tabdeck-card",
+      tabs: [
+        { name: "Lights", card: { type: "tile", entity: "light.a" } },
+        { name: "Go", tap_action: { action: "navigate", navigation_path: "/x" } },
+      ],
+    });
+    el.shadowRoot.querySelector(".export-view").click();
+    await el.updateComplete;
+    const ta = el.shadowRoot.querySelector(".export-yaml");
+    expect(ta.value).toContain("type: sections");
+    expect(ta.value).toContain("heading: Lights");
+    expect(ta.value).toContain("entity: light.a");
+    expect(el.shadowRoot.querySelector(".export-panel").textContent).toContain("Go");
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    el.shadowRoot.querySelector(".export-copy").click();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(writeText.mock.calls[0]![0]).toContain("type: sections");
   });
 });

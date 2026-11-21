@@ -12,6 +12,8 @@ export class CardManager extends EventTarget {
   private _configs: (LovelaceCardConfig | null)[] = [];
   private _elements: any[] = [];
   private _hass?: HomeAssistant;
+  // How long creating each card took (ms), for the debug panel.
+  readonly createMs: number[] = [];
 
   constructor(create: CreateCardElement) {
     super();
@@ -19,15 +21,19 @@ export class CardManager extends EventTarget {
   }
 
   // A `null` config reserves the slot without building a card (e.g. action
-  // tabs), keeping indices aligned with the tab list.
-  async build(configs: (LovelaceCardConfig | null)[]): Promise<void> {
+  // tabs), keeping indices aligned with the tab list. `lazy`: build nothing
+  // yet; ensure() builds each card the first time it's needed. Cards already
+  // built for an unchanged config are kept.
+  async build(configs: (LovelaceCardConfig | null)[], opts: { lazy?: boolean } = {}): Promise<void> {
     this._configs = configs.slice();
-    this._elements = configs.map((cfg, index) => this._make(cfg, index));
+    this._elements = configs.map((cfg, index) => (opts.lazy ? undefined : this._make(cfg, index)));
   }
 
   private _make(config: LovelaceCardConfig | null, index: number): any {
     if (!config) return undefined;
+    const start = performance.now();
     const el = this._create(config);
+    this.createMs[index] = performance.now() - start;
     if (this._hass) el.hass = this._hass;
     el.addEventListener("ll-rebuild", (e: Event) => {
       e.stopPropagation();
@@ -49,6 +55,11 @@ export class CardManager extends EventTarget {
   replace(index: number, config: LovelaceCardConfig | null): void {
     this._configs[index] = config;
     this._elements[index] = this._make(config, index);
+  }
+
+  // Swap a built card for a fresh one from the same config (auto_refresh).
+  refresh(index: number): void {
+    if (this._configs[index]) this._elements[index] = this._make(this._configs[index], index);
   }
 
   // Free a built card (unload_after); its config is kept so ensure() can
