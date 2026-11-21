@@ -1,0 +1,18 @@
+{
+  "$schema": "../preset.schema.json",
+  "name": "Ocean",
+  "author": "tempus2016",
+  "description": "Deep blue frosted bar with an aqua indicator that flows between tabs.",
+  "config": {
+    "style": "pill",
+    "glass": 12,
+    "liquid_indicator": true,
+    "bar_background": "rgba(11, 61, 92, 0.85)",
+    "styles": {
+      "--tabdeck-accent": "#4dd0e1",
+      "--tabdeck-tab-color": "#b2ebf2",
+      "--tabdeck-selected-color": "#0b3d5c",
+      "--tabdeck-indicator-color": "#4dd0e1"
+    }
+  }
+}

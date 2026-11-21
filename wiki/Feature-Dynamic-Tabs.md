@@ -21,7 +21,7 @@ auto_tabs:
       entity: "{{ item }}"
 ```
 
-## Built-in sources: a tab per area, floor, label, domain, device, list, calendar, camera or zone
+## Built-in sources: a tab per area, floor, label, domain, device, list, calendar, camera, zone, update, repair or notification
 
 No Jinja needed. Set `source` and Tabdeck builds **one tab per Home Assistant area** (or one of the other sources below), each showing what belongs to it:
 
@@ -67,10 +67,39 @@ auto_tabs:
 | `calendars` | calendar | HA's calendar card (list view) |
 | `cameras` | camera | picture-entity card of the camera |
 | `zones` | zone | map of the zone and the people in it; the badge counts them |
+| `updates` | update waiting to be installed (an `update` entity that's on) | the update entity, which opens HA's install dialog; the badge shows the new version |
+| `repairs` | open issue in **Settings → Repairs** (most severe first) | the issue's description and a button to Repairs |
+| `notifications` | persistent notification (newest first) | the message and a **Dismiss** button |
+| `taskmate` | [TaskMate](https://github.com/tempus2016/taskmate) child (by name) | TaskMate's child card; the badge counts today's chores left |
+| `z2m_tracker` | kind of issue the [Z2M Device Tracker](https://github.com/tempus2016/z2m-device-tracker) reports (offline, low battery, weak signal…) | a list of the devices with that issue; the badge counts them |
 
 - `domains` filters the entities of `areas`, `labels`, `floors` and `devices`; for `domains` it picks the domains.
 - `exclude` takes area / floor / label / device ids, domains, or entity ids (`camera.doorbell`) for the per-entity sources.
-- Each item has `id`, `name`, `icon` and, where it applies, `entities` and `count`, for your own `tab_template`.
+- Each item has `id`, `name`, `icon` and, where it applies, `entities` and `count`, for your own `tab_template`. `updates` items also have `version`; `repairs` items have `domain`, `severity`, `description`; `notifications` items have `message` and `created`.
+- With nothing waiting, `updates`, `repairs` and `notifications` add no tabs, so a deck can grow a tab only while there's something to deal with.
+- `repairs` and `notifications` aren't visible to Jinja, so the card reads them from Home Assistant directly. Notifications follow live; repairs are checked every minute. **Repairs are admin-only** in HA: for other users the source adds nothing.
+
+```yaml
+type: custom:tabdeck-card
+tabs:
+  - name: Home
+    card: { ... }
+auto_tabs:
+  source: notifications     # or updates, or repairs
+```
+
+### TaskMate and Z2M Device Tracker
+
+```yaml
+type: custom:tabdeck-card
+auto_tabs:
+  source: taskmate          # a tab per child
+  exclude: [9f2c1d0e3b4a5c6d]   # optional: TaskMate child ids to leave out
+```
+
+- **`taskmate`** reads the integration's own sensors: each child's points sensor (name and avatar icon) and watch sensor (chores left today, the badge, empty when all are done). The tab shows TaskMate's **child card** for that child; if there's no TaskMate overview sensor it falls back to an entities card of the child's sensors. Items have `id` (the child id), `name`, `icon`, `left`, `points`, `entity` (the overview sensor) and `card`. Tabs are sorted by name.
+- **`z2m_tracker`** reads the tracker's **Issues** sensor and makes a tab per kind of issue, with an icon for the common ones (offline, low battery, weak signal, chatty device, frozen reading, unidentified, coordinator backup). Each tab lists the devices with that issue and the tracker's detail. When nothing is wrong there are no tabs, so it fits next to fixed tabs. Items have `id` (the issue as `low_battery`), `name`, `icon`, `count`, `critical`, `devices` and `text` (the markdown list); `exclude` takes those ids.
+- Both find their sensors with `integration_entities()`, so renamed entities still work; without the integration installed the source adds no tabs.
 
 ### Tiles instead of a list: `content: tiles`
 
@@ -105,7 +134,7 @@ tabs:
 | Key | Type | Description |
 | --- | --- | --- |
 | `template` | string (Jinja) | **Required** unless `source` is set. Rendered by Home Assistant; must resolve to a **list**. Each element becomes a tab. |
-| `source` | `areas` \| `labels` \| `floors` \| `domains` \| `devices` \| `todo` \| `calendars` \| `cameras` \| `zones` | Built-in source instead of `template` (see above), with optional `domains`, `exclude` and `content: tiles`. |
+| `source` | `areas` \| `labels` \| `floors` \| `domains` \| `devices` \| `todo` \| `calendars` \| `cameras` \| `zones` \| `updates` \| `repairs` \| `notifications` | Built-in source instead of `template` (see above), with optional `domains`, `exclude` and `content: tiles`. |
 | `tab_template` | tab config | Optional blueprint. When present, it's filled once per list item using the placeholders below. When **absent**, each list element is used directly as a complete tab config. |
 
 ## Placeholders (inside `tab_template`)

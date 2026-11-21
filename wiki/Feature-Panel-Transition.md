@@ -34,3 +34,9 @@ tabs: [ ... ]
   ```
 - After a [swipe peek](Feature-Content-Layout#swipe-peek-swipe_peek) drag, the released panel finishes sliding into place instead of playing the transition.
 - Pick them in the [visual editor](Editor) under **Panel transition**, **Transition on narrow cards**, **Transition duration** and **Transition easing**.
+
+## Reduced motion
+
+When the phone, tablet or computer has **Reduce motion** turned on (iOS and Android accessibility settings, Windows *Animation effects* off, macOS *Reduce motion*), nothing in Tabdeck moves. Panel transitions, the sliding or [liquid](Feature-Indicator-Size#liquid-indicator-liquid_indicator) indicator, `swipe_peek` and `hold_peek`, badge bounces, icon animations, the screensaver fade, loading placeholders, the bar sliding away (`bar_autohide`), the rail opening and smooth scrolling all happen at once instead. The alert pulse becomes a steady tint, so an alerting tab is still marked.
+
+There's nothing to set: Tabdeck follows the device (`prefers-reduced-motion`).

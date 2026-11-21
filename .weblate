@@ -1,0 +1,5 @@
+# Weblate client (wlc) settings: `pip install wlc`, then e.g. `wlc pull` or
+# `wlc lock`. Server-side component settings are in i18n/README.md.
+[weblate]
+url = https://hosted.weblate.org/api/
+translation = tabdeck-card/editor

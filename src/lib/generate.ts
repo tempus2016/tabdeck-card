@@ -44,6 +44,15 @@ export function substituteTokens(value: any, item: any, index: number): any {
 // Expand a template-rendered list into raw tab configs. With a `tab_template`,
 // fill it per item; without one, each list element must already be a tab object.
 export function expandGeneratedTabs(items: any, auto: AutoTabsConfig): any[] {
+  // HA hands back JSON it can't read as a Python literal (true / false /
+  // null inside) as a string.
+  if (typeof items === "string" && items.trim().startsWith("[")) {
+    try {
+      items = JSON.parse(items);
+    } catch {
+      return [];
+    }
+  }
   if (!Array.isArray(items)) return [];
   const tpl = auto.tab_template;
   const out: any[] = [];

@@ -42,3 +42,6 @@ jobs:
 
       - name: Build bundle
         run: npm run build
+
+      - name: Check bundle size
+        run: npm run size

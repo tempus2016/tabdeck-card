@@ -15,6 +15,9 @@ export const PRESET_NAMES = [
   "bubble",
   "fluent",
   "material-you",
+  "material-expressive",
+  "liquid-glass",
+  "accessible",
 ] as const;
 export type PresetName = (typeof PRESET_NAMES)[number];
 
@@ -31,6 +34,8 @@ const BASE: Record<string, any> = {
   elevation: false,
   sticky: false,
   bar_background: undefined,
+  glass: undefined,
+  liquid_indicator: false,
   styles: {},
 };
 
@@ -121,6 +126,60 @@ const PRESETS: Record<PresetName, Record<string, any>> = {
       "--tabdeck-selected-color": "var(--primary-text-color)",
       "--tabdeck-tab-height": "40px",
       "--tabdeck-tab-font-weight": "500",
+    },
+  },
+  // Inspired by Material 3 Expressive: a tall, fully rounded tonal bar,
+  // bold labels and a springy (liquid) indicator.
+  "material-expressive": {
+    style: "pill",
+    align: "justify",
+    indicator_radius: 999,
+    liquid_indicator: true,
+    bar_background: "color-mix(in srgb, var(--tabdeck-accent, var(--primary-color)) 8%, var(--card-background-color, #fff))",
+    styles: {
+      "--tabdeck-bar-radius": "28px",
+      "--tabdeck-indicator-color": "color-mix(in srgb, var(--tabdeck-accent, var(--primary-color)) 30%, transparent)",
+      "--tabdeck-selected-color": "var(--primary-text-color)",
+      "--tabdeck-tab-height": "56px",
+      "--tabdeck-tab-font-weight": "700",
+    },
+  },
+  // Inspired by liquid-glass phone UIs: a floating frosted capsule with a
+  // bright, see-through selected lens that flows between tabs.
+  "liquid-glass": {
+    style: "pill",
+    align: "justify",
+    indicator_radius: 999,
+    glass: 20,
+    liquid_indicator: true,
+    styles: {
+      "--tabdeck-bar-radius": "999px",
+      "--tabdeck-glass-tint": "color-mix(in srgb, var(--card-background-color, #fff) 40%, transparent)",
+      "--tabdeck-indicator-color": "color-mix(in srgb, var(--card-background-color, #fff) 55%, transparent)",
+      "--tabdeck-indicator-shadow": "inset 0 1px 1px rgba(255, 255, 255, 0.7), 0 2px 10px rgba(0, 0, 0, 0.14)",
+      "--tabdeck-tab-height": "48px",
+      "--tabdeck-tab-font-weight": "600",
+    },
+  },
+  // High contrast and large touch targets: full-strength text, 2 px
+  // outlined tabs 64 px tall, a solid yellow selected tab (black text),
+  // bigger icons and labels, and a thick focus ring.
+  accessible: {
+    style: "boxed",
+    align: "justify",
+    tab_display: "both",
+    indicator_radius: 10,
+    styles: {
+      "--tabdeck-tab-height": "64px",
+      "--tabdeck-tab-padding": "0 14px",
+      "--tabdeck-tab-font-size": "16px",
+      "--tabdeck-tab-font-weight": "700",
+      "--tabdeck-tab-color": "var(--primary-text-color)",
+      "--tabdeck-tab-border": "2px solid var(--primary-text-color)",
+      "--tabdeck-indicator-color": "#ffd400",
+      "--tabdeck-icon-size": "28px",
+      "--tabdeck-focus-width": "4px",
+      "--tabdeck-focus-color": "var(--primary-text-color)",
     },
   },
 };

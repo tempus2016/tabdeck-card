@@ -64,3 +64,31 @@ Set them with [`styles`](Feature-Theming), e.g. `styles: { --tabdeck-alert-color
 - The tab keeps working normally (tap to select); the pulse is only visual.
 - Under **reduced motion** the pulse becomes a steady tint.
 - A per-tab [`color`](Feature-Tab-Color) overrides the alert's label/icon colour, but the tint still pulses.
+
+## Alert count on the bar (`summary_chip`)
+
+`summary_chip: true` puts a red chip at the end of the bar with the number of tabs that are alerting right now, such as **⚠ 3 alerts**. It's hidden while nothing is alerting. Clicking it opens the next alerting tab, so repeated clicks walk through them.
+
+```yaml
+type: custom:tabdeck-card
+summary_chip: true
+tabs: [ ... tabs with alert conditions ... ]
+```
+
+Your own text, icon and colour:
+
+```yaml
+summary_chip:
+  text: "{n} to check"              # {n} = alerting tabs; hidden when it's 0
+  icon: mdi:bell-ring
+  color: var(--warning-color)
+```
+
+```yaml
+summary_chip: "{{ states.light | selectattr('state','eq','on') | list | count }} lights on"
+```
+
+- A text without `{n}` (a template, say) shows whenever it isn't empty.
+- Without `text`, the object form keeps the alert count and just changes the icon or colour.
+- Variables: `--tabdeck-summary-background`, `--tabdeck-summary-color`.
+- Snoozed tabs (`alert_snooze`) don't count while snoozed.

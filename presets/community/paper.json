@@ -1,0 +1,18 @@
+{
+  "$schema": "../preset.schema.json",
+  "name": "Paper",
+  "author": "tempus2016",
+  "description": "Warm cream bar with a brown underline and a serif font.",
+  "config": {
+    "style": "underline",
+    "indicator_size": 2,
+    "bar_background": "#f6f1e7",
+    "styles": {
+      "--tabdeck-accent": "#6d4c41",
+      "--tabdeck-tab-color": "#8d6e63",
+      "--tabdeck-selected-color": "#4e342e",
+      "--tabdeck-tab-font-family": "Georgia, 'Times New Roman', serif",
+      "--tabdeck-bar-radius": "6px"
+    }
+  }
+}

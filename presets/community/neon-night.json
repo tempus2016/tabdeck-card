@@ -1,0 +1,19 @@
+{
+  "$schema": "../preset.schema.json",
+  "name": "Neon night",
+  "author": "tempus2016",
+  "description": "Pink glow on a deep violet bar, for dark themes.",
+  "config": {
+    "style": "pill",
+    "align": "justify",
+    "bar_background": "#0f0c29",
+    "styles": {
+      "--tabdeck-accent": "#ff00e0",
+      "--tabdeck-tab-color": "#b9b4ff",
+      "--tabdeck-selected-color": "#ffffff",
+      "--tabdeck-indicator-color": "#ff00e0",
+      "--tabdeck-bar-radius": "14px",
+      "--tabdeck-bar-shadow": "0 0 18px rgba(255, 0, 224, 0.35)"
+    }
+  }
+}

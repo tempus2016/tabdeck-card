@@ -1,8 +1,25 @@
+import { normalizeUsageStats } from "./usage-stats";
 import type { LovelaceCardConfig } from "../types";
 import { normalizeBadgeFormat, type BadgeFormat } from "./badge";
+import { normalizeGraph } from "./mini-graph";
 import { isPreset, withPreset, type PresetName } from "./presets";
 import { cssLength, type TransitionMode } from "./layout";
+import { healthThreshold } from "./health";
+import { normalizeIdleDim, type IdleDimConfig } from "./screensaver";
 import { substituteTokens } from "./generate";
+import { normalizeSyncGroup } from "./sync";
+import { normalizePopup, type PopupMode } from "./popup";
+import { normalizeWizard, type WizardConfig } from "./wizard";
+import { normalizeShare, type ShareMode } from "./share";
+import { normalizeOrientation, type OrientationLayout } from "./orientation";
+import { shortcutCard } from "./shortcuts";
+import { normalizeEmpty, type EmptyMessage } from "./empty";
+import { lengthOrZero, normalizeZoom } from "./size";
+import { normalizeBarLimit } from "./bar-window";
+import { normalizeSeasons, type Season } from "./seasons";
+import { normalizeTakeovers, type Takeover } from "./takeover";
+import { normalizeQuiet, type QuietHours } from "./quiet";
+import { normalizeClickSound } from "./click-sound";
 import { buildSourceTemplate, defaultTabTemplate, SOURCES, type AutoTabsSource } from "./sources";
 
 export type TabPosition = "top" | "bottom" | "left" | "right";
@@ -34,6 +51,17 @@ export interface TabdeckTabConfig {
   ring?: string;
   ring_max?: number;
   ring_color?: string;
+  // "bar": draw the ring's value as a progress bar under the tab.
+  ring_style?: "bar";
+  // More badges after the main one: each an entity / template / count
+  // (`badge`), an `icon` and a `color`.
+  badges?: { badge?: string | Record<string, any>; icon?: string; color?: string }[];
+  // Hover summary (template allowed).
+  tooltip?: string;
+  // Countdown badge: a timer (or timestamp) entity; wins over `badge` while running.
+  countdown?: string;
+  // A tiny history line of one entity: entity id or { entity, hours, color }.
+  graph?: string | { entity: string; hours?: number; color?: string };
   // A code asked for before the tab opens (a convenience lock, not
   // security: the config is readable by anyone who can edit the dashboard).
   pin?: string;
@@ -54,6 +82,9 @@ export interface TabdeckTabConfig {
   card_size?: number;
   // Home Assistant action fired on a long-press of the tab (tap still selects).
   hold_action?: any;
+  // HA action fired on a double tap of the tab (a single tap still selects,
+  // after a short wait to rule out a second tap).
+  double_tap_action?: any;
   // HA action fired when the tab's badge is clicked (does not select the tab).
   badge_action?: any;
   // HA action fired when the tab is tapped, *instead of* selecting it — turns
@@ -74,6 +105,9 @@ export interface TabdeckTabConfig {
   // Content background while this tab is active: a colour, gradient, var()
   // or an image path / URL. May be a template.
   background?: string;
+  // The whole dashboard view's background while this tab is open (same
+  // values as background; may be a template).
+  page_background?: string;
   // "masonry": the tab's `cards` are balanced into columns.
   // "sections": titled groups of cards, like HA's sections view.
   layout?: "masonry" | "sections";
@@ -99,6 +133,38 @@ export interface TabdeckTabConfig {
   // (kept so the editor round-trips them).
   use?: string;
   vars?: Record<string, any>;
+  // Drawn in the bar before this tab: a thin `line`, or a `space` that pushes
+  // this tab and the ones after it to the far end of the bar.
+  separator?: "line" | "space";
+  // Shared tab: "dashboard/tab" or "dashboard/view/tab" on another
+  // dashboard's Tabdeck card (resolved by the card at load).
+  tab_ref?: string;
+  // Picture-in-picture: after switching away, this tab's card stays in a
+  // small floating window until closed or reopened.
+  pip?: boolean;
+  // Keep the screen on while this tab is open (Screen Wake Lock, https only).
+  keep_awake?: boolean;
+  // changed_dot: the entities to watch (default: those in the tab's card).
+  watch?: string[];
+  // Show another dashboard view's cards: "/dashboard/view" or
+  // { dashboard, view } (kept so the editor round-trips it).
+  view?: string | { dashboard: string; view?: string };
+  // Show a web page (HA's iframe card); aspect_ratio as the iframe card's
+  // (e.g. "75%", "16:9").
+  url?: string;
+  aspect_ratio?: string;
+  // Markdown text shown with HA's markdown card (templates work).
+  markdown?: string;
+  // Shown when every card in the tab is hidden: true, a line of text, or
+  // { title, text, icon } (title and text may be templates).
+  // Size controls: zoom factor, padding and the gap between cards.
+  zoom?: number;
+  padding?: string;
+  spacing?: string;
+  // Minutes: the tab's card is rebuilt this often (cameras, web pages).
+  auto_refresh?: number;
+  // Kept as written (the editor round-trips it); read with normalizeEmpty.
+  empty_message?: true | string | EmptyMessage;
   // A single resolved card. When the source config supplies `cards: [...]`,
   // it is collapsed into one `vertical-stack` card here.
   card: LovelaceCardConfig;
@@ -154,6 +220,8 @@ export interface TabdeckCardConfig {
   align: TabAlign;
   badge_display: BadgeDisplay;
   hide_inactive_badge: boolean;
+  // A tab's badge jumps when its value changes.
+  badge_bounce: boolean;
   // Default numeric badge format for every tab (a tab's own badge_format wins).
   badge_format?: BadgeFormat;
   transition: PanelTransition;
@@ -164,18 +232,50 @@ export interface TabdeckCardConfig {
   remember_entity?: string;
   storage_key?: string;
   lazy: boolean;
+  // With lazy: build the tabs next to the open one ("idle"), or every tab one
+  // at a time ("all"), while the browser is idle.
+  preload?: "idle" | "all";
   unmount_hidden: boolean;
   swipe_wrap: boolean;
   swipe_mouse: boolean;
+  // Scrolling the mouse wheel over the tab bar changes tab.
+  wheel_switch: boolean;
+  // Swipes (touch and swipe_mouse) only count when they start within this
+  // many px of the content's left or right edge.
+  swipe_edge?: number;
+  // A swipe that starts on a slider or a map is left to that control.
+  swipe_lock: boolean;
   animated: boolean;
+  // The moving marker stretches to the new tab like a drop, then settles.
+  liquid_indicator: boolean;
   accent_indicator: boolean;
+  // A tab with a picture takes its accent from the picture's main colour.
+  picture_accent: boolean;
   header: boolean;
   aria_label?: string;
   sticky: boolean;
+  // A pinned bar (sticky / dock / scroll_spy) slides away while the page
+  // scrolls down and returns when it scrolls up.
+  bar_autohide: boolean;
   elevation: boolean;
   scroll_buttons: boolean;
+  // Fade the edge(s) of an overflowing bar that have more tabs (on unless false).
+  bar_fade: boolean;
   overflow_menu: boolean;
+  // The ⋯ menu counts alerts/badges on tabs that don't fit (turns the menu on).
+  hidden_alerts: boolean;
+  // A chip at the end of the bar: true = "3 alerts", or text / { text, icon, color }.
+  summary_chip?: true | { text?: string; icon?: string; color?: string };
   bar_background?: string;
+  // Tab text colour over the bar background: worked out ("auto", also from
+  // a picture), or light / dark text.
+  bar_text?: "auto" | "light" | "dark";
+  // Force left-to-right or right-to-left (default: Home Assistant's language).
+  direction?: "ltr" | "rtl";
+  // Date ranges that change the accent / bar background / styles.
+  seasons?: Season[];
+  // Frosted-glass bar and menus: true, or the blur in px.
+  glass?: true | number;
   swipe: boolean;
   styles: Record<string, string>;
   tabs: TabdeckTabConfig[];
@@ -183,6 +283,9 @@ export interface TabdeckCardConfig {
   auto_rotate?: AutoRotateConfig;
   // Seconds of inactivity before returning to the default tab.
   idle_return?: number;
+  // Minutes without a touch anywhere on the page before the screen dims,
+  // goes black or shows a clock (a touch wakes it).
+  idle_dim?: IdleDimConfig;
   // Anchor mode: all panels stacked; the bar scrolls to / tracks sections.
   scroll_spy: boolean;
   // Tapping the active tab folds the content away (and back).
@@ -234,6 +337,16 @@ export interface TabdeckCardConfig {
   fullscreen: boolean;
   // While swiping, the content follows the finger and the next tab slides in.
   swipe_peek: boolean;
+  // Holding a tab (without a hold_action) previews its content until released.
+  hold_peek: boolean;
+  // A dot on tabs whose entities changed since this browser last showed them.
+  changed_dot: boolean;
+  // Each browser puts the tabs it opens most first (order fixed per page load;
+  // a customize order wins).
+  sort_by_usage: boolean;
+  // Tabs with at least this share (0–1) of their entities unavailable fade
+  // and show a warning (`health_dim: true` = half).
+  health_dim?: number;
   // Tabs whose alert is active move to the front.
   alert_first: boolean;
   // Minutes a long-press on an alerting tab silences its pulse.
@@ -242,6 +355,9 @@ export interface TabdeckCardConfig {
   // ({ kitchen-panel: Cameras }; see deviceId()).
   default_by_time?: Record<string, any>;
   default_by_device?: Record<string, any>;
+  // On load, open the tab this browser picks most around this hour (only
+  // when nothing remembered, linked or configured decides it).
+  learned_default?: LearnedDefault;
   // Fire a tabdeck_tab_changed event on every tab change (admin users only:
   // HA doesn't let other users fire events).
   fire_event: boolean;
@@ -252,6 +368,15 @@ export interface TabdeckCardConfig {
   remote_entity?: string;
   // Switch on tabdeck_select events ({ tab, deck?, device? }; admin users).
   remote_event: boolean;
+  // Show the tab for the room a presence entity reports (by `map`, a tab's
+  // `area`, or its name).
+  follow_room?: FollowRoom;
+  // Jump to a tab for a while when an entity fires (a doorbell), with a
+  // banner and countdown, then go back.
+  takeover?: Takeover[];
+  // A window ("22:00-07:00") and/or an entity that is on: nothing switches by
+  // itself, alerts don't pulse, badges don't bounce, no click sound.
+  quiet_hours?: QuietHours;
   // Minutes: a tab not opened for this long has its card freed (rebuilt
   // when it's opened again).
   unload_after?: number;
@@ -260,12 +385,59 @@ export interface TabdeckCardConfig {
   // Named tab blueprints; a tab with `use: <name>` and `vars` is filled from
   // one ({{ item.<var> }} tokens).
   tab_templates?: Record<string, Record<string, any>>;
-  // A panel under the card showing conditions, templates and timings.
-  debug: boolean;
+  // Tabdeck Companion integration: a select entity per browser + deck.
+  companion: boolean;
+  // This browser's id for the companion (default: device name or a stored
+  // random id).
+  companion_id?: string;
+  // A warning over the content while the connection to HA is down.
+  offline_banner?: boolean;
+  // Minutes per tab reported every this many minutes (companion or event).
+  usage_stats?: number;
+  // A panel under the card showing conditions, templates and timings;
+  // "speed" also puts each tab's draw time on the bar.
+  debug: boolean | "speed";
   // Companion-app vibration on tab switches the person makes.
   haptic?: HapticType;
+  // A soft synthesised tick on those switches: the volume (0–1).
+  click_sound?: number;
+  // A "Home › Downstairs › Kitchen" trail over the content for grouped and
+  // nested decks; `root` names a first crumb that returns to the default tab.
+  breadcrumbs?: { root?: string };
   // Tab bar size: compact, default or comfortable.
   density: "compact" | "default" | "comfortable";
+  // A grid button (and a pinch-in) that shows every tab as a live thumbnail.
+  overview: boolean;
+  // Ctrl+K (and a bar button) finds the tab that shows an entity.
+  entity_search: boolean;
+  // Decks with the same sync_group on a page switch tabs together (by name).
+  sync_group?: string;
+  // Open a tab in a dialog from a fire-dom-event action (tabdeck_popup);
+  // "hidden" shows only the popups, not the deck.
+  popup?: PopupMode;
+  // A step-by-step guide: Back / Next and a progress bar instead of the bar.
+  wizard?: WizardConfig;
+  // A swap button in the bar that flips back to the tab open before.
+  last_tab_button: boolean;
+  // Drag tabs along the bar to reorder them, saved per browser (shares the
+  // customize layout).
+  drag_reorder: boolean;
+  // Long-press a tab to show it beside the open one.
+  compare: boolean;
+  // A bar button that copies a #tab= link to the open tab ("qr": and shows
+  // it as a QR code).
+  share_button?: ShareMode;
+  // The bar's position by screen orientation (overrides position).
+  orientation_layout?: OrientationLayout;
+  // Grey boxes in a tab until its card first has a height.
+  loading_placeholder: boolean;
+  // A broken card shows a plain-words message, and its tab a warning badge.
+  friendly_errors: boolean;
+  // Each tab remembers how far down the page it was scrolled.
+  scroll_memory: boolean;
+  // Big decks: the bar draws at most this many tabs (a page around the open
+  // one); the ⋯ menu lists them all.
+  bar_limit?: number;
 }
 
 const POSITIONS: TabPosition[] = ["top", "bottom", "left", "right"];
@@ -301,6 +473,37 @@ function normalizeAutoSelect(raw: any): { entity: string; state?: string } | und
 
 function actionOrUndefined(raw: any): any {
   return raw && typeof raw === "object" && raw.action && raw.action !== "none" ? raw : undefined;
+}
+
+function normalizeGlass(raw: any): true | number | undefined {
+  if (raw === true) return true;
+  const n = Number(raw);
+  return raw !== false && raw !== null && raw !== "" && Number.isFinite(n) && n > 0 ? Math.min(n, 60) : undefined;
+}
+
+function normalizeSummary(raw: any): TabdeckCardConfig["summary_chip"] {
+  if (raw === true) return true;
+  const o = typeof raw === "string" ? { text: raw } : raw;
+  if (!o || typeof o !== "object" || (typeof o.text !== "string" && o.text !== undefined)) return undefined;
+  const out: { text?: string; icon?: string; color?: string } = {};
+  if (o.text?.trim()) out.text = o.text;
+  if (typeof o.icon === "string" && o.icon) out.icon = o.icon;
+  if (typeof o.color === "string" && o.color) out.color = o.color;
+  return out;
+}
+
+function normalizeBadges(raw: any): TabdeckTabConfig["badges"] {
+  if (!Array.isArray(raw)) return undefined;
+  const out = raw
+    .filter((b) => b && typeof b === "object" && (b.badge || b.icon))
+    .map((b) => {
+      const o: { badge?: string | Record<string, any>; icon?: string; color?: string } = {};
+      if (b.badge !== undefined && b.badge !== null && b.badge !== "") o.badge = typeof b.badge === "object" ? b.badge : String(b.badge);
+      if (typeof b.icon === "string" && b.icon) o.icon = b.icon;
+      if (typeof b.color === "string" && b.color) o.color = b.color;
+      return o;
+    });
+  return out.length ? out : undefined;
 }
 
 export function normalizeTab(raw: any): TabdeckTabConfig {
@@ -348,6 +551,8 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
         : Number.isFinite(cols) && cols > 1
         ? { type: "grid", columns: cols, square: false, cards: raw.cards }
         : { type: "vertical-stack", cards: raw.cards };
+  } else if (!raw?.card) {
+    card = shortcutCard(raw) ?? card;
   }
   return {
     name: raw?.name ?? attrs.label ?? undefined,
@@ -361,6 +566,11 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     ring: raw?.ring === undefined || raw.ring === null || raw.ring === "" ? undefined : String(raw.ring),
     ring_max: Number(raw?.ring_max) > 0 ? Number(raw.ring_max) : undefined,
     ring_color: typeof raw?.ring_color === "string" && raw.ring_color ? raw.ring_color : undefined,
+    ring_style: raw?.ring_style === "bar" ? "bar" : undefined,
+    graph: normalizeGraph(raw?.graph) ? raw.graph : undefined,
+    badges: normalizeBadges(raw?.badges),
+    tooltip: typeof raw?.tooltip === "string" && raw.tooltip.trim() ? raw.tooltip : undefined,
+    countdown: typeof raw?.countdown === "string" && raw.countdown.trim() ? raw.countdown.trim() : undefined,
     pin: raw?.pin === undefined || raw.pin === null || raw.pin === "" ? undefined : String(raw.pin),
     pin_timeout: Number(raw?.pin_timeout) > 0 ? Number(raw.pin_timeout) : undefined,
     area: typeof raw?.area === "string" && raw.area ? raw.area : undefined,
@@ -373,6 +583,7 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     card_size: typeof raw?.card_size === "number" ? raw.card_size : undefined,
     hold_action: raw?.hold_action ?? undefined,
     badge_action: raw?.badge_action ?? undefined,
+    double_tap_action: actionOrUndefined(raw?.double_tap_action),
     tap_action:
       raw?.tap_action && typeof raw.tap_action === "object" && raw.tap_action.action !== "none"
         ? raw.tap_action
@@ -384,6 +595,7 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     visibility: raw?.visibility ?? undefined,
     alert: Array.isArray(raw?.alert) && raw.alert.length > 0 ? raw.alert : undefined,
     background: typeof raw?.background === "string" && raw.background.trim() ? raw.background : undefined,
+    page_background: typeof raw?.page_background === "string" && raw.page_background.trim() ? raw.page_background : undefined,
     layout:
       raw?.layout === "masonry" && Array.isArray(raw?.cards) && raw.cards.length > 0
         ? "masonry"
@@ -399,8 +611,23 @@ export function normalizeTab(raw: any): TabdeckTabConfig {
     font_size: cssLength(raw?.font_size),
     font_weight: safeCss(raw?.font_weight),
     font_family: safeCss(raw?.font_family),
+    pip: raw?.pip ? true : undefined,
+    keep_awake: raw?.keep_awake ? true : undefined,
+    watch: Array.isArray(raw?.watch) ? raw.watch.map(String) : typeof raw?.watch === "string" && raw.watch ? [raw.watch] : undefined,
+    separator: raw?.separator === "line" || raw?.separator === "space" ? raw.separator : undefined,
+    tab_ref: typeof raw?.tab_ref === "string" && raw.tab_ref.trim() ? raw.tab_ref.trim() : undefined,
     use: typeof raw?.use === "string" && raw.use ? raw.use : undefined,
     vars: raw?.vars && typeof raw.vars === "object" && !Array.isArray(raw.vars) ? raw.vars : undefined,
+    view: typeof raw?.view === "string" ? raw.view.trim() || undefined : raw?.view && typeof raw.view === "object" ? raw.view : undefined,
+    url: typeof raw?.url === "string" && raw.url.trim() ? raw.url.trim() : undefined,
+    aspect_ratio:
+      typeof raw?.aspect_ratio === "string" || typeof raw?.aspect_ratio === "number" ? String(raw.aspect_ratio).trim() || undefined : undefined,
+    markdown: typeof raw?.markdown === "string" && raw.markdown.trim() ? raw.markdown : undefined,
+    empty_message: normalizeEmpty(raw?.empty_message) ? raw.empty_message : undefined,
+    zoom: normalizeZoom(raw?.zoom),
+    padding: lengthOrZero(raw?.padding),
+    spacing: lengthOrZero(raw?.spacing),
+    auto_refresh: Number(raw?.auto_refresh) > 0 ? Math.max(0.1, Number(raw.auto_refresh)) : undefined,
     group,
     children: group ? raw.children : undefined,
     children_display: group ? group.display : undefined,
@@ -526,6 +753,7 @@ export function normalizeConfig(raw: any, opts: { expand?: boolean } = {}): Tabd
     align: pick(raw?.align, ALIGNS, "start"),
     badge_display: pick(raw?.badge_display, BADGE_DISPLAYS, "text"),
     hide_inactive_badge: Boolean(raw?.hide_inactive_badge),
+    badge_bounce: Boolean(raw?.badge_bounce),
     badge_format: normalizeBadgeFormat(raw?.badge_format),
     transition: pick(raw?.transition, TRANSITIONS, "none"),
     indicator_size: clampNumber(raw?.indicator_size, 1, 16, 3),
@@ -538,18 +766,32 @@ export function normalizeConfig(raw: any, opts: { expand?: boolean } = {}): Tabd
     remember_entity: raw?.remember_entity ?? undefined,
     storage_key: raw?.storage_key ?? undefined,
     lazy: Boolean(raw?.lazy),
+    preload: raw?.preload === true || raw?.preload === "idle" ? "idle" : raw?.preload === "all" ? "all" : undefined,
     unmount_hidden: Boolean(raw?.unmount_hidden),
     swipe_wrap: Boolean(raw?.swipe_wrap),
     swipe_mouse: Boolean(raw?.swipe_mouse),
+    wheel_switch: Boolean(raw?.wheel_switch),
+    swipe_lock: Boolean(raw?.swipe_lock),
+    swipe_edge: raw?.swipe_edge === true ? 40 : typeof raw?.swipe_edge === "number" ? clampNumber(raw.swipe_edge, 8, 400, 40) : undefined,
     animated: raw?.animated === undefined ? true : Boolean(raw.animated),
+    liquid_indicator: Boolean(raw?.liquid_indicator),
     accent_indicator: raw?.accent_indicator === undefined ? true : Boolean(raw.accent_indicator),
+    picture_accent: Boolean(raw?.picture_accent),
     header: Boolean(raw?.header),
     aria_label: raw?.aria_label ?? undefined,
     sticky: Boolean(raw?.sticky),
+    bar_autohide: Boolean(raw?.bar_autohide),
     elevation: Boolean(raw?.elevation),
     scroll_buttons: Boolean(raw?.scroll_buttons),
+    bar_fade: raw?.bar_fade !== false,
     overflow_menu: Boolean(raw?.overflow_menu),
+    hidden_alerts: Boolean(raw?.hidden_alerts),
+    summary_chip: normalizeSummary(raw?.summary_chip),
     bar_background: raw?.bar_background ?? undefined,
+    glass: normalizeGlass(raw?.glass),
+    seasons: normalizeSeasons(raw?.seasons),
+    direction: raw?.direction === "rtl" || raw?.direction === "ltr" ? raw.direction : undefined,
+    bar_text: raw?.bar_text === true ? "auto" : ["auto", "light", "dark"].includes(raw?.bar_text) ? raw.bar_text : undefined,
     swipe: Boolean(raw?.swipe),
     styles: raw?.styles ?? {},
     tabs: tabs.map(normalizeTab),
@@ -566,6 +808,7 @@ export function normalizeConfig(raw: any, opts: { expand?: boolean } = {}): Tabd
     start_collapsed: Boolean(raw?.collapsible && raw?.start_collapsed),
     idle_return:
       Number(raw?.idle_return) > 0 ? Math.max(5, Number(raw.idle_return)) : undefined,
+    idle_dim: normalizeIdleDim(raw?.idle_dim),
     dock: Boolean(raw?.dock),
     content_arrows: Boolean(raw?.content_arrows),
     hide_bar: Boolean(raw?.hide_bar),
@@ -587,21 +830,83 @@ export function normalizeConfig(raw: any, opts: { expand?: boolean } = {}): Tabd
     footer_cards: cardList(raw?.footer_cards),
     fullscreen: Boolean(raw?.fullscreen),
     swipe_peek: Boolean(raw?.swipe_peek),
+    hold_peek: Boolean(raw?.hold_peek),
+    changed_dot: Boolean(raw?.changed_dot),
+    sort_by_usage: Boolean(raw?.sort_by_usage),
+    health_dim: healthThreshold(raw?.health_dim),
     alert_first: Boolean(raw?.alert_first),
     alert_snooze: Number(raw?.alert_snooze) > 0 ? Number(raw.alert_snooze) : undefined,
     default_by_time: plainMap(raw?.default_by_time),
     default_by_device: plainMap(raw?.default_by_device),
+    learned_default: normalizeLearned(raw?.learned_default),
     fire_event: Boolean(raw?.fire_event),
     event_id: typeof raw?.event_id === "string" && raw.event_id ? raw.event_id : undefined,
     remote_entity: typeof raw?.remote_entity === "string" && raw.remote_entity ? raw.remote_entity : undefined,
     remote_event: Boolean(raw?.remote_event),
+    follow_room: normalizeFollowRoom(raw?.follow_room),
+    takeover: normalizeTakeovers(raw?.takeover),
+    quiet_hours: normalizeQuiet(raw?.quiet_hours),
     tab_defaults: tabDefaults,
     tab_templates: tabTemplates,
-    debug: Boolean(raw?.debug),
+    companion: raw?.companion === true,
+    companion_id: typeof raw?.companion_id === "string" && raw.companion_id.trim() ? raw.companion_id.trim() : undefined,
+    usage_stats: normalizeUsageStats(raw?.usage_stats),
+    offline_banner: raw?.offline_banner === true ? true : undefined,
+    debug: raw?.debug === "speed" ? "speed" : Boolean(raw?.debug),
     haptic: raw?.haptic === true ? "selection" : HAPTICS.includes(raw?.haptic) ? raw.haptic : undefined,
+    click_sound: normalizeClickSound(raw?.click_sound),
+    breadcrumbs:
+      raw?.breadcrumbs === true
+        ? {}
+        : raw?.breadcrumbs && typeof raw.breadcrumbs === "object"
+          ? { root: typeof raw.breadcrumbs.root === "string" && raw.breadcrumbs.root ? raw.breadcrumbs.root : undefined }
+          : undefined,
     density: raw?.density === "compact" || raw?.density === "comfortable" ? raw.density : "default",
     unload_after: Number(raw?.unload_after) > 0 ? Math.max(1, Number(raw.unload_after)) : undefined,
+    overview: Boolean(raw?.overview),
+    entity_search: Boolean(raw?.entity_search),
+    sync_group: normalizeSyncGroup(raw?.sync_group),
+    popup: normalizePopup(raw?.popup),
+    wizard: normalizeWizard(raw?.wizard),
+    last_tab_button: Boolean(raw?.last_tab_button),
+    drag_reorder: Boolean(raw?.drag_reorder),
+    compare: Boolean(raw?.compare),
+    share_button: normalizeShare(raw?.share_button),
+    orientation_layout: normalizeOrientation(raw?.orientation_layout),
+    loading_placeholder: Boolean(raw?.loading_placeholder),
+    friendly_errors: Boolean(raw?.friendly_errors),
+    scroll_memory: Boolean(raw?.scroll_memory),
+    bar_limit: normalizeBarLimit(raw?.bar_limit),
   };
+}
+
+export interface FollowRoom {
+  entity: string;
+  // Entity state -> tab (name, slug or index), checked before areas and names.
+  map?: Record<string, any>;
+}
+
+// `follow_room: sensor.my_room` or `{ entity, map: { kitchen: Cooking } }`.
+export function normalizeFollowRoom(raw: any): FollowRoom | undefined {
+  const entity = typeof raw === "string" ? raw : raw?.entity;
+  if (typeof entity !== "string" || !entity.trim()) return undefined;
+  const map = typeof raw === "object" ? plainMap(raw.map) : undefined;
+  return map ? { entity: entity.trim(), map } : { entity: entity.trim() };
+}
+
+export interface LearnedDefault {
+  // Picks around this hour before a tab is learned (default 3).
+  min_uses: number;
+  // A dismissible note saying why the tab opened (default on).
+  notice: boolean;
+}
+
+// `learned_default: true` or `{ min_uses: 5, notice: false }`.
+export function normalizeLearned(raw: any): LearnedDefault | undefined {
+  if (!raw) return undefined;
+  const o = typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const n = Number(o.min_uses);
+  return { min_uses: Number.isFinite(n) && n >= 1 ? Math.min(100, Math.round(n)) : 3, notice: o.notice === undefined ? true : Boolean(o.notice) };
 }
 
 export function resolveDefaultIndex(cfg: TabdeckCardConfig): number {

@@ -50,6 +50,35 @@ tabs: [ ... ]
 
 `indicator_radius` (px) overrides the corner radius of the `pill`/`segmented`/`boxed`/`rail` indicator — e.g. `indicator_radius: 4` for a squarer highlight, `0` for sharp corners.
 
+## Separators (`separator`)
+
+A tab's `separator` draws something in the bar just before it:
+
+- `line`: a thin divider, to group tabs (rooms, then system pages).
+- `space`: a flexible gap that pushes this tab and every tab after it to the far end of the bar, the right of a top bar or the bottom of a side bar.
+
+```yaml
+type: custom:tabdeck-card
+tabs:
+  - name: Living room
+    card: { ... }
+  - name: Kitchen
+    card: { ... }
+  - name: Cameras
+    separator: line
+    card: { ... }
+  - name: Settings
+    icon: mdi:cog
+    separator: space
+    card: { ... }
+```
+
+- A separator isn't a tab, so it doesn't change tab numbers (`default_tab: 2`, hotkeys, `#tab=`), and arrow keys skip over it.
+- Colour the line with `--tabdeck-separator-color` in `styles`.
+- A `space` only pushes when the bar has room to spare; in a bar that scrolls, it shrinks to a small gap.
+- Dots (`tab_display: dots`) leave separators out.
+- In the visual editor, it's the **Separator before this tab** dropdown on each tab.
+
 ## Notes
 
 - All styles respect [`accent_indicator`](Feature-Accent-Indicator) and per-tab `accent`.

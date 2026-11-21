@@ -4,6 +4,7 @@ import {
   loadInitialIndex,
   persistIndex,
   parseHashIndex,
+  rememberedIndex,
 } from "./persistence";
 
 function memStorage(seed: Record<string, string> = {}): Storage {
@@ -82,5 +83,48 @@ describe("persistIndex", () => {
     const r = persistIndex({ mode: "none", cardKey: "k", index: 1, storage });
     expect(r.hash).toBeUndefined();
     expect(storage.length).toBe(0);
+  });
+});
+
+describe("remember: browser by name", () => {
+  const mem = () => {
+    const m = new Map<string, string>();
+    return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) } as any;
+  };
+  it("stores the tab name and finds it after the order changes", () => {
+    const storage = mem();
+    persistIndex({ mode: "browser", cardKey: "k", index: 2, tabName: "Lights", storage });
+    expect(storage.getItem(storageKey("k"))).toBe("name:Lights");
+    const idx = loadInitialIndex({ mode: "browser", cardKey: "k", defaultIndex: 0, tabCount: 3, tabNames: ["Lights", "A", "B"], storage });
+    expect(idx).toBe(0);
+  });
+  it("still reads an older saved index", () => {
+    const storage = mem();
+    storage.setItem(storageKey("k"), "1");
+    expect(loadInitialIndex({ mode: "browser", cardKey: "k", defaultIndex: 0, tabCount: 3, tabNames: ["A", "B", "C"], storage })).toBe(1);
+  });
+  it("falls back to the default when the named tab is gone", () => {
+    const storage = mem();
+    storage.setItem(storageKey("k"), "name:Gone");
+    expect(loadInitialIndex({ mode: "browser", cardKey: "k", defaultIndex: 2, tabCount: 3, tabNames: ["A", "B", "C"], storage })).toBe(2);
+  });
+});
+
+describe("rememberedIndex", () => {
+  const base = { cardKey: "k", tabCount: 3, tabNames: ["A", "B", "C"] };
+  it("is null when nothing is remembered", () => {
+    expect(rememberedIndex({ ...base, mode: "none" })).toBeNull();
+    expect(rememberedIndex({ ...base, mode: "browser", storage: memStorage() })).toBeNull();
+    expect(rememberedIndex({ ...base, mode: "browser", storage: memStorage({ [storageKey("k")]: "name:Gone" }) })).toBeNull();
+    expect(rememberedIndex({ ...base, mode: "url", hash: "" })).toBeNull();
+    expect(rememberedIndex({ ...base, mode: "entity", entityValue: "unknown" })).toBeNull();
+    expect(rememberedIndex({ ...base, mode: "entity", entityValue: "" })).toBeNull();
+  });
+  it("finds a remembered tab", () => {
+    expect(rememberedIndex({ ...base, mode: "browser", storage: memStorage({ [storageKey("k")]: "name:C" }) })).toBe(2);
+    expect(rememberedIndex({ ...base, mode: "browser", storage: memStorage({ [storageKey("k")]: "1" }) })).toBe(1);
+    expect(rememberedIndex({ ...base, mode: "url", hash: "#tab=b" })).toBe(1);
+    expect(rememberedIndex({ ...base, mode: "entity", entityValue: "2.0" })).toBe(2);
+    expect(rememberedIndex({ ...base, mode: "entity", entityValue: "7" })).toBeNull();
   });
 });

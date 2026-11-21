@@ -1,0 +1,98 @@
+blueprint:
+  name: Tabdeck — next, previous and back with Assist
+  description: >-
+    Say or type "next tab", "previous tab", "go back" or "home tab" to Assist
+    and the Tabdeck deck steps to the next or previous tab, returns to the tab
+    you had open before, or goes to its default tab. Tabs with a PIN are
+    stepped past unless their code was entered recently.
+
+
+    The deck needs `remote_event: true`. Events can only be heard by decks
+    open as an admin user (a Home Assistant rule). To switch to a tab by name,
+    use the "show <tab> with Assist" blueprint.
+
+
+    Docs: https://github.com/tempus2016/tabdeck-card/wiki/Feature-Remote-Control
+  domain: automation
+  source_url: https://github.com/tempus2016/tabdeck-card/blob/main/blueprints/automation/tabdeck/assist_step_tabs.yaml
+  input:
+    next_sentences:
+      name: Next tab
+      default:
+        - "next tab"
+        - "show the next tab"
+      selector:
+        text:
+          multiple: true
+    previous_sentences:
+      name: Previous tab
+      default:
+        - "previous tab"
+        - "show the previous tab"
+      selector:
+        text:
+          multiple: true
+    back_sentences:
+      name: Back to the last tab
+      default:
+        - "go back"
+        - "last tab"
+        - "show the last tab"
+      selector:
+        text:
+          multiple: true
+    default_sentences:
+      name: Default tab
+      default:
+        - "home tab"
+        - "first tab"
+      selector:
+        text:
+          multiple: true
+    deck:
+      name: Only this deck
+      description: The deck's `event_id` (or `storage_key`). Leave empty for every deck.
+      default: ""
+      selector:
+        text: {}
+    device:
+      name: Only this device
+      description: A browser named with `?tabdeck_device=<name>`. Leave empty for every device.
+      default: ""
+      selector:
+        text: {}
+    reply:
+      name: Reply
+      description: What Assist says back.
+      default: "Done"
+      selector:
+        text: {}
+
+mode: queued
+
+variables:
+  deck: !input deck
+  device: !input device
+  reply: !input reply
+
+triggers:
+  - trigger: conversation
+    id: next
+    command: !input next_sentences
+  - trigger: conversation
+    id: previous
+    command: !input previous_sentences
+  - trigger: conversation
+    id: back
+    command: !input back_sentences
+  - trigger: conversation
+    id: default
+    command: !input default_sentences
+
+actions:
+  - event: tabdeck_select
+    event_data:
+      tab: "{{ trigger.id }}"
+      deck: "{{ deck }}"
+      device: "{{ device }}"
+  - set_conversation_response: "{{ reply }}"

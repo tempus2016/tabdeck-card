@@ -25,6 +25,7 @@ split:
 - Each column gets a title (the tab's icon and name) above its card.
 - With more tabs than columns, the extra ones wrap onto further rows.
 - [Navigation/action tabs](Feature-Navigation-Tabs) have no content, so they're left out.
+- A [PIN-locked](Feature-PIN) tab's column shows a lock, the tab's name and an **Enter PIN** button until its code is entered.
 - Column spacing is set by `--tabdeck-split-gap` (default `16px`).
 
 ## Narrow display (`tab_display_narrow`)
@@ -41,7 +42,30 @@ tabs: [ ... ]
 
 ![Narrow card: icon-only tabs](images/feature-narrow.png)
 
+## Follow the screen's orientation (`orientation_layout`)
+
+A wall tablet that gets turned round can move its bar to suit: **`orientation_layout: true`** puts the bar along the **bottom** while the screen is upright (portrait) and **down the left side** while it's sideways (landscape).
+
+```yaml
+type: custom:tabdeck-card
+orientation_layout: true
+tabs: [ ... ]
+```
+
+Pick your own sides with an object. A side you leave out keeps its default:
+
+```yaml
+orientation_layout:
+  portrait: top
+  landscape: right
+```
+
+- It follows the **screen**, not the card: a phone or tablet switches as it's turned, and a desktop window counts as portrait when it's taller than it is wide.
+- It replaces `position` while it's on; everything that works with a side bar (`rail_expand`, `tab_display_narrow`, sticky bars) works the same.
+- `dock` still puts the bar at the bottom of the screen and `wizard` still uses the top.
+- In the visual editor it's the **Follow the screen** switch under **Position**. Turning it on writes `true`; positions you set in YAML are kept.
+
 ## Notes
 
-- The width is measured live with a `ResizeObserver`, so layouts switch as you resize the window or change dashboard columns. It's only observed when one of these options is set.
+- The width is measured live with a `ResizeObserver`, so layouts switch as you resize the window or change dashboard columns. It's only observed when one of these options is set. The orientation is watched with a media query, only when `orientation_layout` is set.
 - All options are in the visual editor. The split column count is YAML-only, and it's kept when you change the width in the editor.

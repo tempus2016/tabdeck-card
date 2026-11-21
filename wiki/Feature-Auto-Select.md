@@ -28,5 +28,6 @@ tabs:
 - **String form** (`auto_select: <entity>`) fires when the entity becomes *active* — anything except `off`/`0`/`false`/`unavailable`/… (same rule as [dot badges](Feature-Badge-Display)).
 - **Object form** (`{ entity, state }`) fires on an exact state match.
 - If the target tab is currently hidden by [visibility](Tab-Visibility), the switch is skipped.
+- A [PIN-locked tab](Feature-PIN) isn't opened unless its code was entered in this browser within `pin_timeout`.
 
 > `auto_select` is configured in YAML (not the visual editor).

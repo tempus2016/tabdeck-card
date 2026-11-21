@@ -13,7 +13,7 @@ The `remember` option controls what happens when you leave and return:
 | Mode | Behaviour |
 | --- | --- |
 | `none` (default) | Always start on `default_tab`. |
-| `browser` | The selected tab is saved in `localStorage`, per dashboard + tab set, on that browser. |
+| `browser` | The selected tab is saved in `localStorage`, per dashboard + tab set, on that browser. It's saved by name, so it finds the same tab when the order changes (`customize`, `sort_by_usage`, `alert_first`). |
 | `url` | The selected tab is written to the URL hash (`#tab=<name>`), so links and reloads keep it and it can be deep-linked/shared. |
 | `entity` | The selected **index** is stored in a Home Assistant helper entity, so the active tab syncs across **all devices**. Set `remember_entity` to an `input_number` or `input_text`. |
 
@@ -67,6 +67,23 @@ With `remember: url` (or any mode, on first load), a `#tab=` hash selects a tab.
 
 An exact name match wins over a slug match.
 
+### Share button (`share_button`)
+
+**`share_button: true`** adds a share button to the bar. Tapping it copies a direct link to the open tab, such as `…/lovelace/home#tab=cameras`, and shows the link under the button. **`share_button: qr`** shows the link as a QR code too, which is the quickest way to point a new wall tablet at the right tab: scan it with the tablet's camera.
+
+```yaml
+type: custom:tabdeck-card
+share_button: qr     # or true for the link alone
+tabs: [ ... ]
+```
+
+- The link uses the tab's slug (its index when the name has no letters or digits), so it keeps working if you reorder tabs.
+- With `share_button` on, a deck opens the tab a `#tab=` link names whatever `remember` is set to. Without it, only `remember: url` reads links.
+- On plain `http://` dashboards the browser has no clipboard API, so the card copies the old-fashioned way. If that is blocked too, the panel says **Copy this link** and you can copy it from the box.
+- The QR code is drawn in your browser. The link isn't sent to any service.
+- Tap outside the panel, press **Esc** or switch tab to close it.
+- If several decks on one page read links, each opens its tab of that name.
+
 ### Notes
 
 - With `remember: url`, give your tabs **unique names** so the hash maps unambiguously.
@@ -88,3 +105,36 @@ tabs: [ ... ]
 - Only switches **you** make are recorded. Auto-rotate, idle return, `auto_select` and entity sync don't add entries.
 - Entries are tagged per deck, so Home Assistant's own history (views, more-info dialogs) isn't disturbed. Back with a dialog open closes the dialog and leaves the tab alone.
 - Combine with `remember: url` and each entry also carries its `#tab=` link.
+
+## Scroll memory (`scroll_memory`)
+
+With `scroll_memory: true`, each tab remembers how far down the page you'd scrolled. Switch to
+another tab and back, and you're where you left off instead of wherever the other tab left the page.
+
+```yaml
+type: custom:tabdeck-card
+scroll_memory: true
+```
+
+- It remembers the page's position and, when `content_height` / `content_max_height` make the
+  content scroll inside the card, that too.
+- A tab you haven't scrolled yet opens with the page where it is, as without the option.
+- Positions are kept per deck and tab until the page is reloaded. Not used with `scroll_spy`,
+  where scrolling is how you move between tabs.
+
+## Last-tab toggle (`last_tab_button`)
+
+**`last_tab_button: true`** adds a swap button at the end of the bar, labelled with the tab you had open before. Tapping it goes back there, and tapping it again flips back, so two tabs you keep moving between are one tap apart.
+
+```yaml
+type: custom:tabdeck-card
+last_tab_button: true
+tabs:
+  - { name: Lights, card: { type: tile, entity: light.kitchen } }
+  - { name: Cameras, card: { type: picture-entity, entity: camera.front_door } }
+```
+
+- The button appears after the first switch. It shows only the icon when `tab_display` is `icon` or `dots`.
+- With `hotkeys: true`, **l** does the same.
+- If the last tab has since been hidden by its visibility conditions or disabled, the button goes away until you switch again.
+- Automations can do the same with `tab: back` in a `tabdeck_select` event (see [Remote control & events](Feature-Remote-Control#events-remote_event-fire_event)).

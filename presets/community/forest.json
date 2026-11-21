@@ -1,0 +1,19 @@
+{
+  "$schema": "../preset.schema.json",
+  "name": "Forest",
+  "author": "tempus2016",
+  "description": "Dark green segmented bar with a fresh green selection.",
+  "config": {
+    "style": "segmented",
+    "align": "justify",
+    "indicator_radius": 10,
+    "bar_background": "#1b3a2b",
+    "styles": {
+      "--tabdeck-accent": "#8bc34a",
+      "--tabdeck-tab-color": "#c5e1a5",
+      "--tabdeck-selected-color": "#1b3a2b",
+      "--tabdeck-indicator-color": "#8bc34a",
+      "--tabdeck-bar-radius": "12px"
+    }
+  }
+}

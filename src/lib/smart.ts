@@ -146,6 +146,18 @@ export function pinUnlocked(deck: string, tab: string, now: number, minutes: num
   }
 }
 
+// When an unlock with `minutes` runs out (ms), or undefined when it never
+// does (no pin_timeout) or the tab isn't unlocked.
+export function pinExpiresAt(deck: string, tab: string, minutes: number | undefined): number | undefined {
+  if (minutes === undefined) return undefined;
+  try {
+    const at = Number(sessionStorage.getItem(pinKey(deck, tab)));
+    return Number.isFinite(at) && at > 0 ? at + minutes * 60_000 : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function rememberPin(deck: string, tab: string, now: number): void {
   try {
     sessionStorage.setItem(pinKey(deck, tab), String(now));

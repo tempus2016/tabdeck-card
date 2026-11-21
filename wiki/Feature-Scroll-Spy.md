@@ -37,6 +37,7 @@ tabs:
 - Selections made by scrolling aren't remembered. Taps are (per `remember`).
 - With `header: true`, each section gets its own title and the single content header is dropped.
 - Every card is always mounted, so `unmount_hidden` and `transition` don't apply in this mode.
+- A [PIN-locked](Feature-PIN) tab's section shows a lock, the tab's name and an **Enter PIN** button until its code is entered.
 
 ## Styling
 

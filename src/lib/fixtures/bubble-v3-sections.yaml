@@ -1,0 +1,33 @@
+# Bubble Card 3 style: pop-ups stand on their own in sections; a
+# horizontal-buttons-stack links to them. (Invented example.)
+type: sections
+sections:
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: horizontal-buttons-stack
+        1_name: Living room
+        1_icon: mdi:sofa
+        1_link: "#living-room"
+        2_name: Kitchen
+        2_icon: mdi:fridge
+        2_link: "#kitchen"
+      - type: tile
+        entity: sensor.outside_temperature
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: pop-up
+        hash: "#living-room"
+      - type: tile
+        entity: light.living_room
+      - type: tile
+        entity: media_player.tv
+  - type: grid
+    cards:
+      - type: custom:bubble-card
+        card_type: pop-up
+        hash: "#kitchen"
+        name: Cuisine
+      - type: tile
+        entity: light.kitchen

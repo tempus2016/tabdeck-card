@@ -1,0 +1,41 @@
+# Mushroom chips used as navigation. (Invented example.)
+type: custom:mushroom-chips-card
+alignment: center
+chips:
+  - type: action
+    icon: mdi:home
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace/home
+  - type: template
+    icon: mdi:lightbulb
+    content: Lights
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-rooms/lights
+  - type: template
+    icon: "{{ 'mdi:thermometer' }}"
+    content: "{{ states('sensor.temp') }} °C"
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace/climate
+  - type: entity
+    entity: person.anna
+    tap_action:
+      action: more-info
+  - type: conditional
+    conditions:
+      - entity: input_boolean.guest_mode
+        state: "on"
+    chip:
+      type: action
+      icon: mdi:account-multiple
+      tap_action:
+        action: navigate
+        navigation_path: /lovelace/guests
+  - type: action
+    icon: mdi:web
+    tap_action:
+      action: url
+      url_path: https://example.com/status
+  - type: back

@@ -32,3 +32,22 @@ tabs:
 - Subtitles make tabs taller — bump [`--tabdeck-tab-height`](Feature-Theming) if they feel cramped.
 - For a *dynamic* subtitle, set a [template](Badges) — or use a [badge](Badges) instead if you only need a count.
 - Set it from the **Subtitle** field in the [visual editor](Editor).
+
+## Hover summary (`tooltip`)
+
+A tab's `tooltip` is a short summary that appears when the mouse rests on the tab for half a second, or as soon as keyboard focus lands on it. It can be a template:
+
+```yaml
+tabs:
+  - name: Lights
+    icon: mdi:lightbulb-group
+    tooltip: >-
+      {{ states.light | selectattr('state','eq','on') | list | count }} lights on ·
+      hall {{ states('light.hall') }}
+    card: { ... }
+```
+
+- It appears below the tab (above it on a bottom bar or the dock, beside it on a side bar) and goes away when the pointer leaves, on a press or click, on scroll and with Escape.
+- Touch screens don't show it, and it never gets in the way of a long-press (`hold_action`, `hold_peek`, compare).
+- Screen readers get it as the tab's description.
+- Colours: `--tabdeck-tooltip-background`, `--tabdeck-tooltip-color`.

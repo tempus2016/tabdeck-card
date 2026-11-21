@@ -4,7 +4,7 @@ Real decks from Tabdeck users. Copy the ideas you like. Every entry links back t
 
 > 🙌 **Share yours:** post it in [Show and tell](https://github.com/tempus2016/tabdeck-card/discussions/new?category=show-and-tell). The form asks for a screenshot, a sentence about what it does, and (optionally) the YAML. Ones that are ticked "OK to feature" get added here with credit.
 >
-> 🎮 Want to experiment first? The [live demo](https://tempus2016.github.io/tabdeck-card/demo/) runs in your browser.
+> 🎮 Want to experiment first? The [live demo](https://tempus2016.github.io/tabdeck-card/demo/) runs in your browser. Edit the YAML there and **Copy a link to this config** gives you a link that opens the demo with your config, handy for asking a question or showing a deck. The config travels inside the link (after the `#`), so nothing is uploaded.
 
 ## Community decks
 

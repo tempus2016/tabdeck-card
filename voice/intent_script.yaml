@@ -1,0 +1,24 @@
+# Add to configuration.yaml (merge with an existing intent_script: block).
+# Pairs with voice/custom_sentences/en/tabdeck.yaml. Each intent fires the
+# tabdeck_select event that decks with `remote_event: true` listen for.
+# Set deck / device to limit it to one deck (its event_id) or one browser
+# (?tabdeck_device=<name>); empty means every deck on every device.
+intent_script:
+  TabdeckShowTab:
+    action:
+      - event: tabdeck_select
+        event_data:
+          tab: "{{ tabdeck_tab | trim }}"
+          deck: ""
+          device: ""
+    speech:
+      text: "Showing {{ tabdeck_tab | trim }}"
+  TabdeckStep:
+    action:
+      - event: tabdeck_select
+        event_data:
+          tab: "{{ tabdeck_step }}"
+          deck: ""
+          device: ""
+    speech:
+      text: "Done"

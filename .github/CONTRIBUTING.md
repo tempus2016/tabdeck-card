@@ -12,8 +12,9 @@ Requires Node.js 20+.
 npm install        # install dependencies
 npm test           # run the unit tests (Vitest + jsdom)
 npm run typecheck  # TypeScript type checking
-npm run build      # produce dist/tabdeck-card.js and dist/tabdeck-card-editor-<hash>.js
+npm run build      # produce dist/tabdeck-card.js, dist/tabdeck-card-editor-<hash>.js and the language chunks
 npm run dev        # rebuild on change while iterating
+npm run size       # after a build: gzip sizes against the budgets (CI runs it too)
 ```
 
 The build makes two files: the card (`vite.config.ts`) and, first, the visual
@@ -33,6 +34,15 @@ The source lives in `src/`:
 Every module has a colocated `*.test.ts`. Please add or update tests for any
 behaviour you change.
 
+## Size budget
+
+Everyone who uses the card downloads it on every dashboard load, so CI fails
+when a built file grows past its gzip budget (`src/lib/size-budget.ts`: the
+card, the editor, and each lazy-loaded language chunk). `npm run size` prints
+the same table locally after `npm run build`. If a feature needs a lot of code
+that only the editor uses, put it in the editor chunk. Raise a budget only on
+purpose, in the same pull request, and say why.
+
 ## Testing on real Home Assistant
 
 Unit tests are the first gate, **not** the only one. Frontend cards interact
@@ -41,7 +51,7 @@ so changes that affect rendering or behaviour should be verified on a live
 Home Assistant instance:
 
 1. `npm run build`
-2. Copy `dist/tabdeck-card.js` and `dist/tabdeck-card-editor-*.js` into your HA `config/www/`.
+2. Copy every `dist/*.js` (card, editor and language chunks) into your HA `config/www/`.
 3. Add it as a dashboard resource (`/local/tabdeck-card.js`, JavaScript Module).
 4. Hard-refresh the browser and check the console for errors.
 
@@ -77,6 +87,24 @@ Changed shots, with a diff image highlighting the changes, are written to
 `tests/visual/output/`. When a change to the look is intended, run the
 **Visual regression** workflow by hand with *update baselines* ticked and
 commit the `visual-baselines-linux` artifact into `tests/visual/linux/`.
+
+## Translations
+
+Tabdeck speaks English, German, Spanish, French, Italian, Dutch, Polish and
+Portuguese. Most of the non-English texts were machine-translated, so native
+speakers checking them are very welcome.
+
+- **Easiest:** use the Tabdeck project on [Hosted Weblate](https://hosted.weblate.org/projects/tabdeck-card/).
+  Suggest or fix a text in the browser; Weblate opens a pull request.
+- **By hand:** edit `src/translations/card/<lang>.ts` or
+  `src/translations/editor/<lang>.ts`, then run `npm run i18n:export` so the
+  JSON copies in `i18n/` that Weblate uses match, and open a pull request.
+
+Keep every `{placeholder}` and the `one:` / `other:` plural labels (see
+[`i18n/README.md`](../i18n/README.md)). Card texts appear in the tab bar and
+menus, so keep them short. A new language has to be registered in
+`src/lib/i18n.ts` (card) and `src/translations/editor/index.ts` (editor): open an
+issue first and we'll add it.
 
 ## Pull requests
 

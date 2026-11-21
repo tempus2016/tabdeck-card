@@ -1,27 +1,44 @@
+/// <reference types="vite/client" />
 import { describe, it, expect } from "vitest";
 import cardEn from "./card/en";
-import cardDe from "./card/de";
-import cardEs from "./card/es";
-import cardFr from "./card/fr";
-import cardIt from "./card/it";
-import cardNl from "./card/nl";
-import cardPl from "./card/pl";
-import cardPt from "./card/pt";
 import edEn from "./editor/en";
-import edDe from "./editor/de";
-import edEs from "./editor/es";
-import edFr from "./editor/fr";
-import edIt from "./editor/it";
-import edNl from "./editor/nl";
-import edPl from "./editor/pl";
-import edPt from "./editor/pt";
 
 type Dict = Record<string, string>;
+
+// Every language file beside English, picked up automatically.
+function others(files: Record<string, { default: Dict }>): Record<string, Dict> {
+  const out: Record<string, Dict> = {};
+  for (const [path, mod] of Object.entries(files)) {
+    const lang = path.split("/").pop()!.replace(/\.ts$/, "");
+    if (lang !== "en") out[lang] = mod.default;
+  }
+  return out;
+}
+const cardLangs = others(import.meta.glob<{ default: Dict }>(["./card/*.ts", "!./card/index.ts"], { eager: true }));
+const edLangs = others(import.meta.glob<{ default: Dict }>(["./editor/*.ts", "!./editor/index.ts"], { eager: true }));
+
 const SETS: Record<string, { en: Dict; langs: Record<string, Dict> }> = {
-  card: { en: cardEn, langs: { de: cardDe, es: cardEs, fr: cardFr, it: cardIt, nl: cardNl, pl: cardPl, pt: cardPt } },
-  editor: { en: edEn, langs: { de: edDe, es: edEs, fr: edFr, it: edIt, nl: edNl, pl: edPl, pt: edPt } },
+  card: { en: cardEn, langs: cardLangs },
+  editor: { en: edEn, langs: edLangs },
 };
-const placeholders = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort();
+const fullFiles = Object.keys(import.meta.glob("./editor/full/*.ts")).map((p) => p.split("/").pop()!.replace(/\.ts$/, ""));
+const cardIndex = import.meta.glob<string>("./card/index.ts", { query: "?raw", import: "default", eager: true })["./card/index.ts"];
+const edIndex = import.meta.glob<string>("./editor/index.ts", { query: "?raw", import: "default", eager: true })["./editor/index.ts"];
+
+describe("language wiring", () => {
+  it("card and editor have the same languages", () => {
+    expect(Object.keys(edLangs).sort()).toEqual(Object.keys(cardLangs).sort());
+  });
+
+  it.each(Object.keys(cardLangs))("%s has a loader in both index files and an editor/full file", (lang) => {
+    expect(cardIndex).toContain(`import("./${lang}")`);
+    expect(edIndex).toContain(`import("./full/${lang}")`);
+    expect(fullFiles).toContain(lang);
+  });
+});
+
+// Unique names: plural strings ("one:{n} alert|other:{n} alerts") repeat them per form.
+const placeholders = (s: string) => [...new Set(s.match(/\{\w+\}/g) ?? [])].sort();
 
 describe.each(Object.entries(SETS))("%s strings", (set, { en, langs }) => {
   it("card files hold card.* keys only; editor files none", () => {

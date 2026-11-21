@@ -1,0 +1,65 @@
+blueprint:
+  name: Tabdeck — "show <tab>" with Assist
+  description: >-
+    Say or type "show cameras" (or "open the cameras tab") to Assist and the
+    Tabdeck deck switches to that tab. A tab with a PIN isn't opened unless
+    its code was entered in that browser recently.
+
+
+    The deck needs `remote_event: true`. Events can only be heard by decks
+    open as an admin user (a Home Assistant rule).
+
+
+    Docs: https://github.com/tempus2016/tabdeck-card/wiki/Feature-Remote-Control
+  domain: automation
+  source_url: https://github.com/tempus2016/tabdeck-card/blob/main/blueprints/automation/tabdeck/assist_show_tab.yaml
+  input:
+    sentences:
+      name: Sentences
+      description: Use {tab} where the tab's name goes.
+      default:
+        - "show {tab}"
+        - "show the {tab} tab"
+        - "open the {tab} tab"
+      selector:
+        text:
+          multiple: true
+    deck:
+      name: Only this deck
+      description: The deck's `event_id` (or `storage_key`). Leave empty for every deck.
+      default: ""
+      selector:
+        text: {}
+    device:
+      name: Only this device
+      description: A browser named with `?tabdeck_device=<name>`. Leave empty for every device.
+      default: ""
+      selector:
+        text: {}
+    reply:
+      name: Reply
+      description: What Assist says back. {tab} is the tab asked for.
+      default: "Showing {tab}"
+      selector:
+        text: {}
+
+mode: queued
+
+variables:
+  deck: !input deck
+  device: !input device
+  reply: !input reply
+
+triggers:
+  - trigger: conversation
+    command: !input sentences
+
+actions:
+  - variables:
+      tab: "{{ trigger.slots.tab | trim }}"
+  - event: tabdeck_select
+    event_data:
+      tab: "{{ tab }}"
+      deck: "{{ deck }}"
+      device: "{{ device }}"
+  - set_conversation_response: "{{ reply | replace('{tab}', tab) }}"
