@@ -119,7 +119,7 @@ Every Tabdeck feature is **opt-in / configurable** — turn things on or off to 
 - **[Help translate](Feature-Languages#help-translate)** — check or fix texts in your language on Weblate; no coding needed.
 - **[Right-to-left](Feature-Languages#right-to-left-languages)** — mirrored layout, arrow keys and swipes for Arabic, Hebrew and similar (`direction` to force it).
 - **[Convert from another card](Feature-Convert)** — paste a tabbed-card, swipe-card, state-switch, stack, Bubble pop-ups (stacked or stand-alone), Mushroom chips, sections view or dashboard and get tabs.
-- **[Automation blueprints](Feature-Remote-Control#blueprints)** — show a tab when something happens, take over the deck when the doorbell rings, "show <tab>" with Assist, "next tab", "previous tab" and "go back", or step through tabs with a Zigbee knob or remote, without writing the automation.
+- **[Automation blueprints](Feature-Remote-Control#blueprints)** — show a tab when something happens, take over the deck when the doorbell rings, "show &lt;tab&gt;" with Assist, "next tab", "previous tab" and "go back", or step through tabs with a Zigbee knob or remote, without writing the automation.
 - **[Voice commands](Feature-Remote-Control#voice-commands-as-assist-intents)** — ready-made Assist sentences and intents for showing and stepping through tabs (`voice/`).
 - **[Gallery](Gallery)** — short animated clips of the card in action, made automatically from the demo.
 - **[Playground](https://tempus2016.github.io/tabdeck-card/demo/)** — edit a config in the browser, watch the card change, and share it with *Copy a link to this config*.
