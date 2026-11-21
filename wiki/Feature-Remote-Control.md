@@ -169,7 +169,7 @@ Ready-made automation blueprints drive `remote_event`, so you don't have to writ
 
 [![Import the blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Ftempus2016%2Ftabdeck-card%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Ftabdeck%2Fdoorbell_takeover.yaml)
 
-**"Show <tab>" with Assist**: say or type "show cameras", "show the lights tab" or "open the heating tab" to Assist, and the deck switches. You can change the sentences and the reply.
+**"Show &lt;tab&gt;" with Assist**: say or type "show cameras", "show the lights tab" or "open the heating tab" to Assist, and the deck switches. You can change the sentences and the reply.
 
 [![Import the blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Ftempus2016%2Ftabdeck-card%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Ftabdeck%2Fassist_show_tab.yaml)
 
@@ -286,7 +286,7 @@ actions:
       option: Cameras
 ```
 
-- Install the integration (copy `custom_components/tabdeck`, restart, then **Settings → Devices & services → Add integration → Tabdeck Companion**). Each browser that opens the dashboard becomes a device **Tabdeck <browser>** with one select per deck.
+- Install the integration (copy `custom_components/tabdeck`, restart, then **Settings → Devices & services → Add integration → Tabdeck Companion**). Each browser that opens the dashboard becomes a device **Tabdeck &lt;browser&gt;** with one select per deck.
 - **Browser id:** `companion_id` in the card (only for a dashboard a single device shows), else the [device name](#default-tab-per-device-default_by_device) set once with `?tabdeck_device=kitchen_tablet`, else browser_mod's id, else a random id the card keeps in that browser.
 - Only visible tabs that hold content are options. Picking one acts like `remote_entity`: a [PIN-locked tab](Feature-PIN) isn't opened (the entity stays on the open tab), the switch isn't remembered as the person's choice, and nothing happens in `quiet_hours`. A tap on the deck updates the entity at once.
 - The entity is **unavailable** while no window shows the deck, and keeps its tab list over a restart.
