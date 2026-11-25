@@ -21,7 +21,7 @@ import { isTemplate, makeHassSubscribe, TemplateRenderer, type SubscribeFn } fro
 import { formatBadge } from "./lib/badge";
 import { hassLanguage, LanguageController, localize, plural } from "./lib/i18n";
 import "./translations/card";
-import { detectSwipe, startsAtEdge, startsOnControl, type SwipePoint } from "./lib/swipe";
+import { claimsSideways, detectSwipe, startsAtEdge, startsOnControl, type SwipePoint } from "./lib/swipe";
 import { hideTabs, loadLayout, moveName, orderTabs, saveLayout, type UserLayout } from "./lib/customize";
 import { cssBackground, peekCommit, transitionFrames } from "./lib/layout";
 import { cssColor } from "./lib/color";
@@ -3188,7 +3188,7 @@ export class TabdeckCard extends LitElement {
       return;
     }
     const t = e.touches[0];
-    if (!this._swipeMayStart(e, t.clientX)) {
+    if (!this._swipeMayStart(e, t.clientX) || claimsSideways(e.composedPath(), e.currentTarget)) {
       this._touchStart = undefined;
       return;
     }
@@ -3217,20 +3217,24 @@ export class TabdeckCard extends LitElement {
     this._applySwipe(start, { x: t.clientX, y: t.clientY, t: e.timeStamp });
   };
 
-  // Mouse (pointer) drag swiping — opt-in via swipe_mouse, ignores touch
-  // pointers (handled by the touch listeners).
+  // Mouse (pointer) drag swiping — opt-in via swipe_mouse. Touch pointers
+  // are left to the touch listeners and never touch their state: Chrome
+  // fires pointerup before touchend, which used to wipe a touch swipe.
+  private _mouseStart?: SwipePoint;
+
   private _onPointerDown = (e: PointerEvent): void => {
-    if (!this._config?.swipe_mouse || e.pointerType === "touch" || !this._swipeMayStart(e, e.clientX)) {
-      this._touchStart = undefined;
-      return;
-    }
-    this._touchStart = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+    if (e.pointerType === "touch") return;
+    this._mouseStart =
+      this._config?.swipe_mouse && this._swipeMayStart(e, e.clientX)
+        ? { x: e.clientX, y: e.clientY, t: e.timeStamp }
+        : undefined;
   };
 
   private _onPointerUp = (e: PointerEvent): void => {
-    const start = this._touchStart;
-    this._touchStart = undefined;
-    if (!start || !this._config?.swipe_mouse || e.pointerType === "touch") return;
+    if (e.pointerType === "touch") return;
+    const start = this._mouseStart;
+    this._mouseStart = undefined;
+    if (!start || !this._config?.swipe_mouse) return;
     this._applySwipe(start, { x: e.clientX, y: e.clientY, t: e.timeStamp });
   };
 

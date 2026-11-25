@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { detectSwipe, startsAtEdge, startsOnControl } from "./swipe";
+import { describe, it, expect, afterEach } from "vitest";
+import { claimsSideways, detectSwipe, startsAtEdge, startsOnControl } from "./swipe";
 
 const p = (x: number, y: number, t: number) => ({ x, y, t });
 
@@ -65,5 +65,34 @@ describe("startsOnControl (swipe_lock)", () => {
   it("lets everything else swipe", () => {
     expect(startsOnControl([el("div"), el("hui-entities-card"), el("input", { type: "checkbox" }), document, window])).toBe(false);
     expect(startsOnControl([])).toBe(false);
+  });
+});
+
+describe("claimsSideways", () => {
+  // Attached, because jsdom only computes styles for elements in the document.
+  const el = (touchAction: string) => {
+    const e = document.createElement("div");
+    e.style.touchAction = touchAction;
+    document.body.appendChild(e);
+    return e;
+  };
+  afterEach(() => document.body.replaceChildren());
+  it("an element that keeps sideways pans from the browser claims the touch", () => {
+    expect(claimsSideways([el("none")], null)).toBe(true);
+    expect(claimsSideways([el("pan-y")], null)).toBe(true);
+    expect(claimsSideways([document.createElement("span"), el("pinch-zoom")], null)).toBe(true);
+  });
+  it("auto, manipulation and pan-x leave the touch to the deck", () => {
+    expect(claimsSideways([el(""), el("auto"), el("manipulation"), el("pan-x pan-y"), el("pan-left")], null)).toBe(false);
+    expect(claimsSideways([document, window], null)).toBe(false);
+    expect(claimsSideways([], null)).toBe(false);
+  });
+  it("stops at the deck's content", () => {
+    const content = el("auto");
+    expect(claimsSideways([el(""), content, el("pan-y")], content)).toBe(false);
+  });
+  it("reads touch-action through the given lookup", () => {
+    const a = document.createElement("div");
+    expect(claimsSideways([a], null, () => "pan-y")).toBe(true);
   });
 });

@@ -5,6 +5,10 @@ section below as its release notes (see `.github/workflows/release.yml`).
 
 ## Unreleased
 
+### Fixed
+
+- With `swipe_peek`, dragging a slider sideways on a touch screen (a tile card's brightness bar, for example) used to slide the tab's panel along with it and leave it stuck halfway with the next tab showing. The panel now stays put while you use the slider. A touch swipe used to depend on the order the browser sent its pointer and touch events. It now follows one rule: a drag that starts on something that handles sideways drags itself (a slider, a map) belongs to it, and a drag anywhere else switches tabs.
+
 ## v1.6.0 — 2026-11-21
 
 This release adds 87 features, folds the visual editor into sections, and brings the card to twenty languages. Decks can open an overview of every tab, find a card with Ctrl+K, show one tab in a popup, run as a step-by-step wizard, switch together with other decks, and hand the screen to a camera when the doorbell rings, then go back. A tab can show a dashboard view, a web page or Markdown in one line, and a tab's badge can be a progress bar, a small history graph or a countdown. For wall tablets there is a screensaver, quiet hours, keep-awake and a click sound. The editor used to be one list about twelve screens long and now opens at about one screen, with search, undo, a config check and a plain-language summary. Languages load only when used, twelve more were added, and the deck lays out right to left for Arabic. A new companion integration makes each browser's deck a Home Assistant entity. Four changes alter what an existing deck does (see Upgrading): automatic switches respect a PIN, a scrolling bar fades at its edges, `lazy: true` now really defers cards, and `remember: browser` saves the tab by name.
