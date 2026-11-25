@@ -58,7 +58,7 @@ describe("glass", () => {
     const b = bar(el);
     expect(b.hasAttribute("glass")).toBe(true);
     expect(b.style.getPropertyValue("--tabdeck-glass-blur")).toBe("20px");
-    expect(b.style.background).toBe("transparent");
+    expect(b.style.backgroundColor).toBe("transparent");
   });
 
   it("is off by default", async () => {
