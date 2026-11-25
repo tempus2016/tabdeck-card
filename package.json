@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@mdi/js": "^7.4.47",
-    "jsdom": "^30.1.3",
+    "jsdom": "^31.0.1",
     "pixelmatch": "^8.0.0",
     "playwright": "^1.65.0",
     "pngjs": "^7.0.0",
