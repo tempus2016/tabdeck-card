@@ -2099,14 +2099,15 @@ export class TabdeckCard extends LitElement {
   private _runAction(action: any, key: "tap" | "hold" | "double_tap"): void {
     if (!action || !this._hass) return;
     // custom-card-helpers only knows the legacy `call-service`; translate the
-    // modern `perform-action` (what HA's own action picker writes).
+    // modern `perform-action` (what HA's own action picker writes). Since 2.2
+    // it reads `data` (not `service_data`) and `target`, so fill both keys
+    // and old configs that use `service_data` keep working.
     if (action.action === "perform-action" && typeof action.perform_action === "string") {
-      action = {
-        ...action,
-        action: "call-service",
-        service: action.perform_action,
-        service_data: action.data ?? action.service_data,
-      };
+      action = { ...action, action: "call-service", service: action.perform_action };
+    }
+    if (action.action === "call-service") {
+      const data = action.data ?? action.service_data;
+      action = { ...action, data, service_data: data };
     }
     const cfg = { entity: action?.entity, [`${key}_action`]: action };
     handleAction(this, this._hass as any, cfg as any, key as any);
