@@ -210,7 +210,7 @@ describe("swipe peek", () => {
     const next = el.shadowRoot.querySelector('.panel[data-index="1"]') as HTMLElement;
     expect(active.style.transform).toBe("translateX(-100px)");
     expect(next.classList.contains("peek")).toBe(true);
-    expect(next.style.transform).toBe("translateX(calc(100% + -100px))");
+    expect(next.style.transform).toBe("translateX(calc(100% - 100px))");
   });
 
   it("past a third of the width it changes tab and clears the drag styles", async () => {
