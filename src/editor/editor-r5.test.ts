@@ -286,6 +286,8 @@ describe("plain-language summary", () => {
     el.hass = { states: {}, language: "de", locale: { language: "de" } };
     el._patch({ swipe: false });
     await el.updateComplete;
+    // The editor's German chunk can land after the first redraw on a busy run.
+    await vi.waitFor(() => expect(text()).toMatch(/^Dieses Deck/));
     expect(text()).toBe(
       "Dieses Deck hat 4 Tabs: Home, Lights, Cameras und Garage. Es öffnet mit Lights. Garage braucht eine PIN. Es wechselt alle 2 Sekunden zum nächsten Tab.",
     );

@@ -820,8 +820,9 @@ describe("localisation", () => {
     await el.updateComplete;
     // German is its own chunk: the editor redraws once it has arrived.
     await ensureLanguage("de");
-    await el.updateComplete;
-    expect(el.shadowRoot.querySelector(".add-tab").textContent).toContain("Tab hinzufügen");
+    // The editor's own German strings are a second chunk; under a busy test
+    // run they can land a little later, so wait for the redraw.
+    await vi.waitFor(() => expect(el.shadowRoot.querySelector(".add-tab").textContent).toContain("Tab hinzufügen"));
     el.hass = { states: {}, locale: { language: "xx" } };
     await el.updateComplete;
     expect(el.shadowRoot.querySelector(".add-tab").textContent).toContain("Add tab");
