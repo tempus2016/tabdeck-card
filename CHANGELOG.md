@@ -5,9 +5,39 @@ section below as its release notes (see `.github/workflows/release.yml`).
 
 ## Unreleased
 
-### Fixed
+## v1.6.1 — 2026-11-25
 
-- With `swipe_peek`, dragging a slider sideways on a touch screen (a tile card's brightness bar, for example) used to slide the tab's panel along with it and leave it stuck halfway with the next tab showing. The panel now stays put while you use the slider. A touch swipe used to depend on the order the browser sent its pointer and touch events. It now follows one rule: a drag that starts on something that handles sideways drags itself (a slider, a map) belongs to it, and a drag anywhere else switches tabs.
+This release fixes two bugs. A tab action written as `call-service` with `data:` (the key Home Assistant uses today) ran its service without the data, so a service that needs an entity failed. And with `swipe_peek` on, dragging a slider sideways on a touch screen dragged the tab's panel with it and left it stuck halfway. Four dependencies were updated too. Nothing about how a deck is set up changes.
+
+## Fixed
+
+- **Tab actions written with `data:` pass their data to the service.** An action with `action: call-service` used to pass on only the older `service_data:` key, so with `data:` the service ran without it. A service that needs an `entity_id`, such as `light.turn_on`, failed with an error in the browser console and nothing happened. Both keys now work, and so does `target:`. This covers every action the card runs: `tap_action`, `hold_action`, `double_tap_action`, `badge_action`, `enter_action`, `leave_action` and the wizard's `finish_action`. `perform-action` actions, which Home Assistant's action picker in the editor writes, already worked and are unchanged. ([#215](https://github.com/tempus2016/tabdeck-card/pull/215), [#218](https://github.com/tempus2016/tabdeck-card/pull/218))
+
+  ```yaml
+  tabs:
+    - name: Cameras
+      enter_action:
+        action: call-service
+        service: script.turn_on
+        data:
+          entity_id: script.start_stream
+      card: { type: markdown, content: "
+  ```
+
+- **With `swipe_peek`, dragging a slider no longer slides the tab's panel too.** On a touch screen, dragging something that handles its own sideways drags (a tile card's brightness bar, for example) used to slide the panel along with your finger, show the next tab beside it and leave both stuck halfway when you let go. The panel now stays still while you use the slider. Behind this was a timing bug that affected every touch swipe: whether a swipe counted depended on the order the browser sent its pointer and touch events. The deck now follows one rule on every browser: a drag that starts on something that takes sideways drags itself (a slider, a map) belongs to it, and a drag anywhere else switches tabs. Without `swipe_peek`, that is what already happened in Chrome, so nothing changes there. To have sliders keep the drag with a mouse as well (`swipe_mouse`), turn on `swipe_lock`. See [Gestures](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Gestures). ([#218](https://github.com/tempus2016/tabdeck-card/pull/218))
+
+## Changed
+
+- **Dependencies updated.** custom-card-helpers 2.0.0 → 2.2.1 ([#215](https://github.com/tempus2016/tabdeck-card/pull/215)), and for building and testing only: vite 8.3.7 → 8.3.8 ([#213](https://github.com/tempus2016/tabdeck-card/pull/213)), jsdom 30.1.3 → 31.0.1 ([#216](https://github.com/tempus2016/tabdeck-card/pull/216)), playwright 1.65.0 → 1.65.1 and vitest ([#217](https://github.com/tempus2016/tabdeck-card/pull/217)).
+
+## Upgrading
+
+- **Home Assistant Marketplace (HACS):** update Tabdeck and reload the browser.
+- **Manual install:** copy `tabdeck-card.js` and the new `tabdeck-card-editor-<hash>.js` from the release into the same folder, and delete the old `tabdeck-card-editor-<hash>.js`. The language files haven't changed since 1.6.0.
+
+Nothing in this release changes what an existing configuration does.
+
+**Full changelog:** https://github.com/tempus2016/tabdeck-card/compare/v1.6.0...v1.6.1
 
 ## v1.6.0 — 2026-11-21
 
