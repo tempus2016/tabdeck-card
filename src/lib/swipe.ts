@@ -55,3 +55,23 @@ export function startsOnControl(path: EventTarget[]): boolean {
   }
   return false;
 }
+
+// A touch that starts on an element whose CSS touch-action keeps sideways
+// pans away from the browser (none, pan-y, pinch-zoom) belongs to that
+// element: it handles the sideways drag itself, as HA's sliders do. Only
+// elements between the touch and `stop` (the deck's content) count.
+export function claimsSideways(
+  path: EventTarget[],
+  stop: EventTarget | null,
+  touchAction: (el: Element) => string = (el) => getComputedStyle(el).touchAction,
+): boolean {
+  for (const node of path) {
+    if (node === stop) break;
+    const el = node as Element;
+    if (!el || el.nodeType !== 1) continue;
+    const value = (touchAction(el) || "auto").toLowerCase();
+    if (value === "auto" || value === "manipulation") continue;
+    if (!/pan-(x|left|right)/.test(value)) return true;
+  }
+  return false;
+}

@@ -2579,6 +2579,76 @@ describe("swipe_lock", () => {
   });
 });
 
+describe("touch swipes and pointer events", () => {
+  const tabs = [
+    { name: "A", card: { type: "tile" } },
+    { name: "B", card: { type: "markdown" } },
+  ];
+  // A touch drag 120 px to the left on `target`; Chrome sends pointerup
+  // (pointerType touch) before touchend when it doesn't pan itself.
+  const drag = (el: any, target: Element) => {
+    const content = el.shadowRoot.querySelector(".content");
+    const start = new Event("touchstart", { bubbles: true, composed: true }) as any;
+    start.touches = [{ clientX: 300, clientY: 100 }];
+    Object.defineProperty(start, "timeStamp", { value: 1000 });
+    const down = new Event("pointerdown", { bubbles: true, composed: true }) as any;
+    Object.assign(down, { pointerType: "touch", clientX: 300, clientY: 100 });
+    target.dispatchEvent(down);
+    target.dispatchEvent(start);
+    const move = new Event("touchmove", { bubbles: true, composed: true }) as any;
+    move.touches = [{ clientX: 180, clientY: 100 }];
+    target.dispatchEvent(move);
+    const up = new Event("pointerup", { bubbles: true, composed: true }) as any;
+    Object.assign(up, { pointerType: "touch", clientX: 180, clientY: 100 });
+    target.dispatchEvent(up);
+    const end = new Event("touchend", { bubbles: true, composed: true }) as any;
+    end.changedTouches = [{ clientX: 180, clientY: 100 }];
+    Object.defineProperty(end, "timeStamp", { value: 1200 });
+    content.dispatchEvent(end);
+  };
+  const child = (el: any, touchAction = "") => {
+    const card = el.shadowRoot.querySelector('[data-type="tile"]');
+    const s = document.createElement("div");
+    s.style.touchAction = touchAction;
+    card.appendChild(s);
+    return s;
+  };
+
+  it("a touch swipe still switches when pointerup comes before touchend", async () => {
+    const el = await mount({ swipe: true, swipe_mouse: true, tabs });
+    drag(el, child(el));
+    await el.updateComplete;
+    expect(el.selectedTab).toBe("B");
+    el.remove();
+  });
+
+  it("a touch on an element that takes sideways drags (touch-action pan-y / none) stays with it", async () => {
+    const el = await mount({ swipe: true, tabs });
+    drag(el, child(el, "pan-y"));
+    await el.updateComplete;
+    expect(el.selectedTab).toBe("A");
+    drag(el, child(el, "none"));
+    await el.updateComplete;
+    expect(el.selectedTab).toBe("A");
+    el.remove();
+  });
+
+  it("swipe_peek: such a drag doesn't move the panel, and a normal one settles", async () => {
+    const el = await mount({ swipe: true, swipe_peek: true, tabs });
+    const content = el.shadowRoot.querySelector(".content");
+    const active = el.shadowRoot.querySelector('.panel[data-index="0"]');
+    drag(el, child(el, "pan-y"));
+    await el.updateComplete;
+    expect(active.style.transform).toBe("");
+    expect(content.classList.contains("dragging")).toBe(false);
+    drag(el, child(el));
+    await el.updateComplete;
+    expect(content.classList.contains("dragging")).toBe(false);
+    expect(active.style.transform).toBe("");
+    el.remove();
+  });
+});
+
 describe("drag_reorder", () => {
   const tabs = [
     { name: "A", card: { type: "markdown" } },
