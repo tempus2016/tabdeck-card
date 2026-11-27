@@ -4,6 +4,8 @@
 
 <h1 align="center">Tabdeck Card</h1>
 
+<!-- ha-marketplace:exclude-start -->
+
 <p align="center">
   <a href="https://github.com/tempus2016/tabdeck-card/releases"><img src="https://img.shields.io/github/v/release/tempus2016/tabdeck-card" alt="Latest Release"></a>
   <a href="https://github.com/tempus2016/tabdeck-card/releases"><img src="https://img.shields.io/github/downloads/tempus2016/tabdeck-card/total" alt="Downloads"></a>
@@ -18,6 +20,8 @@
   <a href="https://github.com/tempus2016/tabdeck-card/wiki"><img src="https://img.shields.io/badge/docs-wiki-blue" alt="Wiki"></a>
   <a href="https://community.home-assistant.io/t/tabdeck-card-a-modern-tabbed-card-with-a-visual-editor-alerts-dock-split-view-and-more/1030544"><img src="https://img.shields.io/badge/community-forum-41BDF5?logo=home-assistant&logoColor=white" alt="Community Forum"></a>
 </p>
+
+<!-- ha-marketplace:exclude-end -->
 
 A modern tabbed card for Home Assistant Lovelace dashboards — organize multiple
 cards into clean, themeable tabs with a visual editor, conditional tabs, badges,
@@ -59,6 +63,8 @@ A nested map card rendering correctly the moment its tab is selected — no
 - **Accessible** — `tablist` semantics, full keyboard navigation (Arrows, Home/End, skips disabled).
 - **Translated** — editor and card text in 20 languages, following your HA language: English, العربية, বাংলা, Deutsch, Español, Français, हिन्दी, Bahasa Indonesia, Italiano, 日本語, 한국어, Nederlands, Polski, Português, Русский, Türkçe, Українська, Tiếng Việt, 简体中文 and 繁體中文. [Help translate](https://github.com/tempus2016/tabdeck-card/wiki/Feature-Languages).
 
+<!-- ha-marketplace:exclude-start -->
+
 ## Installation (Marketplace)
 
 Tabdeck Card is in the default **Marketplace** catalog (formerly HACS) — no custom repository needed.
@@ -80,6 +86,8 @@ Tabdeck Card is in the default **Marketplace** catalog (formerly HACS) — no cu
    URL `/local/tabdeck-card.js`, type **JavaScript Module**. (Only the card is a resource;
    it loads the editor file itself when you open the visual editor, and only the language file
    your HA language needs.)
+
+<!-- ha-marketplace:exclude-end -->
 
 ## Example
 
